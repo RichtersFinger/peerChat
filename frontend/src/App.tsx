@@ -1,7 +1,17 @@
 import { useRef } from "react";
 
-function App() {
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:5000", {
+  autoConnect: false,
+});
+
+export default function App() {
   const pingRef = useRef<HTMLParagraphElement>(null);
+  const eventRef = useRef<HTMLParagraphElement>(null);
+  socket.on("event-response", (value) => {
+    if (eventRef.current) eventRef.current.innerText = JSON.stringify(value);
+  });
 
   return (
     <div>
@@ -17,8 +27,21 @@ function App() {
         ping
       </button>
       <p ref={pingRef}></p>
+      <button
+        onClick={() => {
+          socket.connect();
+        }}
+      >
+        connect
+      </button>
+      <button
+        onClick={() => {
+          socket.emit("event");
+        }}
+      >
+        event
+      </button>
+      <p ref={eventRef}></p>
     </div>
   );
 }
-
-export default App;
