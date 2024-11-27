@@ -4,6 +4,7 @@ import os
 import sys
 from pathlib import Path
 import json
+from uuid import uuid4
 
 from flask import Flask, Response, jsonify
 
@@ -53,6 +54,18 @@ app.register_blueprint(
     v0_blueprint(USER_JSON_FILE, user),
     url_prefix="/api/v0",
 )
+
+# load or generate (and store) secret key
+SECRET_KEY_FILE = Path(os.environ.get("SECRET_KEY_FILE", ".secret_key"))
+if SECRET_KEY_FILE.exists():
+    app.secret_key = SECRET_KEY_FILE.read_text(encoding="utf-8")
+else:
+    print(
+        f"INFO: Generating new secret key in {SECRET_KEY_FILE}",
+        file=sys.stderr,
+    )
+    app.secret_key = str(uuid4())
+    SECRET_KEY_FILE.write_text(app.secret_key, encoding="utf-8")
 
 
 @app.route("/ping", methods=["GET"])
