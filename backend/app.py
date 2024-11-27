@@ -68,6 +68,25 @@ else:
     SECRET_KEY_FILE.write_text(app.secret_key, encoding="utf-8")
 
 
+# configure for CORS (dev-only)
+try:
+    from flask_cors import CORS
+except ImportError:
+    pass
+else:
+    print("INFO: Configuring app for CORS.", file=sys.stderr)
+    _ = CORS(
+        app,
+        resources={
+            "*": {
+                "origins": os.environ.get(
+                    "CORS_FRONTEND_URL", "http://localhost:3000"
+                )
+            }
+        },
+    )
+
+
 @app.route("/ping", methods=["GET"])
 def ping():
     """
