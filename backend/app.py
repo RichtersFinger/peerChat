@@ -10,6 +10,7 @@ from flask import Flask, Response, jsonify
 
 from .common import User
 from .api.v0 import blueprint_factory as v0_blueprint
+from .socket import socket_
 
 
 # load and process (or initialize) user data
@@ -50,10 +51,6 @@ USER_JSON_FILE.write_text(json.dumps(user.json), encoding="utf-8")
 
 # define Flask-app
 app = Flask(__name__)
-app.register_blueprint(
-    v0_blueprint(USER_JSON_FILE, user),
-    url_prefix="/api/v0",
-)
 
 # load or generate (and store) secret key
 SECRET_KEY_FILE = Path(os.environ.get("SECRET_KEY_FILE", ".secret_key"))
@@ -68,7 +65,7 @@ else:
     SECRET_KEY_FILE.write_text(app.secret_key, encoding="utf-8")
 
 
-# configure for CORS (dev-only)
+# configure for CORS (development environment-only)
 try:
     from flask_cors import CORS
 except ImportError:
@@ -102,3 +99,14 @@ def who():
     paths.
     """
     return jsonify(name="peerChatAPI", api={"0": "/api/v0"}), 200
+
+
+# API
+app.register_blueprint(
+    v0_blueprint(USER_JSON_FILE, user),
+    url_prefix="/api/v0",
+)
+
+
+# socket
+socket_().init_app(app)

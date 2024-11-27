@@ -1,1 +1,3 @@
 Flask>=3,<4
+Flask-SocketIO>=5.4,<6
+# eventlet>=0.38,<1
