@@ -1,5 +1,5 @@
 import { useRef } from "react";
-
+import { useCookies } from "react-cookie";
 import { io } from "socket.io-client";
 
 const socket = io("http://localhost:5000", {
@@ -7,11 +7,14 @@ const socket = io("http://localhost:5000", {
   withCredentials: true,
 });
 
+const authKey = "peerChatAuth";
+
 export default function App() {
   const pingRef = useRef<HTMLParagraphElement>(null);
   const eventRef = useRef<HTMLParagraphElement>(null);
   const createKeyInputRef = useRef<HTMLInputElement>(null);
   const createKeyRef = useRef<HTMLParagraphElement>(null);
+  const [, setCookies] = useCookies([authKey]);
 
   socket.on("event-response", (value) => {
     if (eventRef.current) eventRef.current.innerText = JSON.stringify(value);
@@ -38,7 +41,7 @@ export default function App() {
             method: "POST",
             body: JSON.stringify(
               createKeyInputRef.current
-                ? { peerChatAuth: createKeyInputRef.current.value }
+                ? { [authKey]: createKeyInputRef.current.value }
                 : {}
             ),
             headers: { "content-type": "application/json" },
@@ -46,6 +49,7 @@ export default function App() {
             .then((response) => response.text())
             .then((text) => {
               if (createKeyRef.current) createKeyRef.current.innerText = text;
+              setCookies(authKey, text, { path: "/", maxAge: 2147483647 });
             });
         }}
       >
