@@ -11,6 +11,7 @@ A minimal self-hosted p2p chat application.
 - `USER_JSON_FILE` [DEFAULT ".user.json"] JSON-document location storing user profile settings
 - `DEFAULT_USER_AVATAR` [DEFAULT "static/avatar.png"] fallback user avatar location
 - `SECRET_KEY_FILE` [DEFAULT ".secret_key"] location for app's secret key file
+- `AUTH_FILE` [DEFAULT ".auth"] location for app's user-auth file
 
 ### Endpoints
 

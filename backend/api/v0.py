@@ -1,13 +1,11 @@
 """Definition of blueprint for backend API v0."""
 
-from pathlib import Path
-
 from flask import Blueprint, Response, jsonify, send_file
 
-from ..common import User  # pylint: disable=relative-beyond-top-level
+from ..common import User, Auth  # pylint: disable=relative-beyond-top-level
 
 
-def blueprint_factory(user_json_file: Path, user: User) -> Blueprint:
+def blueprint_factory(user: User, auth: Auth) -> Blueprint:
     """Returns a flask-Blueprint implementing the API v0."""
     bp = Blueprint("v0", "v0")
 

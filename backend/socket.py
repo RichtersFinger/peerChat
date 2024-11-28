@@ -1,17 +1,25 @@
+"""Socket.IO-websocket definition."""
+
 import os
 import sys
 
+from flask import request
 from flask_socketio import SocketIO
 
+from .common import Auth
 
-def socket_() -> SocketIO:
+
+def socket_(auth: Auth) -> SocketIO:
     """
-    Returns a fully configured `SocketIO`-object that can registered
+    Returns a fully configured `SocketIO`-object that can be registered
     with a Flask-application.
     """
     # enable CORS in development-environment
     try:
-        from flask_cors import CORS  # pylint: disable=import-outside-toplevel, unused-import
+        # pylint: disable=import-outside-toplevel, unused-import
+        from flask_cors import (
+            CORS,
+        )
     except ImportError:
         socketio = SocketIO()
     else:
@@ -24,11 +32,22 @@ def socket_() -> SocketIO:
 
     @socketio.on("connect")
     def connect():
+        if auth.value is None:
+            print("connection rejected, missing key setup")
+            return False
+        if auth.KEY not in request.cookies:
+            print("connection rejected, missing cookie")
+            return False
+        if request.cookies[auth.KEY] != auth.value:
+            print("connection rejected, bad cookie")
+            return False
         print("connected")
+        return True
 
     @socketio.on("event")
     def event():
         print("event happened")
         socketio.emit("event-response", {"value": 1})
+        return "event happened"
 
     return socketio
