@@ -44,9 +44,13 @@ def load_config() -> User:
         )
         user_json = {"name": DEFAULT_NAME, "avatar": DEFAULT_AVATAR}
     try:
-        user = User(user_json["name"], Path(user_json["avatar"]), USER_JSON_FILE)
+        user = User(
+            user_json["name"], Path(user_json["avatar"]), USER_JSON_FILE
+        )
     except (KeyError, TypeError) as exc_info:
-        print(f"WARNING: Bad data in user json file: {exc_info}", file=sys.stderr)
+        print(
+            f"WARNING: Bad data in user json file: {exc_info}", file=sys.stderr
+        )
         user = User(DEFAULT_NAME, DEFAULT_AVATAR, USER_JSON_FILE)
     if not user.avatar.exists():
         user.avatar = DEFAULT_AVATAR
@@ -89,7 +93,7 @@ def load_secret_key() -> str:
     return secret_key
 
 
-def load_cors(app: Flask) -> None:
+def load_cors(_app: Flask) -> None:
     """Loads CORS-extension if required."""
     # configure for CORS (development environment-only)
     try:
@@ -99,7 +103,7 @@ def load_cors(app: Flask) -> None:
     else:
         print("INFO: Configuring app for CORS.", file=sys.stderr)
         _ = CORS(
-            app,
+            _app,
             resources={
                 "*": {
                     "origins": os.environ.get(
