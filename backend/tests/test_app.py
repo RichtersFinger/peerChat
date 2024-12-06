@@ -2,86 +2,12 @@
 
 import os
 from pathlib import Path
-from shutil import rmtree
 from uuid import uuid4
 from json import dumps
-import random
-from datetime import datetime
-
-import pytest
 
 # pylint: disable=relative-beyond-top-level
 from ..app import load_config, load_auth, load_secret_key, app_factory
-from ..common import User, Auth, MessageStore
-
-
-@pytest.fixture(scope="session", name="tmp")
-def _tmp():
-    """Set up file_storage"""
-    return Path("tests/tmp")
-
-
-@pytest.fixture(scope="session", autouse=True)
-def fs_setup(request, tmp: Path):
-    """Set up file_storage"""
-
-    def cleanup():
-        """Cleanup tmp-dir."""
-        if tmp.is_dir():
-            rmtree(tmp)
-    cleanup()
-
-    tmp.mkdir(parents=True, exist_ok=True)
-    request.addfinalizer(cleanup)
-
-
-def fake_conversation(dir_: Path) -> Path:
-    """
-    Creates a fake conversation and returns path to the disk-location.
-    """
-    id_ = str(uuid4())
-    length = random.randint(1, 5)
-    conversation_dir = dir_ / id_
-    conversation_dir.mkdir(parents=True, exist_ok=False)
-    index = conversation_dir / "index.json"
-    index.write_text(
-        dumps(
-            {
-                "id": id_,
-                "origin": ".".join(
-                    [str(random.randint(1, 255)) for _ in range(4)]
-                ),
-                "name": f"conversation {random.randint(1, 10)}",
-                "length": length,
-                "lastModified": datetime.now().isoformat(),
-            }
-        ),
-        encoding="utf-8",
-    )
-    for msg_id in range(length):
-        msg_file = conversation_dir / f"{msg_id}.json"
-        msg_file.write_text(
-            dumps(
-                {
-                    "id": msg_id,
-                    "body": random.choice(["cat", "dog", "bird"]),
-                    "status": random.choice(
-                        [
-                            "ok",
-                            "queued",
-                            "sending",
-                            "draft",
-                            "deleted",
-                            "error",
-                        ]
-                    ),
-                    "lastModified": datetime.now().isoformat(),
-                }
-            ),
-            encoding="utf-8",
-        )
-
-    return conversation_dir
+from ..common import User, Auth
 
 
 def unload_environment_variable(name: str):
@@ -165,7 +91,7 @@ def test_load_secret_key_missing(request, tmp: Path):
 
 def test_app_ping():
     """Test endpoint `GET-/ping`."""
-    client = app_factory().test_client()
+    client = app_factory()[0].test_client()
     response = client.get("/ping")
     assert response.status_code == 200
     assert response.data == b"pong"
@@ -173,7 +99,7 @@ def test_app_ping():
 
 def test_app_who():
     """Test endpoint `GET-/who`."""
-    client = app_factory().test_client()
+    client = app_factory()[0].test_client()
     response = client.get("/who")
     assert response.status_code == 200
     assert "name" in response.json and response.json["name"] == "peerChatAPI"
@@ -186,7 +112,7 @@ def test_app_create_auth_key(request, tmp: Path):
     file = tmp / str(uuid4())
     os.environ["AUTH_FILE"] = str(file)
 
-    client = app_factory().test_client()
+    client = app_factory()[0].test_client()
     assert client.get("/auth/key").status_code == 404
     response = client.post("/auth/key")
     assert response.status_code == 200
@@ -202,7 +128,7 @@ def test_app_create_auth_key_existing(request, tmp: Path):
     file.write_text(str(uuid4()), encoding="utf-8")
     os.environ["AUTH_FILE"] = str(file)
 
-    client = app_factory().test_client()
+    client = app_factory()[0].test_client()
     assert client.get("/auth/key").status_code == 200
 
 
@@ -213,28 +139,8 @@ def test_app_create_auth_key_user_value(request, tmp: Path):
     key = str(uuid4())
     os.environ["AUTH_FILE"] = str(file)
 
-    client = app_factory().test_client()
+    client = app_factory()[0].test_client()
     response = client.post("/auth/key", json={Auth.KEY: key})
     assert response.status_code == 200
     assert response.data == file.read_bytes()
     assert response.data == key.encode(encoding="utf-8")
-
-
-def test_message_store_loading_and_caching_conversation(tmp: Path):
-    """Test loading and caching of conversations in `MessageStore`."""
-    store = MessageStore(tmp)
-
-    # check behavior for missing data
-    assert store.load_conversation("unknown-id") is None
-
-    # prepare and load test-data
-    conversation_dir = fake_conversation(tmp)
-    conversation = store.load_conversation(conversation_dir.name)
-
-    assert conversation is not None
-    assert conversation.id_ == conversation_dir.name
-
-    # test caching
-    rmtree(conversation_dir)
-    conversation = store.load_conversation(conversation_dir.name)
-    assert conversation is not None
