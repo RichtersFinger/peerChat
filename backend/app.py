@@ -8,8 +8,9 @@ from threading import Lock
 from uuid import uuid4
 
 from flask import Flask, Response, jsonify, request
+from flask_socketio import SocketIO
 
-from .common import User, Auth
+from .common import User, Auth, MessageStore
 from .api.v0 import blueprint_factory as v0_blueprint
 from .socket import socket_
 
@@ -114,7 +115,7 @@ def load_cors(_app: Flask) -> None:
         )
 
 
-def app_factory() -> Flask:
+def app_factory() -> tuple[Flask, SocketIO]:
     """Returns peerChat-Flask app."""
     # define Flask-app
     _app = Flask(__name__)
@@ -181,9 +182,9 @@ def app_factory() -> Flask:
     )
 
     # socket
-    socket_(auth).init_app(_app)
+    _socket = socket_(
+        auth, MessageStore(Path(os.environ.get("WORKING_DIR", "./data")))
+    )
+    _socket.init_app(_app)
 
-    return _app
-
-
-app = app_factory()
+    return _app, _socket

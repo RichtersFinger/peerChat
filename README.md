@@ -19,6 +19,7 @@ To reset that key, the corresponding key-file has to be deleted or another file 
 - `DEFAULT_USER_AVATAR` [DEFAULT "static/avatar.png"] fallback user avatar location
 - `SECRET_KEY_FILE` [DEFAULT ".secret_key"] location for app's secret key file
 - `AUTH_FILE` [DEFAULT ".auth"] location for app's user-auth file
+- `WORKING_DIR` [DEFAULT "./data"] path to app's data-storage (messages, cached data, ..)
 
 ### Endpoints
 

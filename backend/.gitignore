@@ -1,6 +1,7 @@
 venv/
 __pycache__/
 
+data/
 .user.json
 .secret_key
 .auth
