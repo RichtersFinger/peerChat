@@ -6,10 +6,10 @@ import sys
 from flask import request
 from flask_socketio import SocketIO
 
-from .common import Auth
+from .common import Auth, MessageStore
 
 
-def socket_(auth: Auth) -> SocketIO:
+def socket_(auth: Auth, store: MessageStore) -> SocketIO:
     """
     Returns a fully configured `SocketIO`-object that can be registered
     with a Flask-application.
@@ -49,5 +49,9 @@ def socket_(auth: Auth) -> SocketIO:
         print("event happened")
         socketio.emit("event-response", {"value": 1})
         return "event happened"
+
+    @socketio.on("ping")
+    def ping():
+        return "pong"
 
     return socketio
