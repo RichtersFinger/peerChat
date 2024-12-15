@@ -59,9 +59,16 @@ def test_ping(clients: tuple[Flask, SocketIO]):
     """Test 'ping'-event."""
     _, socket_client = clients
 
+    assert socket_client.emit("ping", callback=True) == "pong"
+
+
+def test_get_conversation_unknown(clients: tuple[Flask, SocketIO]):
+    """Test 'get-conversation'-event for unknown conversation."""
+    _, socket_client = clients
+
     assert (
-        socket_client.emit("ping", callback=lambda p: print(f"'{p}'"))
-        == "pong"
+        socket_client.emit("get-conversation", "unknown-id", callback=True)
+        == []
     )
 
 
@@ -70,7 +77,32 @@ def test_get_conversation(clients: tuple[Flask, SocketIO], tmp: Path):
     _, socket_client = clients
 
     c = fake_conversation(tmp)
+    c.messages = {}
 
-    socket_client.emit(
-        "get-conversation", c.id_, callback=lambda p: print(f"'{p}'")
+    assert (
+        socket_client.emit("get-conversation", c.id_, callback=True) == c.json
+    )
+
+
+def test_get_message_unknown(clients: tuple[Flask, SocketIO], tmp: Path):
+    """Test 'get-message'-event for unknown message."""
+    _, socket_client = clients
+
+    c = fake_conversation(tmp)
+
+    assert (
+        socket_client.emit("get-message", c.id_, "unknown-id", callback=True)
+        == []
+    )
+
+
+def test_get_message(clients: tuple[Flask, SocketIO], tmp: Path):
+    """Test 'get-message'-event."""
+    _, socket_client = clients
+
+    c = fake_conversation(tmp)
+
+    assert (
+        socket_client.emit("get-message", c.id_, "0", callback=lambda p: None)
+        == c.messages[0].json
     )

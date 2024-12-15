@@ -55,7 +55,23 @@ def socket_(auth: Auth, store: MessageStore) -> SocketIO:
         return "pong"
 
     @socketio.on("get-conversation")
-    def get_conversation(id_: str):
-        return store.load_conversation(id_).json
+    def get_conversation(cid: str):
+        """Returns conversation metadata."""
+        try:
+            return store.load_conversation(cid).json
+        except AttributeError:
+            return None
+
+    @socketio.on("get-message")
+    def get_message(cid: str, mid: str):
+        """Returns message data."""
+        try:
+            _mid = int(mid)
+        except ValueError:
+            return None
+        try:
+            return store.load_message(cid, _mid).json
+        except AttributeError:
+            return None
 
     return socketio
