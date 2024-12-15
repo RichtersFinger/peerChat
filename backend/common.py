@@ -5,8 +5,10 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from datetime import datetime
-from threading import RLock
+from threading import RLock, Lock
 import json
+from uuid import uuid4
+from enum import Enum
 
 
 @dataclass
@@ -32,21 +34,68 @@ class Auth:
     value: Optional[str]
 
 
+class MessageStatus(Enum):
+    """Message status enum."""
+
+    OK = "ok"
+    QUEUED = "queued"
+    SENDING = "sending"
+    DRAFT = "draft"
+    DELETED = "deleted"
+    ERROR = "error"
+
+
+@dataclass
+class Message:
+    """
+    Record class for message metadata and content. Implements
+    (de-)serialization methods `json` and `from_json`.
+    """
+
+    id_: str
+    body: Optional[str] = None
+    status: MessageStatus = MessageStatus.DRAFT
+    last_modified: datetime = field(default_factory=datetime.now)
+
+    @property
+    def json(self) -> dict:
+        """Returns a serializable representation of this object."""
+        return {
+            "id": self.id_,
+            "body": self.body,
+            "status": self.status.value,
+            "lastModified": self.last_modified.isoformat(),
+        }
+
+    @staticmethod
+    def from_json(json_: dict) -> "Conversation":
+        """
+        Returns instance initialized from serialized representation.
+        """
+        return Message(
+            id_=json_["id"],
+            body=json_["body"],
+            status=MessageStatus(json_["status"]),
+            last_modified=datetime.fromisoformat(json_["lastModified"]),
+        )
+
+
 @dataclass
 class Conversation:
     """
     Record class for conversation metadata and content. Implements
-    (de-)serialization methods for metadata.
+    (de-)serialization methods `json` and `from_json`.
     """
 
-    id_: str
     origin: str
     name: str
-    path: Optional[Path] = None
+    id_: str = field(default_factory=lambda: str(uuid4()))
+    path: Optional[Path] = None  # points to index-file
     length: int = 0
     last_modified: datetime = field(default_factory=datetime.now)
-    # TODO: add messages-field
+    messages: dict[int, Message] = field(default_factory=dict)
 
+    @property
     def json(self) -> dict:
         """Returns a serializable representation of this object."""
         return {
@@ -68,7 +117,7 @@ class Conversation:
             name=json_["name"],
             path=(None if "path" not in json_ else Path(json_["path"])),
             length=json_["length"],
-            last_modified=json_["lastModified"],
+            last_modified=datetime.fromisoformat(json_["lastModified"]),
         )
 
 
@@ -87,34 +136,58 @@ class MessageStore:
     def __init__(self, working_dir: Path) -> None:
         self._working_dir = working_dir
         self._cache: dict[str, Conversation] = {}
-        self._cache_lock = RLock()
+        self._master_lock = Lock()
+        self._cache_lock: dict[str, RLock] = {}
 
-    def load_conversation(self, id_: str) -> Optional[Conversation]:
+    def _check_locks(self, cid: str) -> RLock:
         """
-        Loads conversation-index into memory and returns `Conversation`-
-        object. Returns `None` in case of error.
+        Checks for existing lock for conversation `cid` in _cache_lock-
+        register and creates new if it does not exist.
+        """
+        if cid not in self._cache_lock:
+            with self._master_lock:
+                if cid not in self._cache_lock:
+                    self._cache_lock[cid] = RLock()
+        return self._cache_lock[cid]
+
+    def load_conversation(self, cid: str) -> Optional[Conversation]:
+        """
+        Loads conversation-metadata into memory and returns
+        `Conversation` (or `None` in case of error).
 
         Keyword arguments:
-        id_ -- conversation id to be loaded
+        cid -- conversation id to be loaded
         """
-        with self._cache_lock:
-            if id_ in self._cache:
-                return self._cache[id_]
+        with self._check_locks(cid):
+            if cid in self._cache:
+                return self._cache[cid]
 
+            index = self._working_dir / cid / "index.json"
             try:
-                self._cache[id_] = Conversation.from_json(
+                self._cache[cid] = Conversation.from_json(
                     json.loads(
-                        (self._working_dir / id_ / "index.json").read_text(
+                        index.read_text(
                             encoding="utf-8"
                         )
-                    )
+                    ) | {"path": index}
                 )
             except (
                 Exception  # pylint: disable=broad-exception-caught
             ) as exc_info:
                 print(
-                    f"ERROR: Unable to load conversation '{id_}': {exc_info}",
+                    f"ERROR: Unable to load conversation '{cid}': {exc_info}",
                     file=sys.stderr,
                 )
                 return None
-            return self._cache[id_]
+            return self._cache[cid]
+
+    def load_message(self, cid: str, mid: str) -> Optional[Message]:
+        """
+        Loads conversation-metadata into memory and returns
+        `Conversation` (or `None` in case of error).
+
+        Keyword arguments:
+        cid -- conversation id
+        mid -- message id
+        """
+        # TODO
