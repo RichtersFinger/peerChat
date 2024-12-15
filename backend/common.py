@@ -190,4 +190,27 @@ class MessageStore:
         cid -- conversation id
         mid -- message id
         """
-        # TODO
+        with self._check_locks(cid):
+            c = self.load_conversation(cid)
+            if c is None:
+                return None
+
+            if mid in c.messages:
+                return c.messages[mid]
+            try:
+                c.messages[mid] = Message.from_json(
+                    json.loads(
+                        (c.path.parent / f"{mid}.json").read_text(
+                            encoding="utf-8"
+                        )
+                    )
+                )
+            except (
+                Exception  # pylint: disable=broad-exception-caught
+            ) as exc_info:
+                print(
+                    f"ERROR: Unable to load conversation '{cid}': {exc_info}",
+                    file=sys.stderr,
+                )
+                return None
+            return c.messages[mid]

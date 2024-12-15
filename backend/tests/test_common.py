@@ -38,3 +38,23 @@ def test_message_store_loading_and_caching_conversation(tmp: Path):
     rmtree(conversation.path.parent)
     conversation = store.load_conversation(faked_conversation.id_)
     assert conversation is not None
+
+
+def test_message_store_loading_and_caching_messages(tmp: Path):
+    """Test loading and caching of messages in `MessageStore`."""
+    store = MessageStore(tmp)
+
+    # prepare and load test-data
+    faked_conversation = fake_conversation(tmp)
+
+    # check behavior for missing data
+    assert store.load_message(faked_conversation.id_, "unknown-id") is None
+
+    message = store.load_message(faked_conversation.id_, 0)
+    assert message is not None
+    assert faked_conversation.messages[0].json == message.json
+
+    # test caching
+    (faked_conversation.path.parent / "0.json").unlink()
+    message = store.load_message(faked_conversation.id_, 0)
+    assert message is not None

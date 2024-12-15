@@ -52,7 +52,7 @@ def fake_conversation(dir_: Path) -> Conversation:
         c.messages[msg_id] = Message(
             msg_id,
             random.choice(["cat", "dog", "bird"]),
-            random.choice([s for s in MessageStatus]),
+            random.choice(list(MessageStatus)),
         )
         (c.path.parent / f"{msg_id}.json").write_text(
             dumps(c.messages[msg_id].json),
