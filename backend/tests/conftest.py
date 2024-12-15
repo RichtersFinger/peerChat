@@ -8,7 +8,7 @@ import random
 
 import pytest
 
-from ..common import Conversation, Message, MessageStatus
+from ..common import Conversation, Message, MessageStatus, MessageStore
 
 
 @pytest.fixture(scope="session", name="tmp")
@@ -36,27 +36,25 @@ def fake_conversation(dir_: Path) -> Conversation:
     """
     Creates a fake conversation and returns `Conversation`.
     """
+    ms = MessageStore(dir_)
     c = Conversation(
         origin=".".join([str(random.randint(1, 255)) for _ in range(4)]),
         name=f"conversation {random.randint(1, 10)}",
         length=random.randint(1, 5),
         last_modified=datetime.now(),
     )
-    c.path = dir_ / c.id_ / "index.json"
-    c.path.parent.mkdir(parents=True, exist_ok=False)
-    c.path.write_text(
-        dumps(c.json),
-        encoding="utf-8",
-    )
+    c.path = dir_ / c.id_
+    ms.create_conversation(c)
+    ms.write(c.id_)
     for msg_id in range(c.length):
-        c.messages[msg_id] = Message(
-            msg_id,
-            random.choice(["cat", "dog", "bird"]),
-            random.choice(list(MessageStatus)),
+        ms.post_message(
+            c.id_,
+            Message(
+                msg_id,
+                random.choice(["cat", "dog", "bird"]),
+                random.choice(list(MessageStatus)),
+            ),
         )
-        (c.path.parent / f"{msg_id}.json").write_text(
-            dumps(c.messages[msg_id].json),
-            encoding="utf-8",
-        )
+        ms.write(c.id_, msg_id)
 
     return c

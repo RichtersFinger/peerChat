@@ -52,7 +52,7 @@ class Message:
     (de-)serialization methods `json` and `from_json`.
     """
 
-    id_: str
+    id_: Optional[int] = None
     body: Optional[str] = None
     status: MessageStatus = MessageStatus.DRAFT
     last_modified: datetime = field(default_factory=datetime.now)
@@ -61,19 +61,19 @@ class Message:
     def json(self) -> dict:
         """Returns a serializable representation of this object."""
         return {
-            "id": self.id_,
+            "id": None if self.id_ is None else str(self.id_),
             "body": self.body,
             "status": self.status.value,
             "lastModified": self.last_modified.isoformat(),
         }
 
     @staticmethod
-    def from_json(json_: dict) -> "Conversation":
+    def from_json(json_: dict) -> "Message":
         """
         Returns instance initialized from serialized representation.
         """
         return Message(
-            id_=json_["id"],
+            id_=None if json_["id"] is None else int(json_["id"]),
             body=json_["body"],
             status=MessageStatus(json_["status"]),
             last_modified=datetime.fromisoformat(json_["lastModified"]),
@@ -135,6 +135,7 @@ class MessageStore:
 
     def __init__(self, working_dir: Path) -> None:
         self._working_dir = working_dir
+        working_dir.mkdir(parents=True, exist_ok=True)
         self._cache: dict[str, Conversation] = {}
         self._master_lock = Lock()
         self._cache_lock: dict[str, RLock] = {}
@@ -165,11 +166,8 @@ class MessageStore:
             index = self._working_dir / cid / "index.json"
             try:
                 self._cache[cid] = Conversation.from_json(
-                    json.loads(
-                        index.read_text(
-                            encoding="utf-8"
-                        )
-                    ) | {"path": index}
+                    json.loads(index.read_text(encoding="utf-8"))
+                    | {"path": index.parent}
                 )
             except (
                 Exception  # pylint: disable=broad-exception-caught
@@ -178,7 +176,7 @@ class MessageStore:
                     f"ERROR: Unable to load conversation '{cid}': {exc_info}",
                     file=sys.stderr,
                 )
-                return None
+                return
             return self._cache[cid]
 
     def load_message(self, cid: str, mid: str) -> Optional[Message]:
@@ -193,16 +191,14 @@ class MessageStore:
         with self._check_locks(cid):
             c = self.load_conversation(cid)
             if c is None:
-                return None
+                return
 
             if mid in c.messages:
                 return c.messages[mid]
             try:
                 c.messages[mid] = Message.from_json(
                     json.loads(
-                        (c.path.parent / f"{mid}.json").read_text(
-                            encoding="utf-8"
-                        )
+                        (c.path / f"{mid}.json").read_text(encoding="utf-8")
                     )
                 )
             except (
@@ -212,5 +208,73 @@ class MessageStore:
                     f"ERROR: Unable to load conversation '{cid}': {exc_info}",
                     file=sys.stderr,
                 )
-                return None
+                return
             return c.messages[mid]
+
+    def create_conversation(self, c: Conversation) -> None:
+        """
+        Creates new conversation.
+
+        Keyword arguments:
+        c -- conversation object
+        """
+        with self._check_locks(c.id_):
+            c.path.mkdir(parents=True, exist_ok=True)
+            self._cache[c.id_] = c
+            self.write(c.id_)
+
+    def post_message(self, cid: str, msg: Message) -> None:
+        """
+        Handle request to post new message in existing conversation.
+
+        Keyword arguments:
+        cid -- conversation id
+        """
+        with self._check_locks(cid):
+            c = self.load_conversation(cid)
+            if c is None:
+                print(
+                    f"ERROR: Unable to post to conversation '{cid}'.",
+                    file=sys.stderr,
+                )
+                return
+            if msg.id_ is None:
+                msg.id_ = c.length
+            c.messages[msg.id_] = msg
+            c.length = len(c.messages)
+            self.write(c.id_, msg.id_)
+
+    def write(self, cid: int, mid: Optional[int] = None) -> None:
+        """
+        Write `Conversation` metadata or `Message` from cache to disk.
+
+        If `mid` is not `None`, the references `Message` will be written
+        instead of the Conversation-metadata
+
+        Keyword arguments:
+        cid -- conversation id
+        mid -- message id
+               (default None)
+        """
+        with self._check_locks(cid):
+            c = self.load_conversation(cid)
+            if c is None:
+                print(
+                    f"ERROR: Unable to write conversation '{cid}'.",
+                    file=sys.stderr,
+                )
+                return
+            if mid is None:
+                (c.path / "index.json").write_text(
+                    json.dumps(c.json), encoding="utf-8"
+                )
+                return
+            if mid not in c.messages:
+                print(
+                    f"ERROR: Unable to write message '{cid}.{mid}'.",
+                    file=sys.stderr,
+                )
+                return
+            (c.path / f"{mid}.json").write_text(
+                json.dumps(c.messages[mid].json), encoding="utf-8"
+            )

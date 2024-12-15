@@ -30,12 +30,12 @@ def test_message_store_loading_and_caching_conversation(tmp: Path):
 
     # prepare and load test-data
     faked_conversation = fake_conversation(tmp)
-    conversation = store.load_conversation(faked_conversation.path.parent.name)
+    conversation = store.load_conversation(faked_conversation.path.name)
     assert conversation is not None
     assert faked_conversation.json == conversation.json
 
     # test caching
-    rmtree(conversation.path.parent)
+    rmtree(conversation.path)
     conversation = store.load_conversation(faked_conversation.id_)
     assert conversation is not None
 
@@ -55,6 +55,6 @@ def test_message_store_loading_and_caching_messages(tmp: Path):
     assert faked_conversation.messages[0].json == message.json
 
     # test caching
-    (faked_conversation.path.parent / "0.json").unlink()
+    (faked_conversation.path / "0.json").unlink()
     message = store.load_message(faked_conversation.id_, 0)
     assert message is not None
