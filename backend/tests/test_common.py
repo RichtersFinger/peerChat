@@ -2,62 +2,23 @@
 
 from pathlib import Path
 from shutil import rmtree
-from uuid import uuid4
-from json import dumps
-from datetime import datetime
-import random
+from json import dumps, loads
 
 # pylint: disable=relative-beyond-top-level
-from ..common import MessageStore
+from ..common import Message, Conversation, MessageStore
+from .conftest import fake_conversation
 
 
-def fake_conversation(dir_: Path) -> Path:
-    """
-    Creates a fake conversation and returns path to the disk-location.
-    """
-    id_ = str(uuid4())
-    length = random.randint(1, 5)
-    conversation_dir = dir_ / id_
-    conversation_dir.mkdir(parents=True, exist_ok=False)
-    index = conversation_dir / "index.json"
-    index.write_text(
-        dumps(
-            {
-                "id": id_,
-                "origin": ".".join(
-                    [str(random.randint(1, 255)) for _ in range(4)]
-                ),
-                "name": f"conversation {random.randint(1, 10)}",
-                "length": length,
-                "lastModified": datetime.now().isoformat(),
-            }
-        ),
-        encoding="utf-8",
-    )
-    for msg_id in range(length):
-        msg_file = conversation_dir / f"{msg_id}.json"
-        msg_file.write_text(
-            dumps(
-                {
-                    "id": msg_id,
-                    "body": random.choice(["cat", "dog", "bird"]),
-                    "status": random.choice(
-                        [
-                            "ok",
-                            "queued",
-                            "sending",
-                            "draft",
-                            "deleted",
-                            "error",
-                        ]
-                    ),
-                    "lastModified": datetime.now().isoformat(),
-                }
-            ),
-            encoding="utf-8",
-        )
+def test_message_de_serialization():
+    """Test (de-)serialization of `Message`."""
+    m = Message("0")
+    assert m.json == Message.from_json(loads(dumps(m.json))).json
 
-    return conversation_dir
+
+def test_conversation_de_serialization(tmp: Path):
+    """Test (de-)serialization of `Conversation`."""
+    c = Conversation("0.0.0.0", "c-0", path=tmp, messages={"0": Message("0")})
+    assert c.json == Conversation.from_json(loads(dumps(c.json))).json
 
 
 def test_message_store_loading_and_caching_conversation(tmp: Path):
@@ -68,13 +29,12 @@ def test_message_store_loading_and_caching_conversation(tmp: Path):
     assert store.load_conversation("unknown-id") is None
 
     # prepare and load test-data
-    conversation_dir = fake_conversation(tmp)
-    conversation = store.load_conversation(conversation_dir.name)
-
+    faked_conversation = fake_conversation(tmp)
+    conversation = store.load_conversation(faked_conversation.path.parent.name)
     assert conversation is not None
-    assert conversation.id_ == conversation_dir.name
+    assert faked_conversation.json == conversation.json
 
     # test caching
-    rmtree(conversation_dir)
-    conversation = store.load_conversation(conversation_dir.name)
+    rmtree(conversation.path.parent)
+    conversation = store.load_conversation(faked_conversation.id_)
     assert conversation is not None
