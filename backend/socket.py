@@ -54,4 +54,8 @@ def socket_(auth: Auth, store: MessageStore) -> SocketIO:
     def ping():
         return "pong"
 
+    @socketio.on("get-conversation")
+    def get_conversation(id_: str):
+        return store.load_conversation(id_).json
+
     return socketio

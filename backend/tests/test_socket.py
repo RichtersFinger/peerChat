@@ -11,6 +11,7 @@ from flask_socketio import SocketIO
 # pylint: disable=relative-beyond-top-level
 from ..app import app_factory
 from ..common import Auth
+from .conftest import fake_conversation
 
 
 def unload_environment_variable(name: str):
@@ -27,7 +28,7 @@ def _clients(request, tmp: Path):
     file.write_text(key, encoding="utf-8")
     os.environ["AUTH_FILE"] = str(file)
 
-    app, socket = app_factory()
+    app, socket = app_factory(tmp)
     http_client = app.test_client()
     http_client.set_cookie(Auth.KEY, key)
     socket_client = socket.test_client(app=app, flask_test_client=http_client)
@@ -61,4 +62,15 @@ def test_ping(clients: tuple[Flask, SocketIO]):
     assert (
         socket_client.emit("ping", callback=lambda p: print(f"'{p}'"))
         == "pong"
+    )
+
+
+def test_get_conversation(clients: tuple[Flask, SocketIO], tmp: Path):
+    """Test 'get-conversation'-event."""
+    _, socket_client = clients
+
+    c = fake_conversation(tmp)
+
+    socket_client.emit(
+        "get-conversation", c.id_, callback=lambda p: print(f"'{p}'")
     )

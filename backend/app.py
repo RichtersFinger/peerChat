@@ -1,5 +1,6 @@
 """peerChat-backend definition."""
 
+from typing import Optional
 import os
 import sys
 from pathlib import Path
@@ -115,7 +116,7 @@ def load_cors(_app: Flask) -> None:
         )
 
 
-def app_factory() -> tuple[Flask, SocketIO]:
+def app_factory(working_dir: Optional[Path] = None) -> tuple[Flask, SocketIO]:
     """Returns peerChat-Flask app."""
     # define Flask-app
     _app = Flask(__name__)
@@ -183,7 +184,10 @@ def app_factory() -> tuple[Flask, SocketIO]:
 
     # socket
     _socket = socket_(
-        auth, MessageStore(Path(os.environ.get("WORKING_DIR", "./data")))
+        auth,
+        MessageStore(
+            working_dir or Path(os.environ.get("WORKING_DIR", "./data"))
+        ),
     )
     _socket.init_app(_app)
 
