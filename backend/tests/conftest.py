@@ -46,7 +46,7 @@ def fake_conversation(dir_: Path) -> Conversation:
     c.path = dir_ / c.id_
     ms.create_conversation(c)
     ms.write(c.id_)
-    for msg_id in range(c.length):
+    for msg_id in map(str, range(c.length)):
         ms.post_message(
             c.id_,
             Message(

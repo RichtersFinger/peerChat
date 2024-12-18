@@ -50,9 +50,11 @@ class Message:
     """
     Record class for message metadata and content. Implements
     (de-)serialization methods `json` and `from_json`.
+
+    Message `id_`s are strings of integer values 0, 1, 2...
     """
 
-    id_: Optional[int] = None
+    id_: Optional[str] = None
     body: Optional[str] = None
     status: MessageStatus = MessageStatus.DRAFT
     last_modified: datetime = field(default_factory=datetime.now)
@@ -61,7 +63,7 @@ class Message:
     def json(self) -> dict:
         """Returns a serializable representation of this object."""
         return {
-            "id": None if self.id_ is None else str(self.id_),
+            "id": None if self.id_ is None else self.id_,
             "body": self.body,
             "status": self.status.value,
             "lastModified": self.last_modified.isoformat(),
@@ -73,7 +75,7 @@ class Message:
         Returns instance initialized from serialized representation.
         """
         return Message(
-            id_=None if json_["id"] is None else int(json_["id"]),
+            id_=None if json_["id"] is None else json_["id"],
             body=json_["body"],
             status=MessageStatus(json_["status"]),
             last_modified=datetime.fromisoformat(json_["lastModified"]),
@@ -85,6 +87,8 @@ class Conversation:
     """
     Record class for conversation metadata and content. Implements
     (de-)serialization methods `json` and `from_json`.
+
+    The keys in `messages` are strings of integer values 0, 1, 2...
     """
 
     origin: str
@@ -93,7 +97,7 @@ class Conversation:
     path: Optional[Path] = None  # points to index-file
     length: int = 0
     last_modified: datetime = field(default_factory=datetime.now)
-    messages: dict[int, Message] = field(default_factory=dict)
+    messages: dict[str, Message] = field(default_factory=dict)
 
     @property
     def json(self) -> dict:
@@ -239,12 +243,12 @@ class MessageStore:
                 )
                 return
             if msg.id_ is None:
-                msg.id_ = c.length
+                msg.id_ = str(c.length)
             c.messages[msg.id_] = msg
             c.length = len(c.messages)
             self.write(c.id_, msg.id_)
 
-    def write(self, cid: int, mid: Optional[int] = None) -> None:
+    def write(self, cid: str, mid: Optional[str] = None) -> None:
         """
         Write `Conversation` metadata or `Message` from cache to disk.
 

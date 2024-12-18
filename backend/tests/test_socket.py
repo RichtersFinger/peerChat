@@ -104,5 +104,5 @@ def test_get_message(clients: tuple[Flask, SocketIO], tmp: Path):
 
     assert (
         socket_client.emit("get-message", c.id_, "0", callback=lambda p: None)
-        == c.messages[0].json
+        == c.messages["0"].json
     )

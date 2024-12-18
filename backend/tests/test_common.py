@@ -50,11 +50,11 @@ def test_message_store_loading_and_caching_messages(tmp: Path):
     # check behavior for missing data
     assert store.load_message(faked_conversation.id_, "unknown-id") is None
 
-    message = store.load_message(faked_conversation.id_, 0)
+    message = store.load_message(faked_conversation.id_, "0")
     assert message is not None
-    assert faked_conversation.messages[0].json == message.json
+    assert faked_conversation.messages["0"].json == message.json
 
     # test caching
     (faked_conversation.path / "0.json").unlink()
-    message = store.load_message(faked_conversation.id_, 0)
+    message = store.load_message(faked_conversation.id_, "0")
     assert message is not None

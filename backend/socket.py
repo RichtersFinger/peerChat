@@ -66,11 +66,7 @@ def socket_(auth: Auth, store: MessageStore) -> SocketIO:
     def get_message(cid: str, mid: str):
         """Returns message data."""
         try:
-            _mid = int(mid)
-        except ValueError:
-            return None
-        try:
-            return store.load_message(cid, _mid).json
+            return store.load_message(cid, mid).json
         except AttributeError:
             return None
 
