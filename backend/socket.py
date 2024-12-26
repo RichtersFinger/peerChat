@@ -6,7 +6,7 @@ import sys
 from flask import request
 from flask_socketio import SocketIO
 
-from .common import Auth, MessageStore
+from .common import Auth, MessageStore, Conversation
 
 
 def socket_(auth: Auth, store: MessageStore) -> SocketIO:
@@ -53,6 +53,14 @@ def socket_(auth: Auth, store: MessageStore) -> SocketIO:
     @socketio.on("ping")
     def ping():
         return "pong"
+
+    @socketio.on("create-conversation")
+    def create_conversation(peer: str, name: str):
+        """Creates a new conversation and returns its id."""
+        c = Conversation(peer=peer, name=name)
+        store.set_conversation_path(c)
+        store.create_conversation(c)
+        return c.id_
 
     @socketio.on("list-conversations")
     def list_conversations():

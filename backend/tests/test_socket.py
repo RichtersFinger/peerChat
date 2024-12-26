@@ -93,6 +93,23 @@ def test_get_conversation(clients: tuple[Flask, SocketIO], tmp: Path):
     )
 
 
+def test_create_conversations(clients: tuple[Flask, SocketIO]):
+    """Test 'create-conversation'-event."""
+    _, socket_client = clients
+
+    id_ = socket_client.emit(
+        "create-conversation",
+        "hostname.com",
+        "some topic",
+        callback=True,
+    )
+
+    assert socket_client.emit("list-conversations", callback=True) == [id_]
+    c = socket_client.emit("get-conversation", id_, callback=True)
+    assert c["peer"] == "hostname.com"
+    assert c["name"] == "some topic"
+
+
 def test_get_message_unknown(clients: tuple[Flask, SocketIO], tmp: Path):
     """Test 'get-message'-event for unknown message."""
     _, socket_client = clients

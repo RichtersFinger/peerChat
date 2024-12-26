@@ -46,12 +46,12 @@ def fake_conversation(dir_: Path) -> Conversation:
     """
     ms = MessageStore(dir_)
     c = Conversation(
-        origin=".".join([str(random.randint(1, 255)) for _ in range(4)]),
+        peer=".".join([str(random.randint(1, 255)) for _ in range(4)]),
         name=f"conversation {random.randint(1, 10)}",
         length=random.randint(1, 5),
         last_modified=datetime.now(),
     )
-    c.path = dir_ / c.id_
+    ms.set_conversation_path(c)
     ms.create_conversation(c)
     ms.write(c.id_)
     for msg_id in map(str, range(c.length)):

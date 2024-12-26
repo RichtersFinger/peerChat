@@ -94,10 +94,10 @@ class Conversation:
     The keys in `messages` are strings of integer values 0, 1, 2...
     """
 
-    origin: str
+    peer: str
     name: str
     id_: str = field(default_factory=lambda: str(uuid4()))
-    path: Optional[Path] = None  # points to index-file
+    path: Optional[Path] = None  # points to directory
     length: int = 0
     last_modified: datetime = field(default_factory=datetime.now)
     messages: dict[str, Message] = field(default_factory=dict)
@@ -107,7 +107,7 @@ class Conversation:
         """Returns a serializable representation of this object."""
         return {
             "id": self.id_,
-            "origin": self.origin,
+            "peer": self.peer,
             "name": self.name,
             "length": self.length,
             "lastModified": self.last_modified.isoformat(),
@@ -120,7 +120,7 @@ class Conversation:
         """
         return Conversation(
             id_=json_["id"],
-            origin=json_["origin"],
+            peer=json_["peer"],
             name=json_["name"],
             path=(None if "path" not in json_ else Path(json_["path"])),
             length=json_["length"],
@@ -225,6 +225,10 @@ class MessageStore:
                 )
                 return
             return c.messages[mid]
+
+    def set_conversation_path(self, c: Conversation) -> None:
+        """Sets a `Conversation`'s index-path."""
+        c.path = self._working_dir / c.id_
 
     def create_conversation(self, c: Conversation) -> None:
         """
