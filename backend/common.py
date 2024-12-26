@@ -57,15 +57,17 @@ class Message:
     id_: Optional[str] = None
     body: Optional[str] = None
     status: MessageStatus = MessageStatus.DRAFT
+    is_mine: bool = True
     last_modified: datetime = field(default_factory=datetime.now)
 
     @property
     def json(self) -> dict:
         """Returns a serializable representation of this object."""
         return {
-            "id": None if self.id_ is None else self.id_,
+            "id": self.id_,
             "body": self.body,
             "status": self.status.value,
+            "isMine": self.is_mine,
             "lastModified": self.last_modified.isoformat(),
         }
 
@@ -75,9 +77,10 @@ class Message:
         Returns instance initialized from serialized representation.
         """
         return Message(
-            id_=None if json_["id"] is None else json_["id"],
+            id_=json_["id"],
             body=json_["body"],
             status=MessageStatus(json_["status"]),
+            is_mine=json_["isMine"],
             last_modified=datetime.fromisoformat(json_["lastModified"]),
         )
 
