@@ -6,7 +6,7 @@ import sys
 from flask import request
 from flask_socketio import SocketIO
 
-from .common import Auth, MessageStore, Conversation
+from .common import Auth, MessageStore, Conversation, Message
 
 
 def socket_(auth: Auth, store: MessageStore) -> SocketIO:
@@ -82,5 +82,10 @@ def socket_(auth: Auth, store: MessageStore) -> SocketIO:
             return store.load_message(cid, mid).json
         except AttributeError:
             return None
+
+    @socketio.on("post-message")
+    def post_message(cid: str, msg: dict):
+        """Post message data."""
+        return store.post_message(cid, Message.from_json(msg))
 
     return socketio

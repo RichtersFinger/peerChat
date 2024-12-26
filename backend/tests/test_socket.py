@@ -10,7 +10,7 @@ from flask_socketio import SocketIO
 
 # pylint: disable=relative-beyond-top-level
 from ..app import app_factory
-from ..common import Auth
+from ..common import Auth, Message, MessageStatus
 from .conftest import fake_conversation
 
 
@@ -129,6 +129,38 @@ def test_get_message(clients: tuple[Flask, SocketIO], tmp: Path):
     c = fake_conversation(tmp)
 
     assert (
-        socket_client.emit("get-message", c.id_, "0", callback=lambda p: None)
+        socket_client.emit("get-message", c.id_, "0", callback=True)
         == c.messages["0"].json
     )
+
+
+def test_post_message_minimal(clients: tuple[Flask, SocketIO], tmp: Path):
+    """Test 'post-message'-event."""
+    _, socket_client = clients
+
+    c = fake_conversation(tmp)
+    m = Message(body="text1")
+
+    assert socket_client.emit(
+        "post-message", c.id_, m.json, callback=True
+    ) == str(c.length)
+    assert socket_client.emit(
+        "get-message", c.id_, str(c.length), callback=True
+    ) == m.json | {"id": str(c.length)}
+
+
+def test_post_message(clients: tuple[Flask, SocketIO], tmp: Path):
+    """Test 'post-message'-event."""
+    _, socket_client = clients
+
+    c = fake_conversation(tmp)
+    m = Message(
+        id_="1", body="text2", is_mine=True, status=MessageStatus.ERROR
+    )
+
+    assert socket_client.emit(
+        "post-message", c.id_, m.json, callback=True
+    ) == m.id_
+    assert socket_client.emit(
+        "get-message", c.id_, m.id_, callback=True
+    ) == m.json

@@ -191,7 +191,7 @@ class MessageStore:
                     f"ERROR: Unable to load conversation '{cid}': {exc_info}",
                     file=sys.stderr,
                 )
-                return
+                return None
             return self._cache[cid]
 
     def load_message(self, cid: str, mid: str) -> Optional[Message]:
@@ -206,7 +206,7 @@ class MessageStore:
         with self._check_locks(cid):
             c = self.load_conversation(cid)
             if c is None:
-                return
+                return None
 
             if mid in c.messages:
                 return c.messages[mid]
@@ -223,7 +223,7 @@ class MessageStore:
                     f"ERROR: Unable to load conversation '{cid}': {exc_info}",
                     file=sys.stderr,
                 )
-                return
+                return None
             return c.messages[mid]
 
     def set_conversation_path(self, c: Conversation) -> None:
@@ -242,12 +242,14 @@ class MessageStore:
             self._cache[c.id_] = c
             self.write(c.id_)
 
-    def post_message(self, cid: str, msg: Message) -> None:
+    def post_message(self, cid: str, msg: Message) -> str:
         """
         Handle request to post new message in existing conversation.
+        Returns `Message.id_`.
 
         Keyword arguments:
         cid -- conversation id
+        msg -- message object
         """
         with self._check_locks(cid):
             c = self.load_conversation(cid)
@@ -262,6 +264,7 @@ class MessageStore:
             c.messages[msg.id_] = msg
             c.length = len(c.messages)
             self.write(c.id_, msg.id_)
+            return msg.id_
 
     def write(self, cid: str, mid: Optional[str] = None) -> None:
         """
