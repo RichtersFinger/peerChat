@@ -128,6 +128,11 @@ def app_factory(working_dir: Optional[Path] = None) -> tuple[Flask, SocketIO]:
     user = load_config()
     auth = load_auth()
 
+    # message store
+    store = MessageStore(
+        working_dir or Path(os.environ.get("WORKING_DIR", "./data"))
+    )
+
     # extensions
     load_cors(_app)
 
@@ -176,19 +181,19 @@ def app_factory(working_dir: Optional[Path] = None) -> tuple[Flask, SocketIO]:
             auth.file.write_text(auth.value, encoding="utf-8")
             return Response(auth.value, mimetype="text/plain", status=200)
 
+    # socket
+    _socket = socket_(auth, store)
+    _socket.init_app(_app)
+
     # API
     _app.register_blueprint(
-        v0_blueprint(user, auth),
+        v0_blueprint(
+            user,
+            auth,
+            socket=_socket,
+            store=store,
+        ),
         url_prefix="/api/v0",
     )
-
-    # socket
-    _socket = socket_(
-        auth,
-        MessageStore(
-            working_dir or Path(os.environ.get("WORKING_DIR", "./data"))
-        ),
-    )
-    _socket.init_app(_app)
 
     return _app, _socket

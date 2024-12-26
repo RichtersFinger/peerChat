@@ -36,7 +36,6 @@ To reset that key, the corresponding key-file has to be deleted or another file 
   {"peerChatAuth": <value>}
   ```
 
-
 ### API v0
 
 ### Endpoints
@@ -45,3 +44,11 @@ See [general endpoint](#endpoints) `GET-/who` for base-url path
 
 - `GET-/user/name` returns the client's name
 - `GET-/user/avatar` returns the client's avatar
+- `POST-/message` post new message; return `200` if request is ok, `400` on bad body
+
+  expected request body-format
+  ```json
+  {"cid": <conversation-id>, "msg": <Message.json>, "peer": <origin-peer-url>}
+  ```
+  (optional `"peer"` can be used to provide a callback-url for the given conversation)
+

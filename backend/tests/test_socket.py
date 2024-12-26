@@ -158,9 +158,36 @@ def test_post_message(clients: tuple[Flask, SocketIO], tmp: Path):
         id_="1", body="text2", is_mine=True, status=MessageStatus.ERROR
     )
 
-    assert socket_client.emit(
-        "post-message", c.id_, m.json, callback=True
-    ) == m.id_
-    assert socket_client.emit(
-        "get-message", c.id_, m.id_, callback=True
-    ) == m.json
+    assert (
+        socket_client.emit("post-message", c.id_, m.json, callback=True)
+        == m.id_
+    )
+    assert (
+        socket_client.emit("get-message", c.id_, m.id_, callback=True)
+        == m.json
+    )
+
+
+def test_api_post_message(clients: tuple[Flask, SocketIO], tmp: Path):
+    """Test API-endpoint for POST-/message."""
+    flask_client, socket_client = clients
+
+    c = fake_conversation(tmp)
+    m = Message(body="text")
+
+    response = flask_client.post(
+        "/api/v0/message", json={"cid": c.id_, "msg": m.json}
+    )
+    assert response.status_code == 200
+
+    msgs = socket_client.get_received()
+    assert len(msgs) == 1
+    assert msgs[0]["name"] == "got-message"
+    assert msgs[0]["args"] == [{"cid": c.id_, "mid": str(c.length)}]
+
+    assert (
+        socket_client.emit("get-message", c.id_, str(c.length), callback=True)[
+            "body"
+        ]
+        == m.body
+    )

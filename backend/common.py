@@ -76,13 +76,23 @@ class Message:
         """
         Returns instance initialized from serialized representation.
         """
-        return Message(
-            id_=json_["id"],
-            body=json_["body"],
-            status=MessageStatus(json_["status"]),
-            is_mine=json_["isMine"],
-            last_modified=datetime.fromisoformat(json_["lastModified"]),
-        )
+        kwargs = {}
+        for key, jsonkey in (
+            ("id_", "id"),
+            ("body", "body"),
+            ("status", "status"),
+            ("is_mine", "isMine"),
+            ("last_modified", "lastModified"),
+        ):
+            if jsonkey in json_:
+                kwargs[key] = json_[jsonkey]
+        if "status" in kwargs:
+            kwargs["status"] = MessageStatus(kwargs["status"])
+        if "last_modified" in kwargs:
+            kwargs["last_modified"] = datetime.fromisoformat(
+                kwargs["last_modified"]
+            )
+        return Message(**kwargs)
 
 
 @dataclass
