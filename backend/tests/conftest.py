@@ -2,34 +2,42 @@
 
 from pathlib import Path
 from shutil import rmtree
-from json import dumps
 from datetime import datetime
 import random
+from uuid import uuid4
 
 import pytest
 
 from ..common import Conversation, Message, MessageStatus, MessageStore
 
 
-@pytest.fixture(scope="session", name="tmp")
-def _tmp():
-    """Set up file_storage"""
+@pytest.fixture(scope="session", name="tmp_base")
+def _tmp_base():
+    """Base for test file-storage."""
     return Path("tests/tmp")
 
 
 @pytest.fixture(scope="session", autouse=True)
-def fs_setup(request, tmp: Path):
+def fs_setup(request, tmp_base: Path):
     """Set up file_storage"""
 
     def cleanup():
         """Cleanup tmp-dir."""
-        if tmp.is_dir():
-            rmtree(tmp)
+        if tmp_base.is_dir():
+            rmtree(tmp_base)
 
     cleanup()
 
-    tmp.mkdir(parents=True, exist_ok=True)
+    tmp_base.mkdir(parents=True, exist_ok=True)
     request.addfinalizer(cleanup)
+
+
+@pytest.fixture(name="tmp")
+def _tmp(tmp_base: Path):
+    """Test-specific working directory."""
+    p = tmp_base / str(uuid4())
+    p.mkdir()
+    return p
 
 
 def fake_conversation(dir_: Path) -> Conversation:

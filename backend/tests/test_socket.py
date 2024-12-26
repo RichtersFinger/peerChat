@@ -62,6 +62,15 @@ def test_ping(clients: tuple[Flask, SocketIO]):
     assert socket_client.emit("ping", callback=True) == "pong"
 
 
+def test_list_conversations(clients: tuple[Flask, SocketIO], tmp: Path):
+    """Test 'list-conversations'-event."""
+    _, socket_client = clients
+
+    c = fake_conversation(tmp)
+
+    assert socket_client.emit("list-conversations", callback=True) == [c.id_]
+
+
 def test_get_conversation_unknown(clients: tuple[Flask, SocketIO]):
     """Test 'get-conversation'-event for unknown conversation."""
     _, socket_client = clients

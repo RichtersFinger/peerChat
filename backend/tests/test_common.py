@@ -58,3 +58,19 @@ def test_message_store_loading_and_caching_messages(tmp: Path):
     (faked_conversation.path / "0.json").unlink()
     message = store.load_message(faked_conversation.id_, "0")
     assert message is not None
+
+
+def test_message_store_load_conversations(tmp: Path):
+    """Test method `list_conversations` of `MessageStore`."""
+    store = MessageStore(tmp)
+
+    assert not store.list_conversations()
+
+    faked_conversation1 = fake_conversation(tmp)
+    faked_conversation2 = fake_conversation(tmp)
+    (tmp / "another-directory").mkdir()
+    (tmp / "another-file").touch()
+
+    assert set(store.list_conversations()) == set(
+        [faked_conversation1.id_, faked_conversation2.id_]
+    )

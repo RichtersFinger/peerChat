@@ -158,6 +158,14 @@ class MessageStore:
                     self._cache_lock[cid] = RLock()
         return self._cache_lock[cid]
 
+    def list_conversations(self) -> list[str]:
+        """Returns a (heuristic) list of conversation-ids."""
+        conversations = []
+        for c in self._working_dir.glob("*"):
+            if c.is_dir() and (c / "index.json").is_file():
+                conversations.append(c.name)
+        return conversations
+
     def load_conversation(self, cid: str) -> Optional[Conversation]:
         """
         Loads conversation-metadata into memory and returns

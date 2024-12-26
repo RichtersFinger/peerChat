@@ -54,6 +54,11 @@ def socket_(auth: Auth, store: MessageStore) -> SocketIO:
     def ping():
         return "pong"
 
+    @socketio.on("list-conversations")
+    def list_conversations():
+        """Returns a (heuristic) list of conversations."""
+        return store.list_conversations()
+
     @socketio.on("get-conversation")
     def get_conversation(cid: str):
         """Returns conversation metadata."""
