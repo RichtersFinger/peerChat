@@ -97,15 +97,15 @@ def test_create_conversations(clients: tuple[Flask, SocketIO]):
     """Test 'create-conversation'-event."""
     _, socket_client = clients
 
-    id_ = socket_client.emit(
+    cid = socket_client.emit(
         "create-conversation",
         "hostname.com",
         "some topic",
         callback=True,
     )
 
-    assert socket_client.emit("list-conversations", callback=True) == [id_]
-    c = socket_client.emit("get-conversation", id_, callback=True)
+    assert socket_client.emit("list-conversations", callback=True) == [cid]
+    c = socket_client.emit("get-conversation", cid, callback=True)
     assert c["peer"] == "hostname.com"
     assert c["name"] == "some topic"
 
@@ -168,26 +168,103 @@ def test_post_message(clients: tuple[Flask, SocketIO], tmp: Path):
     )
 
 
-def test_api_post_message(clients: tuple[Flask, SocketIO], tmp: Path):
+def test_api_post_message(clients: tuple[Flask, SocketIO]):
     """Test API-endpoint for POST-/message."""
     flask_client, socket_client = clients
 
-    c = fake_conversation(tmp)
+    cid = socket_client.emit(
+        "create-conversation",
+        "hostname.com",
+        "some topic",
+        callback=True,
+    )
     m = Message(body="text")
 
     response = flask_client.post(
-        "/api/v0/message", json={"cid": c.id_, "msg": m.json}
+        "/api/v0/message", json={"cid": cid, "msg": m.json}
     )
     assert response.status_code == 200
 
     msgs = socket_client.get_received()
     assert len(msgs) == 1
     assert msgs[0]["name"] == "got-message"
-    assert msgs[0]["args"] == [{"cid": c.id_, "mid": str(c.length)}]
+    assert msgs[0]["args"] == [{"cid": cid, "mid": "0"}]
 
     assert (
-        socket_client.emit("get-message", c.id_, str(c.length), callback=True)[
-            "body"
-        ]
+        socket_client.emit("get-message", cid, "0", callback=True)["body"]
         == m.body
+    )
+
+
+def test_api_post_message_missing_json(clients: tuple[Flask, SocketIO]):
+    """Test API-endpoint for POST-/message with missing JSON."""
+    flask_client, _ = clients
+
+    assert flask_client.post("/api/v0/message").status_code == 400
+
+
+def test_api_post_message_missing_json_content(
+    clients: tuple[Flask, SocketIO], tmp: Path
+):
+    """Test API-endpoint for POST-/message with missing JSON content."""
+    flask_client, _ = clients
+
+    c = fake_conversation(tmp)
+    m = Message(body="text")
+
+    assert (
+        flask_client.post("/api/v0/message", json={"msg": m.json}).status_code
+        == 400
+    )
+
+    assert (
+        flask_client.post("/api/v0/message", json={"cid": c.id_}).status_code
+        == 400
+    )
+
+
+def test_api_post_message_new_conversation(clients: tuple[Flask, SocketIO]):
+    """Test API-endpoint for POST-/message for new conversation."""
+    flask_client, socket_client = clients
+
+    cid = str(uuid4())
+    m = Message(body="text")
+
+    response = flask_client.post(
+        "/api/v0/message", json={"cid": cid, "msg": m.json}
+    )
+    assert response.status_code == 200
+    assert response.text == cid
+    assert (
+        socket_client.emit("get-conversation", cid, callback=True)["length"]
+        == 1
+    )
+
+
+def test_api_post_message_change_peer(clients: tuple[Flask, SocketIO]):
+    """Test API-endpoint for POST-/message with peer-address update."""
+    flask_client, socket_client = clients
+
+    cid = socket_client.emit(
+        "create-conversation",
+        "hostname.com",
+        "some topic",
+        callback=True,
+    )
+    assert (
+        socket_client.emit("get-conversation", cid, callback=True)["peer"]
+        == "hostname.com"
+    )
+    m = Message(body="text")
+
+    assert (
+        flask_client.post(
+            "/api/v0/message",
+            json={"cid": cid, "msg": m.json, "peer": "new-hostname.com"},
+        ).status_code
+        == 200
+    )
+    assert (
+        socket_client.emit("get-conversation", cid, callback=True)["peer"]
+        == "new-hostname.com"
     )

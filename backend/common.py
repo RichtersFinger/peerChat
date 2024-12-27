@@ -9,6 +9,7 @@ from threading import RLock, Lock
 import json
 from uuid import uuid4
 from enum import Enum
+from shutil import rmtree
 
 
 @dataclass
@@ -251,6 +252,18 @@ class MessageStore:
             c.path.mkdir(parents=True, exist_ok=True)
             self._cache[c.id_] = c
             self.write(c.id_)
+
+    def delete_conversation(self, c: Conversation) -> None:
+        """
+        Delete conversation.
+
+        Keyword arguments:
+        c -- conversation object
+        """
+        with self._check_locks(c.id_):
+            del self._cache[c.id_]
+            if c.path:
+                rmtree(c.path)
 
     def post_message(self, cid: str, msg: Message) -> str:
         """

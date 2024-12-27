@@ -41,6 +41,8 @@ def blueprint_factory(
         json = request.get_json(silent=True)
         if not json:
             return Response("Missing JSON.", mimetype="text/plain", status=400)
+        # TODO: validate 'cid'-format (alphanumeric/uuid?)
+        c = None
         try:
             c = store.load_conversation(json["cid"])
             if c is None:
@@ -68,12 +70,14 @@ def blueprint_factory(
             socket.emit("got-message", {"cid": c.id_, "mid": mid})
         # pylint: disable=broad-exception-caught
         except Exception as exc_info:
+            if c is not None:
+                store.delete_conversation(c)
             return Response(
                 f"Error processing request: {exc_info} "
                 + f"({type(exc_info).__name__})",
                 mimetype="text/plain",
                 status=400,
             )
-        return Response("OK", mimetype="text/plain", status=200)
+        return Response(c.id_, mimetype="text/plain", status=200)
 
     return bp
