@@ -28,7 +28,7 @@ def _clients(request, tmp: Path):
     file.write_text(key, encoding="utf-8")
     os.environ["AUTH_FILE"] = str(file)
 
-    app, socket = app_factory(tmp)
+    app, socket = app_factory("", tmp)
     http_client = app.test_client()
     http_client.set_cookie(Auth.KEY, key)
     socket_client = socket.test_client(app=app, flask_test_client=http_client)
@@ -44,7 +44,7 @@ def test_connect(request, tmp: Path):
     file.write_text(key, encoding="utf-8")
     os.environ["AUTH_FILE"] = str(file)
 
-    app, socket = app_factory()
+    app, socket = app_factory("")
     http_client = app.test_client()
     socket_client = socket.test_client(app=app, flask_test_client=http_client)
 
@@ -268,3 +268,33 @@ def test_api_post_message_change_peer(clients: tuple[Flask, SocketIO]):
         socket_client.emit("get-conversation", cid, callback=True)["peer"]
         == "new-hostname.com"
     )
+
+
+def test_send_message(
+    clients: tuple[Flask, SocketIO], tmp_base: Path, run_app
+):
+    """Test API-endpoint for POST-/message with send-message-event."""
+    other_working_dir = tmp_base / "test_send_message"
+    run_app(
+        app_factory("http://localhost:8081", other_working_dir)[0],
+        "8081",
+    )
+
+    _, socket_client = clients
+
+    cid = socket_client.emit(
+        "create-conversation",
+        "http://localhost:8081",
+        "some topic",
+        callback=True,
+    )
+    m = Message(body="text")
+    mid = socket_client.emit("post-message", cid, m.json, callback=True)
+
+    assert not (other_working_dir / cid).exists()
+
+    assert socket_client.emit("send-message", cid, mid, callback=True)
+
+    assert (other_working_dir / cid).exists()
+    assert (other_working_dir / cid / "index.json").is_file()
+    assert (other_working_dir / cid / "0.json").is_file()

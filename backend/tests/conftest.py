@@ -5,8 +5,12 @@ from shutil import rmtree
 from datetime import datetime
 import random
 from uuid import uuid4
+import urllib
+from time import time, sleep
+from multiprocessing import Process
 
 import pytest
+from flask import Flask
 
 from ..common import Conversation, Message, MessageStatus, MessageStore
 
@@ -66,3 +70,54 @@ def fake_conversation(dir_: Path) -> Conversation:
         ms.write(c.id_, msg_id)
 
     return c
+
+
+@pytest.fixture(name="run_app")
+def run_app(request):
+    """
+    Factory for flask-app startup within pytest-test.
+    """
+    HEALTH_PATH = "is-alive"
+
+    def _(app: Flask, port: str) -> Process:
+        def run_process():
+            @app.route(
+                f"/{HEALTH_PATH}",
+                methods=["GET"],
+                provide_automatic_options=False,
+            )
+            def is_alive():
+                """Generic service health."""
+                return "OK", 200
+
+            app.run(host="0.0.0.0", port=port, debug=False)
+
+        p = Process(target=run_process)
+        p.start()
+
+        def kill_process():
+            if p.is_alive():
+                p.kill()
+                p.join()
+
+        request.addfinalizer(kill_process)
+
+        # wait for service to have started up
+        t0 = time()
+        running = False
+        while not running and time() - t0 < 5:
+            try:
+                running = (
+                    urllib.request.urlopen(
+                        f"http://localhost:{port}/{HEALTH_PATH}"
+                    ).status
+                    == 200
+                )
+            except (urllib.error.URLError, ConnectionResetError):
+                sleep(0.01)
+        if not running:
+            raise RuntimeError("Service did not start.")
+
+        return p
+
+    yield _

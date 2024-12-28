@@ -91,7 +91,7 @@ def test_load_secret_key_missing(request, tmp: Path):
 
 def test_app_ping():
     """Test endpoint `GET-/ping`."""
-    client = app_factory()[0].test_client()
+    client = app_factory("")[0].test_client()
     response = client.get("/ping")
     assert response.status_code == 200
     assert response.data == b"pong"
@@ -99,7 +99,7 @@ def test_app_ping():
 
 def test_app_who():
     """Test endpoint `GET-/who`."""
-    client = app_factory()[0].test_client()
+    client = app_factory("")[0].test_client()
     response = client.get("/who")
     assert response.status_code == 200
     assert "name" in response.json and response.json["name"] == "peerChatAPI"
@@ -112,7 +112,7 @@ def test_app_create_auth_key(request, tmp: Path):
     file = tmp / str(uuid4())
     os.environ["AUTH_FILE"] = str(file)
 
-    client = app_factory()[0].test_client()
+    client = app_factory("")[0].test_client()
     assert client.get("/auth/key").status_code == 404
     response = client.post("/auth/key")
     assert response.status_code == 200
@@ -128,7 +128,7 @@ def test_app_create_auth_key_existing(request, tmp: Path):
     file.write_text(str(uuid4()), encoding="utf-8")
     os.environ["AUTH_FILE"] = str(file)
 
-    client = app_factory()[0].test_client()
+    client = app_factory("")[0].test_client()
     assert client.get("/auth/key").status_code == 200
 
 
@@ -139,7 +139,7 @@ def test_app_create_auth_key_user_value(request, tmp: Path):
     key = str(uuid4())
     os.environ["AUTH_FILE"] = str(file)
 
-    client = app_factory()[0].test_client()
+    client = app_factory("")[0].test_client()
     response = client.post("/auth/key", json={Auth.KEY: key})
     assert response.status_code == 200
     assert response.data == file.read_bytes()

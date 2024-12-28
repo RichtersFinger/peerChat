@@ -2,14 +2,15 @@
 
 import os
 import sys
+import requests
 
 from flask import request
 from flask_socketio import SocketIO
 
-from .common import Auth, MessageStore, Conversation, Message
+from .common import Auth, MessageStore, Conversation, Message, MessageStatus
 
 
-def socket_(auth: Auth, store: MessageStore) -> SocketIO:
+def socket_(auth: Auth, store: MessageStore, callback_url: str) -> SocketIO:
     """
     Returns a fully configured `SocketIO`-object that can be registered
     with a Flask-application.
@@ -87,5 +88,31 @@ def socket_(auth: Auth, store: MessageStore) -> SocketIO:
     def post_message(cid: str, msg: dict):
         """Post message data."""
         return store.post_message(cid, Message.from_json(msg))
+
+    @socketio.on("send-message")
+    def send_message(cid: str, mid: str):
+        """Send message to peer."""
+        m = store.load_message(cid, mid)
+        if not m:
+            return False
+        m.status = MessageStatus.OK
+        store.post_message(cid, m)
+        c = store.load_conversation(cid)
+        if not c:
+            return False
+        try:
+            requests.post(
+                c.peer + "/api/v0/message",
+                json={"cid": cid, "msg": m.json, "peer": callback_url},
+                timeout=5,
+            )
+        # pylint: disable=broad-exception-caught
+        except Exception as exc_info:
+            print(
+                f"ERROR: Unable to send message {cid}.{mid}: {exc_info}",
+                file=sys.stderr,
+            )
+            return False
+        return True
 
     return socketio

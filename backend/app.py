@@ -116,7 +116,9 @@ def load_cors(_app: Flask) -> None:
         )
 
 
-def app_factory(working_dir: Optional[Path] = None) -> tuple[Flask, SocketIO]:
+def app_factory(
+    callback_url: str, working_dir: Optional[Path] = None
+) -> tuple[Flask, SocketIO]:
     """Returns peerChat-Flask app."""
     # define Flask-app
     _app = Flask(__name__)
@@ -182,7 +184,7 @@ def app_factory(working_dir: Optional[Path] = None) -> tuple[Flask, SocketIO]:
             return Response(auth.value, mimetype="text/plain", status=200)
 
     # socket
-    _socket = socket_(auth, store)
+    _socket = socket_(auth, store, callback_url)
     _socket.init_app(_app)
 
     # API
