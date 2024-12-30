@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { io } from "socket.io-client";
+import { Button } from "flowbite-react";
 
 const socket = io("http://localhost:5000", {
   autoConnect: false,
@@ -20,7 +21,8 @@ export default function App() {
 
   return (
     <div>
-      <button
+      <Button
+        size="xs"
         onClick={() => {
           fetch("http://localhost:5000/ping")
             .then((response) => response.text())
@@ -30,10 +32,11 @@ export default function App() {
         }}
       >
         ping
-      </button>
+      </Button>
       <p ref={pingRef}></p>
       <input ref={createKeyInputRef} type="text" />
-      <button
+      <Button
+        size="xs"
         onClick={() => {
           fetch("http://localhost:5000/auth/key", {
             method: "POST",
@@ -57,16 +60,18 @@ export default function App() {
         }}
       >
         create key
-      </button>
+      </Button>
       <p ref={createKeyRef}></p>
-      <button
+      <Button
+        size="xs"
         onClick={() => {
           socket.connect();
         }}
       >
         connect
-      </button>
-      <button
+      </Button>
+      <Button
+        size="xs"
         onClick={() => {
           socket.emit("event", function (data: string) {
             console.log(data);
@@ -74,7 +79,7 @@ export default function App() {
         }}
       >
         event
-      </button>
+      </Button>
       <p ref={eventRef}></p>
     </div>
   );
