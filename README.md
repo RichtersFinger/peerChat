@@ -21,6 +21,7 @@ To reset that key, the corresponding key-file has to be deleted or another file 
 - `AUTH_FILE` [DEFAULT ".auth"] location for app's user-auth file
 - `WORKING_DIR` [DEFAULT "./data"] path to app's data-storage (messages, cached data, ..)
 - `USER_URL` [DEFAULT "http://localhost:5000"] callback-url (sent to other peers for new conversations)
+- `REACT_APP_API_BASE_URL` [DEFAULT "http://localhost:5000"] base-url for local peerChat API
 
 ### Endpoints
 
