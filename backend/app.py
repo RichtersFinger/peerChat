@@ -116,8 +116,23 @@ def load_cors(_app: Flask) -> None:
         )
 
 
+def load_callback_url() -> str:
+    """Returns callback url that can be sent to other peers."""
+
+    try:
+        url = os.environ["USER_URL"]
+    except KeyError:
+        url = "http://localhost:5000"
+        print(
+            f"WARNING: no 'USER_URL' set, defaulting to '{url}'",
+            file=sys.stderr,
+        )
+
+    return url
+
+
 def app_factory(
-    callback_url: str, working_dir: Optional[Path] = None
+    callback_url: Optional[str] = None, working_dir: Optional[Path] = None
 ) -> tuple[Flask, SocketIO]:
     """Returns peerChat-Flask app."""
     # define Flask-app
@@ -129,6 +144,10 @@ def app_factory(
     # load user config and user auth
     user = load_config()
     auth = load_auth()
+
+    # load user callback url
+    if not callback_url:
+        callback_url = load_callback_url()
 
     # message store
     store = MessageStore(

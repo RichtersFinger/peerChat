@@ -28,7 +28,7 @@ def _clients(request, tmp: Path):
     file.write_text(key, encoding="utf-8")
     os.environ["AUTH_FILE"] = str(file)
 
-    app, socket = app_factory("", tmp)
+    app, socket = app_factory(working_dir=tmp)
     http_client = app.test_client()
     http_client.set_cookie(Auth.KEY, key)
     socket_client = socket.test_client(app=app, flask_test_client=http_client)
@@ -44,7 +44,7 @@ def test_connect(request, tmp: Path):
     file.write_text(key, encoding="utf-8")
     os.environ["AUTH_FILE"] = str(file)
 
-    app, socket = app_factory("")
+    app, socket = app_factory()
     http_client = app.test_client()
     socket_client = socket.test_client(app=app, flask_test_client=http_client)
 
