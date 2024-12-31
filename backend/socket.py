@@ -45,6 +45,11 @@ def socket_(auth: Auth, store: MessageStore, callback_url: str) -> SocketIO:
         print("connected")
         return True
 
+    @socketio.on("disconnect")
+    def disconnect():
+        print("disconnected")
+        return True
+
     @socketio.on("event")
     def event():
         print("event happened")

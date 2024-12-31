@@ -15,6 +15,7 @@ export default function App() {
   const eventRef = useRef<HTMLParagraphElement>(null);
   const createKeyInputRef = useRef<HTMLInputElement>(null);
   const createKeyRef = useRef<HTMLParagraphElement>(null);
+  const [socketConnected, setSocketConnected] = useState<boolean>(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
 
@@ -42,19 +43,25 @@ export default function App() {
       });
   }, [setUserName]);
 
+  // configure socket
+  socket.on("connect", () => setSocketConnected(true));
+  socket.on("disconnect", () => setSocketConnected(false));
   socket.on("event-response", (value) => {
     if (eventRef.current) eventRef.current.innerText = JSON.stringify(value);
   });
+  useEffect(() => {
+    socket.connect();
+  }, []);
 
   return (
     <div className="flex flex-row">
-      <div className="h-full">
+      <div>
         <Sidebar
-          className="select-none h-screen"
+          className="select-none h-screen sticky top-0 left-0"
           theme={{
             root: {
               inner:
-                "w-64 h-full overflow-y-auto bg-slate-200 overflow-x-hidden px-1 py-2 flex flex-col justify-between",
+                "w-52 h-full overflow-y-auto overflow-x-hidden bg-slate-200 px-1 py-2 flex flex-col justify-between",
             },
           }}
         >
@@ -62,7 +69,12 @@ export default function App() {
             <Sidebar.Logo href="#" img="/peerChat.svg" imgAlt="peerChat">
               peerChat
             </Sidebar.Logo>
-            <Avatar {...(userAvatar ? { img: userAvatar } : {})} rounded>
+            <Avatar
+              {...(userAvatar ? { img: userAvatar } : {})}
+              rounded
+              statusPosition="bottom-left"
+              status={socketConnected ? "online" : "offline"}
+            >
               <div className="space-y-1 font-medium">
                 <div className="font-bold">{userName ?? "-"}</div>
                 <div className="text-sm text-gray-500">{ApiUrl}</div>
@@ -127,6 +139,14 @@ export default function App() {
           }}
         >
           connect
+        </Button>
+        <Button
+          size="xs"
+          onClick={() => {
+            socket.disconnect();
+          }}
+        >
+          disconnect
         </Button>
         <Button
           size="xs"
