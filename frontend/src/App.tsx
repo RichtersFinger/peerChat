@@ -10,6 +10,15 @@ const socket = io(ApiUrl, {
 
 const authKey = "peerChatAuth";
 
+type Conversation = {
+  id: string;
+  lastModified: string;
+  peer?: string;
+  name?: string;
+  length?: number;
+  avatar?: string;
+};
+
 export default function App() {
   const pingRef = useRef<HTMLParagraphElement>(null);
   const eventRef = useRef<HTMLParagraphElement>(null);
@@ -18,6 +27,10 @@ export default function App() {
   const [socketConnected, setSocketConnected] = useState<boolean>(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const conversationsRef = useRef<Record<string, Conversation>>({});
+  const [conversations, setConversations] = useState<
+    Record<string, Conversation>
+  >(conversationsRef.current);
 
   // load user-avatar
   useEffect(() => {
@@ -43,15 +56,43 @@ export default function App() {
       });
   }, [setUserName]);
 
-  // configure socket
-  socket.on("connect", () => setSocketConnected(true));
-  socket.on("disconnect", () => setSocketConnected(false));
-  socket.on("event-response", (value) => {
-    if (eventRef.current) eventRef.current.innerText = JSON.stringify(value);
-  });
+  // configure socket and connect
   useEffect(() => {
-    socket.connect();
-  }, []);
+    socket.on("connect", () => {
+      setSocketConnected(true);
+      socket.emit("list-conversations", (cids_: string[]) => {
+        // setup Conversation-dummys
+        const cs: Record<string, Conversation> = {};
+        for (const cid of cids_) {
+          Object.assign(cs, {
+            [cid]: { id: cid, lastModified: new Date().toISOString() },
+          });
+        }
+        setConversations(cs);
+        // fetch full conversation metadata and replace dummys
+        for (let cid of cids_) {
+          socket.emit("get-conversation", cid, (c: Conversation) => {
+            conversationsRef.current = {
+              ...conversationsRef.current,
+              [cid]: {
+                ...conversationsRef.current[cid],
+                ...c,
+              },
+            };
+            setConversations(conversationsRef.current);
+          });
+        }
+      });
+    });
+    socket.on("disconnect", () => setSocketConnected(false));
+    socket.on("event-response", (value) => {
+      if (eventRef.current) eventRef.current.innerText = JSON.stringify(value);
+    });
+    if (!socket.connected) socket.connect();
+    return () => {
+      if (socket.connected) socket.disconnect();
+    };
+  }, [setConversations]);
 
   return (
     <div className="flex flex-row">
@@ -84,8 +125,17 @@ export default function App() {
           <Sidebar.Items>
             <Sidebar.ItemGroup>
               <Sidebar.Item>+ New Conversation</Sidebar.Item>
-              <Sidebar.Item>Chat 1</Sidebar.Item>
-              <Sidebar.Item>Chat 2</Sidebar.Item>
+              {Object.values(conversations)
+                .sort((a: Conversation, b: Conversation) =>
+                  a.lastModified > b.lastModified
+                    ? 1
+                    : b.lastModified > a.lastModified
+                    ? -1
+                    : 0
+                )
+                .map((c: Conversation) => (
+                  <Sidebar.Item key={c.id}>{c.name ?? c.id}</Sidebar.Item>
+                ))}
             </Sidebar.ItemGroup>
           </Sidebar.Items>
         </Sidebar>
