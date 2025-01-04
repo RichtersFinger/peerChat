@@ -1,15 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Socket } from "socket.io-client";
 import { Sidebar as FBSidebar, Avatar } from "flowbite-react";
 
-type Conversation = {
-  id: string;
-  lastModified: string;
-  peer?: string;
-  name?: string;
-  length?: number;
-  avatar?: string;
-};
+import ConversationItem from "./ConversationItem";
 
 export type SidebarProps = {
   socket: Socket;
@@ -20,10 +13,7 @@ export default function Sidebar({ socket, ApiUrl }: SidebarProps) {
   const [userName, setUserName] = useState<string | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [socketConnected, setSocketConnected] = useState<boolean>(false);
-  const conversationsRef = useRef<Record<string, Conversation>>({});
-  const [conversations, setConversations] = useState<
-    Record<string, Conversation>
-  >(conversationsRef.current);
+  const [cids, setCids] = useState<string[]>([]);
 
   // load user-avatar
   useEffect(() => {
@@ -49,38 +39,17 @@ export default function Sidebar({ socket, ApiUrl }: SidebarProps) {
       });
   }, [ApiUrl, setUserName]);
 
+  // connection status indicator
   useEffect(() => {
-    // connection status indicator
     socket.on("connect", () => setSocketConnected(true));
     socket.on("disconnect", () => setSocketConnected(false));
+}, [socket, ApiUrl, setCids]);
 
-    // fetch contents
-    socket.on("connect", () => {
-      socket.emit("list-conversations", (cids_: string[]) => {
-        // setup Conversation-dummys
-        const cs: Record<string, Conversation> = {};
-        for (const cid of cids_) {
-          Object.assign(cs, {
-            [cid]: { id: cid, lastModified: new Date().toISOString() },
-          });
-        }
-        setConversations(cs);
-        // fetch full conversation metadata and replace dummys
-        for (let cid of cids_) {
-          socket.emit("get-conversation", cid, (c: Conversation) => {
-            conversationsRef.current = {
-              ...conversationsRef.current,
-              [cid]: {
-                ...conversationsRef.current[cid],
-                ...c,
-              },
-            };
-            setConversations(conversationsRef.current);
-          });
-        }
-      });
-    });
-  }, [socket, ApiUrl]);
+  // fetch conversation index
+  useEffect(() => {
+    if (socket.connected)
+      socket.emit("list-conversations", (cids_: string[]) => setCids(cids_));
+  }, [socket, socketConnected]);
 
   return (
     <FBSidebar
@@ -111,17 +80,9 @@ export default function Sidebar({ socket, ApiUrl }: SidebarProps) {
       <FBSidebar.Items>
         <FBSidebar.ItemGroup>
           <FBSidebar.Item>+ New Conversation</FBSidebar.Item>
-          {Object.values(conversations)
-            .sort((a: Conversation, b: Conversation) =>
-              a.lastModified > b.lastModified
-                ? 1
-                : b.lastModified > a.lastModified
-                ? -1
-                : 0
-            )
-            .map((c: Conversation) => (
-              <FBSidebar.Item key={c.id}>{c.name ?? c.id}</FBSidebar.Item>
-            ))}
+          {cids.map((cid: string) => (
+            <ConversationItem key={cid} socket={socket} cid={cid} />
+          ))}
         </FBSidebar.ItemGroup>
       </FBSidebar.Items>
     </FBSidebar>

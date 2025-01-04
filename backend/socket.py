@@ -71,7 +71,15 @@ def socket_(auth: Auth, store: MessageStore, callback_url: str) -> SocketIO:
     @socketio.on("list-conversations")
     def list_conversations():
         """Returns a (heuristic) list of conversations."""
-        return store.list_conversations()
+        return list(
+            map(
+                lambda c: c.id_,
+                sorted(
+                    map(store.load_conversation, store.list_conversations()),
+                    key=lambda c: c.last_modified,
+                ),
+            )
+        )
 
     @socketio.on("get-conversation")
     def get_conversation(cid: str):
