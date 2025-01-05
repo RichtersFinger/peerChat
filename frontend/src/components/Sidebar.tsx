@@ -31,17 +31,18 @@ export default function Sidebar({
         <FBSidebar.Logo href="#" img="/peerChat.svg" imgAlt="peerChat">
           peerChat
         </FBSidebar.Logo>
-        <Avatar
-          {...(user?.avatar ? { img: user.avatar } : {})}
-          rounded
-          statusPosition="bottom-left"
-          status={connected ? "online" : "offline"}
-        >
-          <div className="space-y-1 font-medium">
-            <div className="font-bold">{user?.name ? user.name : "-"}</div>
-            <div className="text-sm text-gray-500">{ApiUrl}</div>
+        <div className="flex flex-row space-x-2 px-1">
+          <Avatar
+            {...(user?.avatar ? { img: user.avatar } : {})}
+            rounded
+            statusPosition="bottom-left"
+            status={connected ? "online" : "offline"}
+          ></Avatar>
+          <div className="flex-col space-y-1 font-medium">
+            <p className="max-w-36 truncate font-bold">{user?.name ? user.name : "-"}</p>
+            <p className="max-w-36 truncate text-sm text-gray-500">{ApiUrl}</p>
           </div>
-        </Avatar>
+        </div>
       </div>
       <FBSidebar.Items>
         <FBSidebar.ItemGroup>
