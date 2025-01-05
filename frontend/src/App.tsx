@@ -53,16 +53,13 @@ export default function App() {
           onConversationLoad={(c: Conversation) => {
             const newConversations = {
               ...conversationsRef.current,
-              [c.id]: c,
+              [c.id]: {...conversationsRef.current[c.id], ...c},
             };
             if (
               JSON.stringify(conversationsRef.current) !==
               JSON.stringify(newConversations)
             ) {
-              conversationsRef.current = {
-                ...conversationsRef.current,
-                [c.id]: c,
-              };
+              conversationsRef.current = newConversations;
               setConversations(conversationsRef.current);
             }
           }}
