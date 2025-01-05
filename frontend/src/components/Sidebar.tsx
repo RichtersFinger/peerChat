@@ -1,19 +1,22 @@
 import { useState, useEffect } from "react";
-import { Socket } from "socket.io-client";
 import { Sidebar as FBSidebar, Avatar } from "flowbite-react";
 
 import ConversationItem from "./ConversationItem";
+import { Conversation } from "./ConversationLoader";
 
 export type SidebarProps = {
-  socket: Socket;
+  connected: boolean;
+  conversations: Record<string, Conversation>;
   ApiUrl: string;
 };
 
-export default function Sidebar({ socket, ApiUrl }: SidebarProps) {
+export default function Sidebar({
+  connected,
+  conversations,
+  ApiUrl,
+}: SidebarProps) {
   const [userName, setUserName] = useState<string | null>(null);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
-  const [socketConnected, setSocketConnected] = useState<boolean>(false);
-  const [cids, setCids] = useState<string[]>([]);
 
   // load user-avatar
   useEffect(() => {
@@ -39,18 +42,6 @@ export default function Sidebar({ socket, ApiUrl }: SidebarProps) {
       });
   }, [ApiUrl, setUserName]);
 
-  // connection status indicator
-  useEffect(() => {
-    socket.on("connect", () => setSocketConnected(true));
-    socket.on("disconnect", () => setSocketConnected(false));
-}, [socket, ApiUrl, setCids]);
-
-  // fetch conversation index
-  useEffect(() => {
-    if (socket.connected)
-      socket.emit("list-conversations", (cids_: string[]) => setCids(cids_));
-  }, [socket, socketConnected]);
-
   return (
     <FBSidebar
       className="select-none h-screen sticky top-0 left-0"
@@ -69,7 +60,7 @@ export default function Sidebar({ socket, ApiUrl }: SidebarProps) {
           {...(userAvatar ? { img: userAvatar } : {})}
           rounded
           statusPosition="bottom-left"
-          status={socketConnected ? "online" : "offline"}
+          status={connected ? "online" : "offline"}
         >
           <div className="space-y-1 font-medium">
             <div className="font-bold">{userName ?? "-"}</div>
@@ -80,9 +71,17 @@ export default function Sidebar({ socket, ApiUrl }: SidebarProps) {
       <FBSidebar.Items>
         <FBSidebar.ItemGroup>
           <FBSidebar.Item>+ New Conversation</FBSidebar.Item>
-          {cids.map((cid: string) => (
-            <ConversationItem key={cid} socket={socket} cid={cid} />
-          ))}
+          {Object.values(conversations)
+            .sort((a: Conversation, b: Conversation) =>
+              a.lastModified > b.lastModified
+                ? 1
+                : b.lastModified > a.lastModified
+                ? -1
+                : 0
+            )
+            .map((c: Conversation) => (
+              <ConversationItem key={c.id} conversation={c} />
+            ))}
         </FBSidebar.ItemGroup>
       </FBSidebar.Items>
     </FBSidebar>
