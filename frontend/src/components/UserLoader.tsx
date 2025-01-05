@@ -27,7 +27,11 @@ export default function UserLoader({ url, onLoad }: UserLoaderProps) {
       .then((blob) => {
         const reader = new FileReader();
         reader.onload = () => {
-          if (reader.result && typeof reader.result === "string") {
+          if (
+            reader.result &&
+            typeof reader.result === "string" &&
+            reader.result.startsWith("data:image")
+          ) {
             setUserAvatar(reader.result);
           }
         };
@@ -35,7 +39,7 @@ export default function UserLoader({ url, onLoad }: UserLoaderProps) {
       })
       .catch((error) => {
         console.error("Failed to fetch resource: ", error);
-      });;
+      });
   }, [url, setUserAvatar]);
 
   // load user-name
@@ -58,8 +62,7 @@ export default function UserLoader({ url, onLoad }: UserLoaderProps) {
 
   // call onLoad after completion
   useEffect(() => {
-    if (onLoad)
-      onLoad({ name: userName, avatar: userAvatar });
+    if (onLoad) onLoad({ name: userName, avatar: userAvatar });
   }, [userName, userAvatar, onLoad]);
 
   return null;

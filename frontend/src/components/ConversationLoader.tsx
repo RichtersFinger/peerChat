@@ -1,5 +1,7 @@
-import { useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Socket } from "socket.io-client";
+
+import UserLoader, { User } from "./UserLoader";
 
 export type Conversation = {
   id: string;
@@ -7,6 +9,7 @@ export type Conversation = {
   peer?: string;
   name?: string;
   length?: number;
+  peerName?: string;
   avatar?: string;
 };
 
@@ -21,11 +24,32 @@ export default function ConversationLoader({
   cid,
   onLoad,
 }: ConversationLoaderProps) {
+  const conversationRef = useRef<Conversation | null>(null);
+  const [conversation, setConversation] = useState<Conversation | null>(
+    conversationRef.current
+  );
+
   useEffect(() => {
     socket.emit("get-conversation", cid, (c: Conversation) => {
-      if (onLoad) onLoad(c);
+      conversationRef.current = c;
+      if (onLoad) onLoad(conversationRef.current);
+      setConversation(conversationRef.current);
     });
-  }, [socket, cid, onLoad]);
+  }, [socket, cid, onLoad, setConversation]);
 
-  return null;
+  return conversation?.peer ? (
+    <UserLoader
+      url={conversation.peer}
+      onLoad={(u: User) => {
+        if (conversationRef.current) {
+          conversationRef.current = {
+            ...conversationRef.current,
+            ...(u?.name ? { peerName: u.name } : {}),
+            ...(u?.avatar ? { avatar: u.avatar } : {}),
+          };
+          if (onLoad) onLoad(conversationRef.current);
+        }
+      }}
+    />
+  ) : null;
 }
