@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { io } from "socket.io-client";
 import { Button } from "flowbite-react";
 
+import UserLoader, { User } from "./components/UserLoader";
 import ConversationsLoader from "./components/ConversationsLoader";
 import { Conversation } from "./components/ConversationLoader";
 import Sidebar from "./components/Sidebar";
@@ -24,6 +25,7 @@ export default function App() {
   const [conversations, setConversations] = useState<
     Record<string, Conversation>
   >(conversationsRef.current);
+  const [user, setUser] = useState<User | null>(null);
 
   // connection status-tracking
   useEffect(() => {
@@ -44,6 +46,7 @@ export default function App() {
 
   return (
     <>
+      <UserLoader url={ApiUrl} onLoad={setUser} />
       {socketConnected ? (
         <ConversationsLoader
           socket={socket}
@@ -62,6 +65,7 @@ export default function App() {
             connected={socketConnected}
             conversations={conversations}
             ApiUrl={ApiUrl}
+            user={user}
           />
         </div>
         <div className="m-2 space-y-2">

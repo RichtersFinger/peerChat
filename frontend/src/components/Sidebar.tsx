@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
 import { Sidebar as FBSidebar, Avatar } from "flowbite-react";
 
+import { User } from "./UserLoader";
 import ConversationItem from "./ConversationItem";
 import { Conversation } from "./ConversationLoader";
 
@@ -8,40 +8,15 @@ export type SidebarProps = {
   connected: boolean;
   conversations: Record<string, Conversation>;
   ApiUrl: string;
+  user: User | null;
 };
 
 export default function Sidebar({
   connected,
   conversations,
   ApiUrl,
+  user,
 }: SidebarProps) {
-  const [userName, setUserName] = useState<string | null>(null);
-  const [userAvatar, setUserAvatar] = useState<string | null>(null);
-
-  // load user-avatar
-  useEffect(() => {
-    fetch(ApiUrl + "/api/v0/user/avatar")
-      .then((response) => response.blob())
-      .then((blob) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (reader.result && typeof reader.result === "string") {
-            setUserAvatar(reader.result);
-          }
-        };
-        reader.readAsDataURL(blob);
-      });
-  }, [ApiUrl, setUserAvatar]);
-
-  // load user-name
-  useEffect(() => {
-    fetch(ApiUrl + "/api/v0/user/name")
-      .then((response) => response.text())
-      .then((text) => {
-        setUserName(text);
-      });
-  }, [ApiUrl, setUserName]);
-
   return (
     <FBSidebar
       className="select-none h-screen sticky top-0 left-0"
@@ -57,13 +32,13 @@ export default function Sidebar({
           peerChat
         </FBSidebar.Logo>
         <Avatar
-          {...(userAvatar ? { img: userAvatar } : {})}
+          {...(user?.avatar ? { img: user.avatar } : {})}
           rounded
           statusPosition="bottom-left"
           status={connected ? "online" : "offline"}
         >
           <div className="space-y-1 font-medium">
-            <div className="font-bold">{userName ?? "-"}</div>
+            <div className="font-bold">{user?.name ? user.name : "-"}</div>
             <div className="text-sm text-gray-500">{ApiUrl}</div>
           </div>
         </Avatar>
