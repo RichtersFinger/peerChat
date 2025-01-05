@@ -51,11 +51,20 @@ export default function App() {
         <ConversationsLoader
           socket={socket}
           onConversationLoad={(c: Conversation) => {
-            conversationsRef.current = {
+            const newConversations = {
               ...conversationsRef.current,
               [c.id]: c,
             };
-            setConversations(conversationsRef.current);
+            if (
+              JSON.stringify(conversationsRef.current) !==
+              JSON.stringify(newConversations)
+            ) {
+              conversationsRef.current = {
+                ...conversationsRef.current,
+                [c.id]: c,
+              };
+              setConversations(conversationsRef.current);
+            }
           }}
         />
       ) : null}
