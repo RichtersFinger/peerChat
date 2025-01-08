@@ -53,7 +53,7 @@ export default function UserLoader({ url, onLoad }: UserLoaderProps) {
         }
       })
       .then((text) => {
-        setUserName(text);
+        setUserName(text.startsWith("<!DOCTYPE html>") ? null : text);
       })
       .catch((error) => {
         console.error("Failed to fetch resource: ", error);

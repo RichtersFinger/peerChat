@@ -6,6 +6,7 @@ import UserLoader, { User } from "./components/UserLoader";
 import ConversationsLoader from "./components/ConversationsLoader";
 import { Conversation } from "./components/ConversationLoader";
 import Sidebar from "./components/Sidebar";
+import ConversationScreen from "./components/ConversationScreen";
 
 const ApiUrl = process.env.REACT_APP_API_BASE_URL ?? "http://localhost:5000";
 const socket = io(ApiUrl, {
@@ -26,6 +27,9 @@ export default function App() {
     Record<string, Conversation>
   >(conversationsRef.current);
   const [user, setUser] = useState<User | null>(null);
+  const [activeConversationId, setActiveConversationId] = useState<
+    string | null
+  >(null);
 
   // connection status-tracking
   useEffect(() => {
@@ -51,9 +55,10 @@ export default function App() {
         <ConversationsLoader
           socket={socket}
           onConversationLoad={(c: Conversation) => {
+            // update conversations-record
             const newConversations = {
               ...conversationsRef.current,
-              [c.id]: {...conversationsRef.current[c.id], ...c},
+              [c.id]: { ...conversationsRef.current[c.id], ...c },
             };
             if (
               JSON.stringify(conversationsRef.current) !==
@@ -61,6 +66,10 @@ export default function App() {
             ) {
               conversationsRef.current = newConversations;
               setConversations(conversationsRef.current);
+              // update active conversation
+              if (!activeConversationId) {
+                setActiveConversationId(c.id);
+              }
             }
           }}
         />
@@ -72,8 +81,16 @@ export default function App() {
             conversations={conversations}
             ApiUrl={ApiUrl}
             user={user}
+            onConversationClick={(c: Conversation) => {
+              setActiveConversationId(c.id);
+            }}
           />
         </div>
+        {activeConversationId ? (
+          <ConversationScreen
+            conversation={conversations?.[activeConversationId]}
+          />
+        ) : null}
         <div className="m-2 space-y-2">
           <Button
             size="xs"
