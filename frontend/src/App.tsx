@@ -15,6 +15,7 @@ const socket = io(ApiUrl, {
 });
 
 const authKey = "peerChatAuth";
+const authKeyMaxAge = "2147483647";
 
 export default function App() {
   const pingRef = useRef<HTMLParagraphElement>(null);
@@ -33,7 +34,17 @@ export default function App() {
 
   // connection status-tracking
   useEffect(() => {
-    socket.on("connect", () => setSocketConnected(true));
+    socket.on("connect", () => {
+      setSocketConnected(true);
+      // refresh auth-cookie
+      const auth = decodeURIComponent(document.cookie)
+        .split(";")
+        .find((element: string) => element.trim().startsWith(authKey + "="))
+        ?.replace(authKey + "=", "");
+      if (auth)
+        document.cookie =
+          authKey + "=" + auth + "; path=/; max-age=" + authKeyMaxAge;
+    });
     socket.on("disconnect", () => setSocketConnected(false));
   }, []);
 
@@ -127,7 +138,11 @@ export default function App() {
                     createKeyRef.current.innerText = text;
                   if (data.status === 200)
                     document.cookie =
-                      authKey + "=" + text + "; path=/; max-age:2147483647";
+                      authKey +
+                      "=" +
+                      text +
+                      "; path=/; max-age=" +
+                      authKeyMaxAge;
                 });
             }}
           >
