@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useReducer } from "react";
 import { io } from "socket.io-client";
 import { Button } from "flowbite-react";
 
@@ -23,14 +23,25 @@ export default function App() {
   const createKeyInputRef = useRef<HTMLInputElement>(null);
   const createKeyRef = useRef<HTMLParagraphElement>(null);
   const [socketConnected, setSocketConnected] = useState<boolean>(false);
-  const conversationsRef = useRef<Record<string, Conversation>>({});
-  const [conversations, setConversations] = useState<
-    Record<string, Conversation>
-  >(conversationsRef.current);
   const [user, setUser] = useState<User | null>(null);
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
   >(null);
+  const [conversations, dispatchConversations] = useReducer(
+    (state: Record<string, Conversation>, action: Conversation) => {
+      const newState = {
+        ...state,
+        [action.id]: { ...state[action.id], ...action },
+      };
+      // update active conversation
+      if (!activeConversationId) {
+        setActiveConversationId(action.id);
+      }
+      if (JSON.stringify(state) !== JSON.stringify(newState)) return newState;
+      else return state;
+    },
+    {}
+  );
 
   // connection status-tracking
   useEffect(() => {
@@ -65,24 +76,7 @@ export default function App() {
       {socketConnected ? (
         <ConversationsLoader
           socket={socket}
-          onConversationLoad={(c: Conversation) => {
-            // update conversations-record
-            const newConversations = {
-              ...conversationsRef.current,
-              [c.id]: { ...conversationsRef.current[c.id], ...c },
-            };
-            if (
-              JSON.stringify(conversationsRef.current) !==
-              JSON.stringify(newConversations)
-            ) {
-              conversationsRef.current = newConversations;
-              setConversations(conversationsRef.current);
-              // update active conversation
-              if (!activeConversationId) {
-                setActiveConversationId(c.id);
-              }
-            }
-          }}
+          onConversationLoad={dispatchConversations}
         />
       ) : null}
       <div className="flex flex-row">
