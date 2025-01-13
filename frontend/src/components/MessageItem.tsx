@@ -9,5 +9,5 @@ export type MessageItemProps = {
 export default function MessageItem({
   message,
 }: MessageItemProps) {
-  return <div>{message ? <Spinner /> : null}</div>;
+  return <div>{message ? message.body: <Spinner />}</div>;
 }
