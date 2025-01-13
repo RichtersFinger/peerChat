@@ -12,7 +12,7 @@ export type ConversationScreenProps = {
 };
 
 const DEFAULT_NMESSAGES = 3;
-const DEFAULT_NMESSAGES_INCREMENT = 1;
+const DEFAULT_NMESSAGES_INCREMENT = 5;
 
 export default function ConversationScreen({
   socket,
@@ -64,39 +64,50 @@ export default function ConversationScreen({
       {
         // body
       }
-      {nMessages < (conversation.length ?? 0) ? (
-        <Button
-          color="blue"
-          onClick={() =>
-            setNMessages(
-              (previous: number) => previous + DEFAULT_NMESSAGES_INCREMENT
-            )
-          }
-        >
-          Load more
-        </Button>
-      ) : null}
-      {Array(Math.min(conversation.length ?? 0, nMessages))
-        .fill(0)
-        .map((_, index) => (conversation.length ?? 0) - 1 - index)
-        .map((mid: number) => (
-          <MessageLoader
-            key={mid}
-            socket={socket}
-            cid={conversation.id}
-            mid={mid.toString()}
-            onLoad={dispatchMessages}
-          />
-        ))}
-      {messages.length > 0 ? (
-        messages
-          .slice((conversation.length ?? 0) - nMessages)
-          .map((m: Message, index: number) => (
-            <MessageItem key={m?.id ?? "?" + index.toString()} message={m} />
-          ))
-      ) : (
-        <Spinner />
-      )}
+      <div className="m-4 space-y-3 overflow-y-auto h-full">
+        <div className="justify-items-center">
+          {messages.length > 0 && nMessages < (conversation.length ?? 0) ? (
+            <Button
+              color="blue"
+              onClick={() =>
+                setNMessages(
+                  (previous: number) => previous + DEFAULT_NMESSAGES_INCREMENT
+                )
+              }
+            >
+              Load more
+            </Button>
+          ) : null}
+        </div>
+        {Array(Math.min(conversation.length ?? 0, nMessages))
+          .fill(0)
+          .map((_, index) => (conversation.length ?? 0) - 1 - index)
+          .map((mid: number) => (
+            <MessageLoader
+              key={mid}
+              socket={socket}
+              cid={conversation.id}
+              mid={mid.toString()}
+              onLoad={dispatchMessages}
+            />
+          ))}
+        {messages.length > 0 ? (
+          <div className="space-y-3">
+            {messages
+              .slice((conversation.length ?? 0) - nMessages)
+              .map((m: Message, index: number) => (
+                <MessageItem
+                  key={m?.id ?? "?" + index.toString()}
+                  message={m}
+                />
+              ))}
+          </div>
+        ) : (
+          <div className="justify-items-center">
+            <Spinner size="xl" />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
