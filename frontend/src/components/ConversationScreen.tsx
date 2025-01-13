@@ -1,5 +1,5 @@
-import { useEffect, useReducer, useState } from "react";
-import { Avatar, Button, Spinner } from "flowbite-react";
+import { useEffect, useReducer, useState, useRef } from "react";
+import { Avatar, Button, Spinner, Textarea } from "flowbite-react";
 import { Socket } from "socket.io-client";
 
 import { Conversation } from "./ConversationLoader";
@@ -29,6 +29,7 @@ export default function ConversationScreen({
     },
     []
   );
+  const newMessageRef = useRef<HTMLTextAreaElement>(null);
 
   // reset initial values for states
   useEffect(() => {
@@ -114,6 +115,30 @@ export default function ConversationScreen({
             <Spinner size="xl" />
           </div>
         )}
+      </div>
+      <div className="flex flex-row space-x-2 p-4">
+        <Textarea ref={newMessageRef} placeholder="Your message..." rows={3} />
+        <div>
+          <Button
+            onClick={() => {
+              socket.emit(
+                "post-message",
+                conversation.id,
+                { body: newMessageRef.current?.value, isMine: true },
+                (mid: number) => {
+                  if (newMessageRef.current?.value)
+                    newMessageRef.current.value = "";
+                  if (conversation.length) conversation.length += 1;
+                  setNMessages((previous) => previous + 1);
+                  // TODO: trigger sending message
+                  // TODO: implement mechanism for updating conversation
+                }
+              );
+            }}
+          >
+            Send
+          </Button>
+        </div>
       </div>
     </div>
   );
