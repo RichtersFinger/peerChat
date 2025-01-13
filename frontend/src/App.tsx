@@ -93,6 +93,7 @@ export default function App() {
         </div>
         {activeConversationId ? (
           <ConversationScreen
+            socket={socket}
             conversation={conversations?.[activeConversationId]}
           />
         ) : null}

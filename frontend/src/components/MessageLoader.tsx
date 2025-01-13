@@ -16,7 +16,7 @@ export type MessageLoaderProps = {
   onLoad?: (m: Message) => void;
 };
 
-export default function ConversationLoader({
+export default function MessageLoader({
   socket,
   cid,
   mid,

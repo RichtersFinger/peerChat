@@ -1,14 +1,33 @@
+import { useEffect, useReducer } from "react";
 import { Avatar } from "flowbite-react";
+import { Socket } from "socket.io-client";
 
 import { Conversation } from "./ConversationLoader";
+import MessageLoader, { Message } from "./MessageLoader";
 
 export type ConversationScreenProps = {
+  socket: Socket;
   conversation: Conversation;
 };
 
 export default function ConversationScreen({
+  socket,
   conversation,
 }: ConversationScreenProps) {
+  const [messages, dispatchMessages] = useReducer(
+    (state: Message[], action: Message | null) => {
+      if (action) {
+        const newState = [...state];
+        newState[Number(action.id)] = action;
+        return newState;
+      } else return [];
+    },
+    []
+  );
+
+  // reset initial value for messages
+  useEffect(() => dispatchMessages(null), [conversation]);
+
   return (
     <div className="flex flex-col w-full h-screen overflow-x-hidden">
       {
@@ -37,7 +56,21 @@ export default function ConversationScreen({
       {
         // body
       }
-      <p>{JSON.stringify(conversation)}</p>
+      {Array(conversation.length)
+        .fill(0)
+        .map((_, index) => index)
+        .map((index: number) => (
+          <MessageLoader
+            key={index}
+            socket={socket}
+            cid={conversation.id}
+            mid={index.toString()}
+            onLoad={dispatchMessages}
+          />
+        ))}
+      {messages.map((m: Message) => (
+        <p key={m.id}>{m.body}</p>
+      ))}
     </div>
   );
 }
