@@ -67,16 +67,23 @@ export default function ConversationScreen({
       <div className="m-4 space-y-3 overflow-y-auto h-full">
         <div className="justify-items-center">
           {messages.length > 0 && nMessages < (conversation.length ?? 0) ? (
-            <Button
-              color="blue"
-              onClick={() =>
-                setNMessages(
-                  (previous: number) => previous + DEFAULT_NMESSAGES_INCREMENT
-                )
-              }
-            >
-              Load more
-            </Button>
+            <div className="flex flex-row space-x-2">
+              <Button
+                onClick={() =>
+                  setNMessages((previous: number) =>
+                    Math.min(
+                      conversation.length ?? 0,
+                      previous + DEFAULT_NMESSAGES_INCREMENT
+                    )
+                  )
+                }
+              >
+                Load more
+              </Button>
+              <Button onClick={() => setNMessages(conversation.length ?? 0)}>
+                Load all
+              </Button>
+            </div>
           ) : null}
         </div>
         {Array(Math.min(conversation.length ?? 0, nMessages))
