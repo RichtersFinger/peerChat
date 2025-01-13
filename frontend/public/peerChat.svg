@@ -2,16 +2,16 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="6mm"
-   height="6mm"
-   viewBox="0 0 6 6"
+   width="20.540001mm"
+   height="20.540001mm"
+   viewBox="0 0 20.540001 20.540002"
    version="1.1"
    id="svg5"
-   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
    sodipodi:docname="peerChat.svg"
-   inkscape:export-filename="/home/sr/sciebo/projects/peerChat/frontend/public/peerChat.png"
-   inkscape:export-xdpi="270.92999"
-   inkscape:export-ydpi="270.92999"
+   inkscape:export-filename="favicon.png"
+   inkscape:export-xdpi="79.143127"
+   inkscape:export-ydpi="79.143127"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -26,14 +26,14 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     showgrid="true"
-     inkscape:zoom="17.678304"
-     inkscape:cx="6.1091833"
-     inkscape:cy="4.5536042"
-     inkscape:window-width="1920"
-     inkscape:window-height="1007"
-     inkscape:window-x="0"
-     inkscape:window-y="49"
+     showgrid="false"
+     inkscape:zoom="3.1251122"
+     inkscape:cx="48.638254"
+     inkscape:cy="49.278231"
+     inkscape:window-width="1914"
+     inkscape:window-height="1043"
+     inkscape:window-x="1920"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
      inkscape:current-layer="layer1"
      inkscape:pageshadow="2"
@@ -45,39 +45,88 @@
        originy="0" />
   </sodipodi:namedview>
   <defs
-     id="defs2" />
+     id="defs2">
+    <filter
+       inkscape:collect="always"
+       style="color-interpolation-filters:sRGB"
+       id="filter868"
+       x="-0.11080301"
+       y="-0.12867277"
+       width="1.221606"
+       height="1.2538113">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.086876149"
+         id="feGaussianBlur870" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       style="color-interpolation-filters:sRGB"
+       id="filter884"
+       x="-0.023791184"
+       y="-0.0645452"
+       width="1.0475824"
+       height="1.1290904">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.055267425"
+         id="feGaussianBlur886" />
+    </filter>
+    <filter
+       inkscape:collect="always"
+       style="color-interpolation-filters:sRGB"
+       id="filter888"
+       x="-0.024173079"
+       y="-0.063231302"
+       width="1.0483462"
+       height="1.1264626">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="0.055267425"
+         id="feGaussianBlur890" />
+    </filter>
+  </defs>
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:2.66886px;line-height:1.25;font-family:sans-serif;mix-blend-mode:normal;fill:#424242;fill-opacity:1;stroke:none;stroke-width:0.0667217;filter:url(#filter888)"
+       x="6.0617886"
+       y="2.4928393"
+       id="text878"
+       transform="matrix(4,0,0,4,-1.6469448,-2.5587989)"><tspan
+         sodipodi:role="line"
+         style="fill:#424242;fill-opacity:1;stroke-width:0.0667217"
+         x="6.0617886"
+         y="2.4928393"
+         id="tspan876">peer</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:2.66886px;line-height:1.25;font-family:sans-serif;mix-blend-mode:normal;fill:#424242;fill-opacity:1;stroke:none;stroke-width:0.0667217;filter:url(#filter884)"
+       x="7.9003124"
+       y="5.4258847"
+       id="text882"
+       transform="matrix(4,0,0,4,-1.6469448,-2.5587989)"><tspan
+         sodipodi:role="line"
+         id="tspan880"
+         style="fill:#424242;fill-opacity:1;stroke-width:0.0667217"
+         x="7.9003124"
+         y="5.4258847">Chat</tspan></text>
     <path
-       style="fill:#f2f2f2;fill-opacity:1;stroke:#4a87f4;stroke-width:0.163;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 0.26375087,0.50168616 V 2.8810328 L 2.8810322,2.4051634 V 0.73962086 Z"
-       id="path1116"
-       sodipodi:nodetypes="ccccc"
-       inkscape:export-filename="/home/sr/sciebo/projects/peerChat/path1116.png"
-       inkscape:export-xdpi="1197.5767"
-       inkscape:export-ydpi="1197.5767" />
-    <path
-       style="fill:#f2f2f2;fill-opacity:1;stroke:#4a87f4;stroke-width:0.163;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 5.7362482,0.50168616 V 2.8810328 L 3.1189668,2.4051634 V 0.73962086 Z"
-       id="path1169"
-       sodipodi:nodetypes="ccccc"
-       inkscape:export-filename="/home/sr/sciebo/projects/peerChat/path1116.png"
-       inkscape:export-xdpi="1197.5767"
-       inkscape:export-ydpi="1197.5767" />
-    <path
-       style="fill:#f2f2f2;fill-opacity:1;stroke:#4a87f4;stroke-width:0.163;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 0.26375087,5.4983138 V 3.1189674 L 2.8810323,3.5948368 v 1.6655426 z"
-       id="path1171"
-       sodipodi:nodetypes="ccccc"
-       inkscape:export-filename="/home/sr/sciebo/projects/peerChat/path1116.png"
-       inkscape:export-xdpi="1197.5767"
-       inkscape:export-ydpi="1197.5767" />
-    <path
-       style="fill:#f2f2f2;fill-opacity:1;stroke:#4a87f4;stroke-width:0.163;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 5.7362491,5.4983138 V 3.1189674 L 3.1189669,3.5948368 v 1.6655426 z"
+       style="fill:none;fill-opacity:1;stroke:#141414;stroke-width:0.163;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;filter:url(#filter868)"
+       d="M 3.3417997,3.469604 V 1.0902576 L 0.72451747,1.566127 v 1.6655426 z"
        id="path1173"
+       sodipodi:nodetypes="ccccc"
+       inkscape:export-filename="/home/sr/sciebo/projects/peerChat/path1116.png"
+       inkscape:export-xdpi="1197.5767"
+       inkscape:export-ydpi="1197.5767"
+       transform="matrix(-4.7677664,0,0,4.7677664,17.359586,-4.1782914)" />
+    <path
+       style="fill:#ebebeb;fill-opacity:1;stroke:#141414;stroke-width:0.777148;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 0.9049741,11.886899 V 0.54273137 L 13.383568,2.8115651 v 7.9409179 z"
+       id="path181"
        sodipodi:nodetypes="ccccc"
        inkscape:export-filename="/home/sr/sciebo/projects/peerChat/path1116.png"
        inkscape:export-xdpi="1197.5767"
@@ -95,25 +144,42 @@
          y="1.8520833" /></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:2.66886px;line-height:1.25;font-family:sans-serif;fill:#4a87f4;fill-opacity:1;stroke:none;stroke-width:0.0667217"
-       x="5.9615378"
-       y="2.3929176"
+       style="font-style:normal;font-weight:normal;font-size:10.6754px;line-height:1.25;font-family:sans-serif;fill:#141414;fill-opacity:1;stroke:none;stroke-width:0.266887"
+       x="22.199205"
+       y="7.0128717"
        id="text4242"><tspan
          sodipodi:role="line"
-         style="fill:#4a87f4;fill-opacity:1;stroke-width:0.0667217"
-         x="5.9615378"
-         y="2.3929176"
+         style="fill:#141414;fill-opacity:1;stroke-width:0.266887"
+         x="22.199205"
+         y="7.0128717"
          id="tspan4244">peer</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:2.66886px;line-height:1.25;font-family:sans-serif;fill:#4a87f4;fill-opacity:1;stroke:none;stroke-width:0.0667217"
-       x="7.8000617"
-       y="5.325963"
+       style="font-style:normal;font-weight:normal;font-size:10.6754px;line-height:1.25;font-family:sans-serif;fill:#131313;fill-opacity:1;stroke:none;stroke-width:0.266887"
+       x="29.553303"
+       y="18.745052"
        id="text6956"><tspan
          sodipodi:role="line"
          id="tspan6954"
-         style="fill:#4a87f4;fill-opacity:1;stroke-width:0.0667217"
-         x="7.8000617"
-         y="5.325963">Chat</tspan></text>
+         style="fill:#131313;fill-opacity:1;stroke-width:0.266887"
+         x="29.553303"
+         y="18.745052">Chat</tspan></text>
+    <path
+       style="fill:none;fill-opacity:1;stroke:#141414;stroke-width:0.163;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;filter:url(#filter868)"
+       d="M 3.3417997,3.469604 V 1.0902576 L 0.72451747,1.566127 v 1.6655426 z"
+       id="path925"
+       sodipodi:nodetypes="ccccc"
+       inkscape:export-filename="/home/sr/sciebo/projects/peerChat/path1116.png"
+       inkscape:export-xdpi="1197.5767"
+       inkscape:export-ydpi="1197.5767"
+       transform="matrix(5.5050936,0,0,5.5050936,1.2783547,0.42585017)" />
+    <path
+       style="fill:#ebebeb;fill-opacity:1;stroke:#141414;stroke-width:0.897328;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 19.123384,18.975495 V 5.8769707 L 4.7149957,8.4966767 v 9.1689673 z"
+       id="path927"
+       sodipodi:nodetypes="ccccc"
+       inkscape:export-filename="/home/sr/sciebo/projects/peerChat/path1116.png"
+       inkscape:export-xdpi="1197.5767"
+       inkscape:export-ydpi="1197.5767" />
   </g>
 </svg>
