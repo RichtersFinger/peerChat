@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Socket } from "socket.io-client";
 
-import UserLoader, { User } from "./UserLoader";
+import useUser from "../hooks/useUser";
 
 export type Conversation = {
   id: string;
@@ -24,32 +24,25 @@ export default function ConversationLoader({
   cid,
   onLoad,
 }: ConversationLoaderProps) {
-  const conversationRef = useRef<Conversation | null>(null);
-  const [conversation, setConversation] = useState<Conversation | null>(
-    conversationRef.current
-  );
+  const [conversation, setConversation] = useState<Conversation | null>(null);
+  const user = useUser(conversation?.peer);
 
   useEffect(() => {
     socket.emit("get-conversation", cid, (c: Conversation) => {
-      conversationRef.current = c;
-      if (onLoad) onLoad(conversationRef.current);
-      setConversation(conversationRef.current);
+      setConversation(c);
+      if (onLoad) onLoad(c);
     });
   }, [socket, cid, onLoad, setConversation]);
 
-  return conversation?.peer ? (
-    <UserLoader
-      url={conversation.peer}
-      onLoad={(u: User) => {
-        if (conversationRef.current) {
-          conversationRef.current = {
-            ...conversationRef.current,
-            ...(u?.name ? { peerName: u.name } : {}),
-            ...(u?.avatar ? { avatar: u.avatar } : {}),
-          };
-          if (onLoad) onLoad(conversationRef.current);
-        }
-      }}
-    />
-  ) : null;
+  useEffect(() => {
+    if (conversation) {
+      if (onLoad)
+        onLoad({
+          ...conversation,
+          ...(user.name ? { peerName: user.name } : {}),
+          ...(user.avatar ? { avatar: user.avatar } : {}),
+        });
+    }
+  }, [user, conversation, onLoad]);
+  return null;
 }

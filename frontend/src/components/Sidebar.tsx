@@ -1,6 +1,6 @@
 import { Sidebar as FBSidebar, Avatar } from "flowbite-react";
 
-import { User } from "./UserLoader";
+import { User } from "../hooks/useUser";
 import ConversationItem from "./ConversationItem";
 import { Conversation } from "./ConversationLoader";
 

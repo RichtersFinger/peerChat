@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useReducer } from "react";
 import { io } from "socket.io-client";
 import { Button } from "flowbite-react";
 
-import UserLoader, { User } from "./components/UserLoader";
+import useUser from "./hooks/useUser";
 import ConversationsLoader from "./components/ConversationsLoader";
 import { Conversation } from "./components/ConversationLoader";
 import Sidebar from "./components/Sidebar";
@@ -23,7 +23,7 @@ export default function App() {
   const createKeyInputRef = useRef<HTMLInputElement>(null);
   const createKeyRef = useRef<HTMLParagraphElement>(null);
   const [socketConnected, setSocketConnected] = useState<boolean>(false);
-  const [user, setUser] = useState<User | null>(null);
+  const user = useUser(ApiUrl);
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
   >(null);
@@ -74,7 +74,6 @@ export default function App() {
 
   return (
     <>
-      <UserLoader url={ApiUrl} onLoad={setUser} />
       {socketConnected ? (
         <ConversationsLoader
           socket={socket}
