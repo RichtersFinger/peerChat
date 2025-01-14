@@ -29,16 +29,18 @@ export default function App() {
   >(null);
   const [conversations, dispatchConversations] = useReducer(
     (state: Record<string, Conversation>, action: Conversation) => {
-      const newState = {
-        ...state,
-        [action.id]: { ...state[action.id], ...action },
-      };
       // update active conversation
       if (!activeConversationId) {
         setActiveConversationId(action.id);
       }
-      if (JSON.stringify(state) !== JSON.stringify(newState)) return newState;
-      else return state;
+
+      // exit if already up to date
+      if (JSON.stringify(action) === JSON.stringify(state[action.id]))
+        return state;
+      return {
+        ...state,
+        [action.id]: { ...state[action.id], ...action },
+      };
     },
     {}
   );
