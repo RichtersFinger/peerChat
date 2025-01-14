@@ -1,8 +1,8 @@
 import { Sidebar as FBSidebar, Avatar } from "flowbite-react";
 
 import { User } from "../hooks/useUser";
+import { Conversation } from "../hooks/useConversation";
 import ConversationItem from "./ConversationItem";
-import { Conversation } from "./ConversationLoader";
 
 export type SidebarProps = {
   connected: boolean;

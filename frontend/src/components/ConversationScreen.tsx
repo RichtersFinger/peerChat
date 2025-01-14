@@ -2,7 +2,7 @@ import { useEffect, useReducer, useState, useRef } from "react";
 import { Avatar, Button, Spinner, Textarea } from "flowbite-react";
 import { Socket } from "socket.io-client";
 
-import { Conversation } from "./ConversationLoader";
+import { Conversation } from "../hooks/useConversation";
 import MessageLoader, { Message } from "./MessageLoader";
 import MessageItem from "./MessageItem";
 

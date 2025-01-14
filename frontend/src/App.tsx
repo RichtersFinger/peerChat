@@ -3,8 +3,8 @@ import { io } from "socket.io-client";
 import { Button } from "flowbite-react";
 
 import useUser from "./hooks/useUser";
+import { Conversation } from "./hooks/useConversation";
 import ConversationsLoader from "./components/ConversationsLoader";
-import { Conversation } from "./components/ConversationLoader";
 import Sidebar from "./components/Sidebar";
 import ConversationScreen from "./components/ConversationScreen";
 
