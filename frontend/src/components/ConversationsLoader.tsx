@@ -14,11 +14,7 @@ type ConversationLoaderProps = {
   onLoad?: (c: Conversation) => void;
 };
 
-function ConversationLoader({
-  socket,
-  cid,
-  onLoad,
-}: ConversationLoaderProps) {
+function ConversationLoader({ socket, cid, onLoad }: ConversationLoaderProps) {
   useConversation(socket, cid, onLoad);
   return null;
 }
@@ -29,6 +25,17 @@ export default function ConversationsLoader({
 }: ConversationsLoaderProps) {
   const [cids, setCids] = useState<string[]>([]);
 
+  // configure socket
+  useEffect(() => {
+    socket.on("update-conversation", (conversation: Conversation) => {
+      if (onConversationLoad) onConversationLoad(conversation);
+    });
+    return () => {
+      socket.off("update-conversation");
+    };
+  }, [socket, onConversationLoad]);
+
+  // fetch conversations
   useEffect(() => {
     if (socket.connected)
       socket.emit("list-conversations", (cids_: string[]) => setCids(cids_));

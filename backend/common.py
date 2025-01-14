@@ -287,6 +287,7 @@ class MessageStore:
             c.messages[msg.id_] = msg
             c.length = len(c.messages)
             self.write(c.id_, msg.id_)
+            self.write(c.id_)
             return msg.id_
 
     def write(self, cid: str, mid: Optional[str] = None) -> None:

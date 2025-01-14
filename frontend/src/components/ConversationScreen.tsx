@@ -18,6 +18,7 @@ export default function ConversationScreen({
   socket,
   conversation,
 }: ConversationScreenProps) {
+  const [cid, setCid] = useState<string | null>(conversation.id);
   const [nMessages, setNMessages] = useState<number>(DEFAULT_NMESSAGES);
   const [messages, dispatchMessages] = useReducer(
     (state: Message[], action: Message | null) => {
@@ -31,11 +32,25 @@ export default function ConversationScreen({
   );
   const newMessageRef = useRef<HTMLTextAreaElement>(null);
 
-  // reset initial values for states
+  // configure socket
+  useEffect(() => {
+    socket.on(
+      "update-message",
+      ({ cid: _cid, message }: { cid: string; message: Message }) => {
+        if (_cid === cid) dispatchMessages(message);
+      }
+    );
+    return () => {
+      socket.off("update-message");
+    };
+  }, [socket, cid, dispatchMessages]);
+
+  // reset initial values for states if cid changes
+  useEffect(() => setCid(conversation.id), [conversation]);
   useEffect(() => {
     dispatchMessages(null);
     setNMessages(DEFAULT_NMESSAGES);
-  }, [conversation]);
+  }, [cid]);
 
   return (
     <div className="flex flex-col w-full h-screen overflow-x-hidden">
@@ -102,7 +117,10 @@ export default function ConversationScreen({
         {messages.length > 0 ? (
           <div className="space-y-3">
             {messages
-              .slice((conversation.length ?? 0) - nMessages)
+              .slice(
+                (conversation.length ?? 0) -
+                  Math.min(conversation.length ?? 0, nMessages)
+              )
               .map((m: Message, index: number) => (
                 <MessageItem
                   key={m?.id ?? "?" + index.toString()}
@@ -128,10 +146,7 @@ export default function ConversationScreen({
                 (mid: number) => {
                   if (newMessageRef.current?.value)
                     newMessageRef.current.value = "";
-                  if (conversation.length) conversation.length += 1;
-                  setNMessages((previous) => previous + 1);
-                  // TODO: trigger sending message
-                  // TODO: implement mechanism for updating conversation
+                  socket.emit("send-message", cid, mid.toString());
                 }
               );
             }}

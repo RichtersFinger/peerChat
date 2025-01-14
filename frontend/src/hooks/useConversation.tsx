@@ -38,13 +38,16 @@ export default function useConversation(
       onLoad &&
       ((user.name && !conversation.peerName) ||
         (user.avatar && !conversation.avatar))
-    )
-      onLoad({
+    ) {
+      const newConversation = {
         ...conversation,
         ...(user.name ? { peerName: user.name } : {}),
         ...(user.avatar ? { avatar: user.avatar } : {}),
-      });
-  }, [user, conversation, onLoad]);
+      };
+      setConversation(newConversation);
+      onLoad(newConversation);
+    }
+  }, [user, conversation, setConversation, onLoad]);
 
   return conversation;
 }

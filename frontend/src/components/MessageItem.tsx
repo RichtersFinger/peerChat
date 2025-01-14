@@ -20,6 +20,7 @@ export default function MessageItem({ message }: MessageItemProps) {
             {message.body}
           </p>
           <p className="text-end text-xs text-gray-500">
+            {message.status !== "ok" ? message.status + " • " : ""}
             {message.lastModified}
           </p>
         </div>

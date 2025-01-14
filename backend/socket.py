@@ -100,11 +100,13 @@ def socket_(auth: Auth, store: MessageStore, callback_url: str) -> SocketIO:
         m = store.load_message(cid, mid)
         if not m:
             return False
-        m.status = MessageStatus.OK
+        m.status = MessageStatus.SENDING
         store.post_message(cid, m)
         c = store.load_conversation(cid)
         if not c:
             return False
+
+        socketio.emit("update-conversation", c.json)
         try:
             requests.post(
                 c.peer + "/api/v0/message",
@@ -114,10 +116,13 @@ def socket_(auth: Auth, store: MessageStore, callback_url: str) -> SocketIO:
         # pylint: disable=broad-exception-caught
         except Exception as exc_info:
             print(
-                f"ERROR: Unable to send message {cid}.{mid}: {exc_info}",
+                f"ERROR: Unable to send message '{cid}.{mid}': {exc_info}",
                 file=sys.stderr,
             )
             return False
+        m.status = MessageStatus.OK
+        store.post_message(cid, m)
+        socketio.emit("update-message", {"cid": cid, "message": m.json})
         return True
 
     return socketio
