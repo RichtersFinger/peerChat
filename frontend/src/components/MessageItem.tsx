@@ -1,12 +1,18 @@
+import { useContext } from "react";
 import { Spinner } from "flowbite-react";
 
-import { Message } from "./MessageLoader";
+import { SocketContext } from "../App";
+import useMessage from "../hooks/useMessage";
 
 export type MessageItemProps = {
-  message?: Message;
+  cid: string;
+  mid: string;
 };
 
-export default function MessageItem({ message }: MessageItemProps) {
+export default function MessageItem({ cid, mid }: MessageItemProps) {
+  const socket = useContext(SocketContext);
+  const message = useMessage(socket, cid, mid);
+
   return (
     <div
       className={
