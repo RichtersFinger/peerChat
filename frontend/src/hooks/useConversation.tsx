@@ -12,7 +12,7 @@ export type Conversation = {
 export default function useConversation(
   socket: Socket | null,
   cid: string,
-  onLoad?: (c: Conversation) => void
+  onUpdate?: (c: Conversation) => void
 ): Conversation {
   const [conversation, setConversation] = useState<Conversation>({
     id: cid,
@@ -24,9 +24,8 @@ export default function useConversation(
     if (socket)
       socket.emit("get-conversation", cid, (c: Conversation) => {
         setConversation(c);
-        if (onLoad) onLoad(c);
       });
-  }, [socket, cid, onLoad, setConversation]);
+  }, [socket, cid, setConversation]);
 
   // receive conversation-updates
   useEffect(() => {
@@ -34,12 +33,13 @@ export default function useConversation(
     if (socket) {
       socket.on(eventName, (c: Conversation) => {
         setConversation(c);
+        if (onUpdate) onUpdate(c);
       });
       return () => {
         socket.off(eventName);
       };
     }
-  }, [socket, cid, setConversation]);
+  }, [socket, cid, onUpdate, setConversation]);
 
   return conversation;
 }

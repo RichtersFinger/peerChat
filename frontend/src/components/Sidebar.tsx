@@ -10,12 +10,14 @@ import SidebarConversationItem from "./SidebarConversationItem";
 export type SidebarProps = {
   connected: boolean;
   url: string;
+  selectedConversation?: string | null;
   onConversationClick?: (c: Conversation) => void;
 };
 
 export default function Sidebar({
   connected,
   url,
+  selectedConversation,
   onConversationClick,
 }: SidebarProps) {
   const socket = useContext(SocketContext);
@@ -45,6 +47,7 @@ export default function Sidebar({
                 <SidebarConversationItem
                   key={cid}
                   cid={cid}
+                  useIndicator={selectedConversation !== cid}
                   onClick={onConversationClick}
                 />
               ))}

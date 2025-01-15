@@ -60,6 +60,7 @@ export default function App() {
           <Sidebar
             connected={socketConnected}
             url={ApiUrl}
+            selectedConversation={activeConversationId}
             onConversationClick={(c: Conversation) => {
               setActiveConversationId(c.id);
             }}
