@@ -1,5 +1,6 @@
-import { useEffect } from "react";
-import { Socket } from "socket.io-client";
+import { useEffect, useContext } from "react";
+
+import { SocketContext } from "../App";
 
 export type Message = {
   id: string;
@@ -10,22 +11,23 @@ export type Message = {
 };
 
 export type MessageLoaderProps = {
-  socket: Socket;
   cid: string;
   mid: string;
   onLoad?: (m: Message) => void;
 };
 
 export default function MessageLoader({
-  socket,
   cid,
   mid,
   onLoad,
 }: MessageLoaderProps) {
+  const socket = useContext(SocketContext);
+
   useEffect(() => {
-    socket.emit("get-message", cid, mid, (m: Message) => {
-      if (onLoad) onLoad(m);
-    });
+    if (socket)
+      socket.emit("get-message", cid, mid, (m: Message) => {
+        if (onLoad) onLoad(m);
+      });
   }, [socket, cid, mid, onLoad]);
 
   return null;

@@ -1,24 +1,26 @@
-import { useEffect, useReducer, useState, useRef } from "react";
+import { useEffect, useReducer, useState, useRef, useContext } from "react";
 import { Avatar, Button, Spinner, Textarea } from "flowbite-react";
-import { Socket } from "socket.io-client";
 
-import { Conversation } from "../hooks/useConversation";
+import { SocketContext } from "../App";
+import useConversation from "../hooks/useConversation";
+import useUser from "../hooks/useUser";
 import MessageLoader, { Message } from "./MessageLoader";
 import MessageItem from "./MessageItem";
 
 export type ConversationScreenProps = {
-  socket: Socket;
-  conversation: Conversation;
+  cid: string;
 };
 
 const DEFAULT_NMESSAGES = 3;
 const DEFAULT_NMESSAGES_INCREMENT = 5;
 
 export default function ConversationScreen({
-  socket,
-  conversation,
+  cid,
 }: ConversationScreenProps) {
-  const [cid, setCid] = useState<string | null>(conversation.id);
+  const socket = useContext(SocketContext);
+  const conversation = useConversation(socket, cid);
+  const user = useUser(conversation.peer);
+
   const [nMessages, setNMessages] = useState<number>(DEFAULT_NMESSAGES);
   const [messages, dispatchMessages] = useReducer(
     (state: Message[], action: Message | null) => {
@@ -34,24 +36,26 @@ export default function ConversationScreen({
 
   // configure socket
   useEffect(() => {
-    socket.on(
-      "update-message",
-      ({ cid: _cid, message }: { cid: string; message: Message }) => {
-        if (_cid === cid) dispatchMessages(message);
-      }
-    );
-    return () => {
-      socket.off("update-message");
-    };
+    if (socket) {
+      socket.on(
+        "update-message",
+        ({ cid: _cid, message }: { cid: string; message: Message }) => {
+          if (_cid === cid) dispatchMessages(message);
+        }
+      );
+      return () => {
+        socket.off("update-message");
+      };
+    }
   }, [socket, cid, dispatchMessages]);
 
   // reset initial values for states if cid changes
-  useEffect(() => setCid(conversation.id), [conversation]);
   useEffect(() => {
     dispatchMessages(null);
     setNMessages(DEFAULT_NMESSAGES);
   }, [cid]);
 
+  if (!socket) return null;
   return (
     <div className="flex flex-col w-full h-screen overflow-x-hidden">
       {
@@ -59,15 +63,15 @@ export default function ConversationScreen({
       }
       <div className="flex flex-row space-x-2 bg-slate-50 p-2">
         <Avatar
-          {...(conversation.avatar ? { img: conversation.avatar } : {})}
+          {...(user.avatar ? { img: user.avatar } : {})}
           rounded
           size="lg"
         />
         <div className="flex-col space-y-1 font-medium">
           <p className="truncate">{conversation.name ?? conversation.id}</p>
-          {conversation.peerName ? (
+          {user.name ? (
             <p className="truncate text-sm text-gray-500">
-              {conversation.peerName}
+              {user.name}
             </p>
           ) : null}
           {conversation.peer ? (
@@ -108,7 +112,6 @@ export default function ConversationScreen({
           .map((mid: number) => (
             <MessageLoader
               key={mid}
-              socket={socket}
               cid={conversation.id}
               mid={mid.toString()}
               onLoad={dispatchMessages}

@@ -4,6 +4,7 @@ export default function useUserAvatar(url?: string) {
   const [avatar, setAvatar] = useState<string | null>(null);
 
   useEffect(() => {
+    setAvatar(null);
     if (url)
       fetch(url + "/api/v0/user/avatar")
         .then((response) => {

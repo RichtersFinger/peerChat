@@ -1,16 +1,23 @@
+import { useContext } from "react";
 import { Sidebar as FBSidebar, Avatar } from "flowbite-react";
 
-import { Conversation } from "../hooks/useConversation";
+import { SocketContext } from "../App";
+import useConversation, { Conversation } from "../hooks/useConversation";
+import useUser from "../hooks/useUser";
 
 export type ConversationItemProps = {
-  conversation: Conversation;
+  cid: string;
   onClick?: (c: Conversation) => void;
 };
 
 export default function ConversationItem({
-  conversation,
+  cid,
   onClick,
 }: ConversationItemProps) {
+  const socket = useContext(SocketContext);
+  const conversation = useConversation(socket, cid);
+  const user = useUser(conversation.peer);
+
   return (
     <FBSidebar.Item
       theme={{
@@ -20,7 +27,7 @@ export default function ConversationItem({
     >
       <div className="relative flex flex-row space-x-2">
         <Avatar
-          {...(conversation.avatar ? { img: conversation.avatar } : {})}
+          {...(user.avatar ? { img: user.avatar } : {})}
           rounded
           size="md"
         />
@@ -29,7 +36,7 @@ export default function ConversationItem({
             {conversation.name ?? conversation.id}
           </p>
           <p className="max-w-48 truncate text-sm text-gray-500">
-            {conversation.peerName ?? conversation.peer ?? "-"}
+            {user.name ?? conversation.peer ?? "-"}
           </p>
         </div>
         {

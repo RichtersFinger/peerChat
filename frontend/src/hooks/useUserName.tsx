@@ -4,6 +4,7 @@ export default function useUserName(url?: string) {
   const [name, setName] = useState<string | null>(null);
 
   useEffect(() => {
+    setName(null);
     if (url)
       fetch(url + "/api/v0/user/name")
         .then((response) => {

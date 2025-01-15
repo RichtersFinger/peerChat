@@ -1,10 +1,8 @@
-import { useState, useRef, useEffect, useReducer, createContext } from "react";
+import { useState, useRef, useEffect, createContext } from "react";
 import { Socket, io } from "socket.io-client";
 import { Button } from "flowbite-react";
 
-import useUser from "./hooks/useUser";
 import { Conversation } from "./hooks/useConversation";
-import ConversationsLoader from "./components/ConversationsLoader";
 import Sidebar from "./components/Sidebar";
 import ConversationScreen from "./components/ConversationScreen";
 
@@ -24,27 +22,9 @@ export default function App() {
   const createKeyInputRef = useRef<HTMLInputElement>(null);
   const createKeyRef = useRef<HTMLParagraphElement>(null);
   const [socketConnected, setSocketConnected] = useState<boolean>(false);
-  const user = useUser(ApiUrl);
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
   >(null);
-  const [conversations, dispatchConversations] = useReducer(
-    (state: Record<string, Conversation>, action: Conversation) => {
-      // update active conversation
-      if (!activeConversationId) {
-        setActiveConversationId(action.id);
-      }
-
-      // exit if already up to date
-      if (JSON.stringify(action) === JSON.stringify(state[action.id]))
-        return state;
-      return {
-        ...state,
-        [action.id]: { ...state[action.id], ...action },
-      };
-    },
-    {}
-  );
 
   // connection status-tracking
   useEffect(() => {
@@ -75,29 +55,18 @@ export default function App() {
 
   return (
     <SocketContext.Provider value={socketConnected ? socket : null}>
-      {socketConnected ? (
-        <ConversationsLoader
-          socket={socket}
-          onConversationLoad={dispatchConversations}
-        />
-      ) : null}
       <div className="flex flex-row">
         <div>
           <Sidebar
             connected={socketConnected}
-            conversations={conversations}
-            ApiUrl={ApiUrl}
-            user={user}
+            ApiUrl={socketConnected ? ApiUrl : undefined}
             onConversationClick={(c: Conversation) => {
               setActiveConversationId(c.id);
             }}
           />
         </div>
         {activeConversationId ? (
-          <ConversationScreen
-            socket={socket}
-            conversation={conversations?.[activeConversationId]}
-          />
+          <ConversationScreen cid={activeConversationId} />
         ) : null}
         <div className="m-2 space-y-2">
           <Button
