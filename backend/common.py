@@ -284,8 +284,8 @@ class MessageStore:
                 return
             if msg.id_ is None:
                 msg.id_ = str(c.length)
+                c.length += 1
             c.messages[msg.id_] = msg
-            c.length = len(c.messages)
             self.write(c.id_, msg.id_)
             self.write(c.id_)
             return msg.id_
