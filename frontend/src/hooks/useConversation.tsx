@@ -28,5 +28,18 @@ export default function useConversation(
       });
   }, [socket, cid, onLoad, setConversation]);
 
+  // receive conversation-updates
+  useEffect(() => {
+    const eventName = "update-conversation-" + cid;
+    if (socket) {
+      socket.on(eventName, (c: Conversation) => {
+        setConversation(c);
+      });
+      return () => {
+        socket.off(eventName);
+      };
+    }
+  }, [socket, cid, setConversation]);
+
   return conversation;
 }

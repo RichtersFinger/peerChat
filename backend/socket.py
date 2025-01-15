@@ -106,7 +106,7 @@ def socket_(auth: Auth, store: MessageStore, callback_url: str) -> SocketIO:
         if not c:
             return False
 
-        socketio.emit("update-conversation", c.json)
+        socketio.emit(f"update-conversation-{c.id_}", c.json)
         try:
             requests.post(
                 c.peer + "/api/v0/message",
@@ -122,7 +122,9 @@ def socket_(auth: Auth, store: MessageStore, callback_url: str) -> SocketIO:
             return False
         m.status = MessageStatus.OK
         store.post_message(cid, m)
-        socketio.emit("update-message", {"cid": cid, "message": m.json})
+        socketio.emit(
+            f"update-message-{c.id_}.{m.id_}", {"cid": cid, "message": m.json}
+        )
         return True
 
     return socketio
