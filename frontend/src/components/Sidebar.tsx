@@ -5,7 +5,7 @@ import { SocketContext } from "../App";
 import useConversationList from "../hooks/useConversationList";
 import { Conversation } from "../hooks/useConversation";
 import SidebarUserItem from "./SidebarUserItem";
-import ConversationItem from "./ConversationItem";
+import SidebarConversationItem from "./SidebarConversationItem";
 
 export type SidebarProps = {
   connected: boolean;
@@ -42,7 +42,7 @@ export default function Sidebar({
           <FBSidebar.ItemGroup>
             <FBSidebar.Item>+ New Conversation</FBSidebar.Item>
             {cids.map((cid: string) => (
-                <ConversationItem
+                <SidebarConversationItem
                   key={cid}
                   cid={cid}
                   onClick={onConversationClick}

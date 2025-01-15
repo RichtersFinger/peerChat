@@ -5,15 +5,15 @@ import { SocketContext } from "../App";
 import useConversation, { Conversation } from "../hooks/useConversation";
 import useUser from "../hooks/useUser";
 
-export type ConversationItemProps = {
+export type SidebarConversationItemProps = {
   cid: string;
   onClick?: (c: Conversation) => void;
 };
 
-export default function ConversationItem({
+export default function SidebarConversationItem({
   cid,
   onClick,
-}: ConversationItemProps) {
+}: SidebarConversationItemProps) {
   const socket = useContext(SocketContext);
   const conversation = useConversation(socket, cid);
   const user = useUser(conversation.peer);
