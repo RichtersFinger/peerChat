@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect, useReducer } from "react";
-import { io } from "socket.io-client";
+import { useState, useRef, useEffect, useReducer, createContext } from "react";
+import { Socket, io } from "socket.io-client";
 import { Button } from "flowbite-react";
 
 import useUser from "./hooks/useUser";
@@ -13,6 +13,7 @@ const socket = io(ApiUrl, {
   autoConnect: false,
   withCredentials: true,
 });
+export const SocketContext = createContext<Socket | null>(null);
 
 const authKey = "peerChatAuth";
 const authKeyMaxAge = "2147483647";
@@ -73,7 +74,7 @@ export default function App() {
   }, []);
 
   return (
-    <>
+    <SocketContext.Provider value={socketConnected ? socket : null}>
       {socketConnected ? (
         <ConversationsLoader
           socket={socket}
@@ -176,6 +177,6 @@ export default function App() {
           <p ref={eventRef}></p>
         </div>
       </div>
-    </>
+    </SocketContext.Provider>
   );
 }
