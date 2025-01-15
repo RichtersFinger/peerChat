@@ -81,7 +81,12 @@ def blueprint_factory(
                     }
                 ),
             )
-            socket.emit("got-message", {"cid": c.id_, "mid": mid})
+            m = store.load_message(c.id_, mid)
+            socket.emit(f"update-conversation-{c.id_}", c.json)
+            socket.emit(
+                f"update-message-{c.id_}.{mid}",
+                {"cid": c.id_, "message": m.json},
+            )
         # pylint: disable=broad-exception-caught
         except Exception as exc_info:
             if c is not None:
