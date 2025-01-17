@@ -4,7 +4,7 @@ import { Button } from "flowbite-react";
 
 import { Conversation } from "./hooks/useConversation";
 import Sidebar from "./components/Sidebar";
-import ConversationScreen from "./components/ConversationScreen";
+import Chat from "./components/Chat";
 
 const ApiUrl = process.env.REACT_APP_API_BASE_URL ?? "http://localhost:5000";
 const socket = io(ApiUrl, {
@@ -66,9 +66,7 @@ export default function App() {
             }}
           />
         </div>
-        {activeConversationId ? (
-          <ConversationScreen cid={activeConversationId} />
-        ) : null}
+        {activeConversationId ? <Chat cid={activeConversationId} /> : null}
         <div className="m-2 space-y-2">
           <Button
             size="xs"

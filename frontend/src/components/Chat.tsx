@@ -4,16 +4,16 @@ import { Avatar, Button, Textarea } from "flowbite-react";
 import { SocketContext } from "../App";
 import useConversation from "../hooks/useConversation";
 import useUser from "../hooks/useUser";
-import MessageItem from "./MessageItem";
+import ChatMessageItem from "./ChatMessageItem";
 
-export type ConversationScreenProps = {
+export type ChatProps = {
   cid: string;
 };
 
-const DEFAULT_NMESSAGES = 3;
-const DEFAULT_NMESSAGES_INCREMENT = 5;
+const DEFAULT_NMESSAGES = 10;
+const DEFAULT_NMESSAGES_INCREMENT = 10;
 
-export default function ConversationScreen({ cid }: ConversationScreenProps) {
+export default function Chat({ cid }: ChatProps) {
   const socket = useContext(SocketContext);
   const conversation = useConversation(socket, cid);
   const user = useUser(conversation.peer);
@@ -80,7 +80,7 @@ export default function ConversationScreen({ cid }: ConversationScreenProps) {
             .fill(0)
             .map((_, index) => (conversation.length ?? 0) - 1 - index)
             .map((mid: number) => (
-              <MessageItem key={mid} cid={cid} mid={mid.toString()} />
+              <ChatMessageItem key={mid} cid={cid} mid={mid.toString()} />
             ))
             .reverse()}
         </div>
