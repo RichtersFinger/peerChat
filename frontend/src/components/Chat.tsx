@@ -3,7 +3,7 @@ import { Avatar, Button, Textarea } from "flowbite-react";
 
 import { SocketContext } from "../App";
 import useConversation from "../hooks/useConversation";
-import useUser from "../hooks/useUser";
+import ChatHeader from "./ChatHeader";
 import ChatMessageItem from "./ChatMessageItem";
 
 export type ChatProps = {
@@ -16,7 +16,6 @@ const DEFAULT_NMESSAGES_INCREMENT = 10;
 export default function Chat({ cid }: ChatProps) {
   const socket = useContext(SocketContext);
   const conversation = useConversation(socket, cid);
-  const user = useUser(conversation.peer);
   const [nMessages, setNMessages] = useState<number>(DEFAULT_NMESSAGES);
   const newMessageRef = useRef<HTMLTextAreaElement>(null);
 
@@ -28,30 +27,7 @@ export default function Chat({ cid }: ChatProps) {
   if (!socket) return null;
   return (
     <div className="flex flex-col w-full h-screen overflow-x-hidden">
-      {
-        // header
-      }
-      <div className="flex flex-row space-x-2 bg-slate-50 p-2">
-        <Avatar
-          {...(user.avatar ? { img: user.avatar } : {})}
-          rounded
-          size="lg"
-        />
-        <div className="flex-col space-y-1 font-medium">
-          <p className="truncate">{conversation.name ?? conversation.id}</p>
-          {user.name ? (
-            <p className="truncate text-sm text-gray-500">{user.name}</p>
-          ) : null}
-          {conversation.peer ? (
-            <p className="truncate text-sm text-gray-500">
-              {conversation.peer}
-            </p>
-          ) : null}
-        </div>
-      </div>
-      {
-        // body
-      }
+      <ChatHeader conversation={conversation}/>
       <div className="m-4 space-y-3 overflow-y-auto h-full">
         <div className="justify-items-center">
           {(conversation.length ?? 0) > 0 &&
