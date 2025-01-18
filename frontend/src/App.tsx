@@ -8,8 +8,7 @@ import Sidebar from "./components/Sidebar";
 import Chat from "./components/Chat";
 import SetupDialog from "./modals/Setup";
 
-export const ApiUrl =
-  process.env.REACT_APP_API_BASE_URL ?? "http://localhost:5000";
+export const ApiUrl = process.env.REACT_APP_API_BASE_URL ?? window.origin;
 const socket = io(ApiUrl, {
   autoConnect: false,
   withCredentials: true,
