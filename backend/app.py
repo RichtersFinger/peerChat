@@ -131,6 +131,37 @@ def load_callback_url() -> str:
     return url
 
 
+def login_required(auth: Auth):
+    def _(route):
+        def __():
+            if auth.value is None:
+                return Response(
+                    "Missing configuration.",
+                    headers={"Access-Control-Allow-Credentials": "true"},
+                    mimetype="text/plain",
+                    status=500,
+                )
+            if Auth.KEY not in request.cookies:
+                return Response(
+                    "Missing credentials.",
+                    headers={"Access-Control-Allow-Credentials": "true"},
+                    mimetype="text/plain",
+                    status=401,
+                )
+            if auth.value != request.cookies.get(Auth.KEY):
+                return Response(
+                    "Bad credentials.",
+                    headers={"Access-Control-Allow-Credentials": "true"},
+                    mimetype="text/plain",
+                    status=401,
+                )
+            return route()
+
+        return __
+
+    return _
+
+
 def app_factory(
     callback_url: Optional[str] = None, working_dir: Optional[Path] = None
 ) -> tuple[Flask, SocketIO]:
@@ -201,6 +232,19 @@ def app_factory(
                 auth.value = str(uuid4())
             auth.file.write_text(auth.value, encoding="utf-8")
             return Response(auth.value, mimetype="text/plain", status=200)
+
+    @_app.route("/auth/test", methods=["GET"])
+    @login_required(auth)
+    def auth_test():
+        """
+        Returns 200 if auth is ok.
+        """
+        return Response(
+            "ok",
+            headers={"Access-Control-Allow-Credentials": "true"},
+            mimetype="text/plain",
+            status=200,
+        )
 
     # socket
     _socket = socket_(auth, store, callback_url)
