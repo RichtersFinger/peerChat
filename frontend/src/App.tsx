@@ -1,30 +1,44 @@
-import { useState, useRef, useEffect, createContext } from "react";
+import { useState, useEffect, useCallback, createContext } from "react";
 import { Socket, io } from "socket.io-client";
-import { Button } from "flowbite-react";
+import { Button, Card, Alert } from "flowbite-react";
+import { FiAlertCircle } from "react-icons/fi";
 
 import { Conversation } from "./hooks/useConversation";
 import Sidebar from "./components/Sidebar";
 import Chat from "./components/Chat";
+import SetupDialog from "./modals/Setup";
 
-const ApiUrl = process.env.REACT_APP_API_BASE_URL ?? "http://localhost:5000";
+export const ApiUrl =
+  process.env.REACT_APP_API_BASE_URL ?? "http://localhost:5000";
 const socket = io(ApiUrl, {
   autoConnect: false,
   withCredentials: true,
 });
 export const SocketContext = createContext<Socket | null>(null);
 
-const authKey = "peerChatAuth";
-const authKeyMaxAge = "2147483647";
+export const authKey = "peerChatAuth";
+export const authKeyMaxAge = "2147483647";
 
 export default function App() {
-  const pingRef = useRef<HTMLParagraphElement>(null);
-  const eventRef = useRef<HTMLParagraphElement>(null);
-  const createKeyInputRef = useRef<HTMLInputElement>(null);
-  const createKeyRef = useRef<HTMLParagraphElement>(null);
   const [socketConnected, setSocketConnected] = useState<boolean>(false);
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
   >(null);
+  const [configured, setConfigured] = useState<boolean>(true);
+  const [configurationDialog, setConfigurationDialog] =
+    useState<boolean>(false);
+  const checkConfiguration = useCallback(() => {
+    fetch(ApiUrl + "/auth/key")
+      .then((response) => {
+        setConfigured(response.ok);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch resource: ", error);
+      });
+  }, [setConfigured]);
+
+  // configuration status
+  useEffect(checkConfiguration, [checkConfiguration]);
 
   // connection status-tracking
   useEffect(() => {
@@ -44,17 +58,21 @@ export default function App() {
 
   // configure socket and connect
   useEffect(() => {
-    socket.on("event-response", (value) => {
-      if (eventRef.current) eventRef.current.innerText = JSON.stringify(value);
-    });
     if (!socket.connected) socket.connect();
     return () => {
       if (socket.connected) socket.disconnect();
     };
-  }, []);
+  }, [configured]);
 
   return (
     <SocketContext.Provider value={socketConnected ? socket : null}>
+      <SetupDialog
+        open={configurationDialog}
+        onClose={() => {
+          setConfigurationDialog(false);
+          checkConfiguration();
+        }}
+      />
       <div className="flex flex-row">
         <div>
           <Sidebar
@@ -66,84 +84,20 @@ export default function App() {
             }}
           />
         </div>
+        {!configured ? (
+          <div className="w-full h-screen flex flex-col place-content-center place-items-center">
+            <Card className="m-2 min-w-96 max-w-96">
+              <h5 className="text-xl font-bold">Configuration</h5>
+              <Alert color="failure" icon={FiAlertCircle}>
+                This server has not been configured yet.
+              </Alert>
+              <Button onClick={() => setConfigurationDialog(true)}>
+                Configure
+              </Button>
+            </Card>
+          </div>
+        ) : null}
         {activeConversationId ? <Chat cid={activeConversationId} /> : null}
-        <div className="m-2 space-y-2">
-          <Button
-            size="xs"
-            onClick={() => {
-              fetch(ApiUrl + "/ping")
-                .then((response) => response.text())
-                .then((text) => {
-                  if (pingRef.current) pingRef.current.innerText = text;
-                });
-            }}
-          >
-            ping
-          </Button>
-          <p ref={pingRef}></p>
-          <input ref={createKeyInputRef} type="text" />
-          <Button
-            size="xs"
-            onClick={() => {
-              fetch(ApiUrl + "/auth/key", {
-                method: "POST",
-                body: JSON.stringify(
-                  createKeyInputRef.current
-                    ? { [authKey]: createKeyInputRef.current.value }
-                    : {}
-                ),
-                headers: { "content-type": "application/json" },
-              })
-                .then((response) => {
-                  return { status: response.status, text: response.text() };
-                })
-                .then(async (data) => {
-                  const text = await data.text;
-                  if (createKeyRef.current)
-                    createKeyRef.current.innerText = text;
-                  if (data.status === 200)
-                    document.cookie =
-                      authKey +
-                      "=" +
-                      text +
-                      "; path=/; max-age=" +
-                      authKeyMaxAge;
-                });
-            }}
-          >
-            create key
-          </Button>
-          <p ref={createKeyRef}></p>
-          <Button
-            size="xs"
-            disabled={socketConnected}
-            onClick={() => {
-              socket.connect();
-            }}
-          >
-            connect
-          </Button>
-          <Button
-            size="xs"
-            disabled={!socketConnected}
-            onClick={() => {
-              socket.disconnect();
-            }}
-          >
-            disconnect
-          </Button>
-          <Button
-            size="xs"
-            onClick={() => {
-              socket.emit("event", function (data: string) {
-                console.log(data);
-              });
-            }}
-          >
-            event
-          </Button>
-          <p ref={eventRef}></p>
-        </div>
       </div>
     </SocketContext.Provider>
   );

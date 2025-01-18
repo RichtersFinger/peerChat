@@ -184,15 +184,15 @@ def app_factory(
         if request.method == "GET":
             if auth.value is not None:
                 return Response(
-                    "Key already exists.", mimetype="text/plain", status=200
+                    "Key already set.", mimetype="text/plain", status=200
                 )
             return Response(
-                "Key does not exist yet.", mimetype="text/plain", status=404
+                "Key has not been set.", mimetype="text/plain", status=404
             )
         with auth_lock:
             if auth.value is not None:
                 return Response(
-                    "Key already exists.", mimetype="text/plain", status=409
+                    "Key already set.", mimetype="text/plain", status=409
                 )
             auth_json = request.get_json(force=True, silent=True)
             if auth_json is not None and auth_json.get(auth.KEY):
