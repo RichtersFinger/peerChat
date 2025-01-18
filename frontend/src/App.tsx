@@ -7,6 +7,7 @@ import { Conversation } from "./hooks/useConversation";
 import Sidebar from "./components/Sidebar";
 import Chat from "./components/Chat";
 import SetupDialog from "./modals/Setup";
+import LoginDialog from "./modals/Login";
 
 export const ApiUrl = process.env.REACT_APP_API_BASE_URL ?? window.origin;
 const socket = io(ApiUrl, {
@@ -23,18 +24,35 @@ export default function App() {
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
   >(null);
-  const [configured, setConfigured] = useState<boolean>(true);
+
+  // login
+  const [loginChecked, setLoginChecked] = useState<boolean>(false);
+  const [loggedIn, setLoggedIn] = useState<boolean>(false);
+  const [loginDialog, setLoginDialog] = useState<boolean>(false);
+  const checkLogin = useCallback(() => {
+    fetch(
+      ApiUrl + "/auth/test",
+      process.env.REACT_APP_API_BASE_URL ? { credentials: "include" } : {}
+    ).then(async (response) => {
+      setLoggedIn(response.ok);
+      setLoginChecked(true);
+      if (response.ok && !socket.connected) {socket.connect();}
+    });
+  }, [setLoginChecked, setLoggedIn]);
+
+  // configuration
+  const [configurationChecked, setConfigurationChecked] =
+    useState<boolean>(false);
+  const [configured, setConfigured] = useState<boolean>(false);
   const [configurationDialog, setConfigurationDialog] =
     useState<boolean>(false);
   const checkConfiguration = useCallback(() => {
-    fetch(ApiUrl + "/auth/key")
-      .then((response) => {
-        setConfigured(response.ok);
-      })
-      .catch((error) => {
-        console.error("Failed to fetch resource: ", error);
-      });
-  }, [setConfigured]);
+    fetch(ApiUrl + "/auth/key").then((response) => {
+      setConfigured(response.ok);
+      setConfigurationChecked(true);
+      checkLogin();
+    });
+  }, [setConfigurationChecked, setConfigured, checkLogin]);
 
   // configuration status
   useEffect(checkConfiguration, [checkConfiguration]);
@@ -57,11 +75,11 @@ export default function App() {
 
   // configure socket and connect
   useEffect(() => {
-    if (!socket.connected) socket.connect();
+    if (loggedIn && !socket.connected) socket.connect();
     return () => {
       if (socket.connected) socket.disconnect();
     };
-  }, [configured]);
+  }, [loggedIn]);
 
   return (
     <SocketContext.Provider value={socketConnected ? socket : null}>
@@ -70,6 +88,17 @@ export default function App() {
         onClose={() => {
           setConfigurationDialog(false);
           checkConfiguration();
+        }}
+      />
+      <LoginDialog
+        open={loginDialog}
+        onClose={() => {
+          setLoginDialog(false);
+          checkLogin();
+        }}
+        onLogin={() => {
+          setLoginDialog(false);
+          checkLogin();
         }}
       />
       <div className="flex flex-row">
@@ -83,16 +112,29 @@ export default function App() {
             }}
           />
         </div>
-        {!configured ? (
-          <div className="w-full h-screen flex flex-col place-content-center place-items-center">
-            <Card className="m-2 min-w-96 max-w-96">
-              <h5 className="text-xl font-bold">Configuration</h5>
-              <Alert color="failure" icon={FiAlertCircle}>
-                This server has not been configured yet.
-              </Alert>
-              <Button onClick={() => setConfigurationDialog(true)}>
-                Configure
-              </Button>
+        {(configurationChecked && !configured) ||
+        (loginChecked && !loggedIn) ? (
+          <div className="w-full h-screen place-content-center place-items-center">
+            <Card className="min-w-96 max-w-96">
+              {configurationChecked && !configured ? (
+                <>
+                  <h5 className="text-xl font-bold">Configuration</h5>
+                  <Alert color="failure" icon={FiAlertCircle}>
+                    This server has not been configured yet.
+                  </Alert>
+                  <Button onClick={() => setConfigurationDialog(true)}>
+                    Configure
+                  </Button>
+                </>
+              ) : loginChecked && !loggedIn ? (
+                <>
+                  <h5 className="text-xl font-bold">Login</h5>
+                  <Alert color="failure" icon={FiAlertCircle}>
+                    Missing or bad credentials.
+                  </Alert>
+                  <Button onClick={() => setLoginDialog(true)}>Login</Button>
+                </>
+              ) : null}
             </Card>
           </div>
         ) : null}
