@@ -1,8 +1,9 @@
 import { useRef, useState } from "react";
-import { Modal, Alert, Label, TextInput, Button } from "flowbite-react";
-import { FiInfo, FiAlertCircle, FiCheckCircle, FiEye, FiEyeOff } from "react-icons/fi";
+import { Modal, Alert, Button } from "flowbite-react";
+import { FiInfo, FiAlertCircle, FiCheckCircle } from "react-icons/fi";
 
 import { ApiUrl, authKey, authKeyMaxAge } from "../App";
+import PasswordInput from "../components/PasswordInput";
 
 export type SetupProps = {
   open: boolean;
@@ -10,8 +11,7 @@ export type SetupProps = {
 };
 
 export default function Setup({ open, onClose }: SetupProps) {
-  const keyInput = useRef<HTMLInputElement>(null);
-  const [keyInputType, setKeyInputType] = useState<string>("password");
+  const keyInputRef = useRef<HTMLInputElement>(null);
   const [inputOk, setInputOk] = useState<boolean>(false);
   const [confirmation, setConfirmation] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
@@ -35,36 +35,16 @@ export default function Setup({ open, onClose }: SetupProps) {
             for a guide).
           </Alert>
           <div>
-            <div className="mb-2 block">
-              <Label htmlFor="password" value="Your key" />
-            </div>
-            <div className="relative w-full h-10">
-              <TextInput
-                ref={keyInput}
-                className="absolute left-0 top-0 w-full"
-                id="password"
-                type={keyInputType}
-                required
-                onChange={() => {
-                  if (keyInput.current?.value) {
-                    setInputOk(true);
-                  } else {
-                    setInputOk(false);
-                  }
-                }}
-              />
-              {keyInputType === "password" ? (
-                <FiEye
-                  className="absolute right-2 top-3 text-gray-500 hover:text-black"
-                  onClick={() => setKeyInputType("text")}
-                />
-              ) : (
-                <FiEyeOff
-                  className="absolute right-2 top-3 text-gray-500 hover:text-black"
-                  onClick={() => setKeyInputType("password")}
-                />
-              )}
-            </div>
+            <PasswordInput
+              ref={keyInputRef}
+              onChange={() => {
+                if (keyInputRef.current?.value) {
+                  setInputOk(true);
+                } else {
+                  setInputOk(false);
+                }
+              }}
+            />
           </div>
           {error ? (
             <Alert color="failure" icon={FiAlertCircle}>
@@ -79,8 +59,8 @@ export default function Setup({ open, onClose }: SetupProps) {
           <div className="flex flex-row space-x-2">
             <Button
               onClick={() => {
-                if (keyInput.current?.value !== undefined){
-                  keyInput.current.value = window.crypto.randomUUID();
+                if (keyInputRef.current?.value !== undefined) {
+                  keyInputRef.current.value = window.crypto.randomUUID();
                   setInputOk(true);
                 }
               }}
@@ -93,8 +73,8 @@ export default function Setup({ open, onClose }: SetupProps) {
                 fetch(ApiUrl + "/auth/key", {
                   method: "POST",
                   body: JSON.stringify(
-                    keyInput.current
-                      ? { [authKey]: keyInput.current.value }
+                    keyInputRef.current
+                      ? { [authKey]: keyInputRef.current.value }
                       : {}
                   ),
                   headers: { "content-type": "application/json" },
@@ -113,8 +93,7 @@ export default function Setup({ open, onClose }: SetupProps) {
                         authKeyMaxAge;
                       setError("");
                       setConfirmation(true);
-                    } else
-                      setError("Failed to set key: " + text);
+                    } else setError("Failed to set key: " + text);
                   })
                   .catch((error) => {
                     console.error("Failed to set key: ", error);
