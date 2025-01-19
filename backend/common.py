@@ -19,11 +19,15 @@ class User:
     name: str
     avatar: Path
     json_file: Path
+    address: Optional[str] = None
 
     @property
     def json(self) -> dict:
         """Returns serialized representation of the given object."""
-        return {"name": self.name, "avatar": str(self.avatar)}
+        _json = {"name": self.name, "avatar": str(self.avatar)}
+        if self.address:
+            _json["address"] = self.address
+        return _json
 
 
 @dataclass

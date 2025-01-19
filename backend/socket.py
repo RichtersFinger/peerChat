@@ -7,10 +7,19 @@ import requests
 from flask import request
 from flask_socketio import SocketIO
 
-from .common import Auth, MessageStore, Conversation, Message, MessageStatus
+from .common import (
+    Auth,
+    User,
+    MessageStore,
+    Conversation,
+    Message,
+    MessageStatus,
+)
 
 
-def socket_(auth: Auth, store: MessageStore, callback_url: str) -> SocketIO:
+def socket_(
+    auth: Auth, store: MessageStore, user: User
+) -> SocketIO:
     """
     Returns a fully configured `SocketIO`-object that can be registered
     with a Flask-application.
@@ -108,10 +117,13 @@ def socket_(auth: Auth, store: MessageStore, callback_url: str) -> SocketIO:
 
         socketio.emit(f"update-conversation-{c.id_}", c.json)
         try:
+            body = {"cid": cid, "msg": m.json}
+            if user.address:
+                body["peer"] = user.address
             requests.post(
                 c.peer + "/api/v0/message",
-                json={"cid": cid, "msg": m.json, "peer": callback_url},
-                timeout=5,
+                json=body,
+                timeout=2,
             )
         # pylint: disable=broad-exception-caught
         except Exception as exc_info:

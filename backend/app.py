@@ -7,16 +7,19 @@ from pathlib import Path
 import json
 from threading import Lock
 from uuid import uuid4
+import socket
+from functools import wraps
 
 from flask import Flask, Response, jsonify, request
 from flask_socketio import SocketIO
+import requests
 
 from .common import User, Auth, MessageStore
 from .api.v0 import blueprint_factory as v0_blueprint
 from .socket import socket_
 
 
-def load_config() -> User:
+def load_user_config() -> User:
     """
     Returns user-config (from file if existent or newly generated
     otherwise) as `User`-object.
@@ -56,6 +59,10 @@ def load_config() -> User:
         user = User(DEFAULT_NAME, DEFAULT_AVATAR, USER_JSON_FILE)
     if not user.avatar.exists():
         user.avatar = DEFAULT_AVATAR
+    if "address" in user_json:
+        user.address = user_json["address"]
+    else:
+        print("WARNING: User address has not been set.", file=sys.stderr)
     USER_JSON_FILE.write_text(json.dumps(user.json), encoding="utf-8")
 
     return user
@@ -116,23 +123,46 @@ def load_cors(_app: Flask) -> None:
         )
 
 
-def load_callback_url() -> str:
-    """Returns callback url that can be sent to other peers."""
+def load_callback_url_options() -> list[dict]:
+    """
+    Returns a list of default-options to be used as this peer's address.
 
+    Every record contains the fields 'name' and 'address'.
+    """
+    options = []
+
+    # get LAN-address (https://stackoverflow.com/a/28950776)
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.settimeout(0)
     try:
-        url = os.environ["USER_URL"]
-    except KeyError:
-        url = "http://localhost:5000"
-        print(
-            f"WARNING: no 'USER_URL' set, defaulting to '{url}'",
-            file=sys.stderr,
-        )
+        s.connect(("10.254.254.254", 1))
+        options.append({"address": s.getsockname()[0], "name": "local"})
+    # pylint: disable=broad-exception-caught
+    except Exception:
+        pass
+    finally:
+        s.close()
 
-    return url
+    # get global IP
+    try:
+        options.append(
+            {
+                "address": requests.get(
+                    "https://api.ipify.org", timeout=1
+                ).text,
+                "name": "global",
+            }
+        )
+    # pylint: disable=broad-exception-caught
+    except Exception:
+        pass
+
+    return options
 
 
 def login_required(auth: Auth):
-    def _(route):
+    def decorator(route):
+        @wraps(route)
         def __():
             if auth.value is None:
                 return Response(
@@ -159,7 +189,7 @@ def login_required(auth: Auth):
 
         return __
 
-    return _
+    return decorator
 
 
 def app_factory(
@@ -173,12 +203,23 @@ def app_factory(
     _app.secret_key = load_secret_key()
 
     # load user config and user auth
-    user = load_config()
+    user = load_user_config()
     auth = load_auth()
 
     # load user callback url
-    if not callback_url:
-        callback_url = load_callback_url()
+    user_address_options_cached = load_callback_url_options()
+    if callback_url:
+        user.address = callback_url
+    else:
+        if not user.address and user_address_options_cached:
+            user.address = user_address_options_cached[0]["address"]
+            Path(os.environ.get("USER_JSON_FILE", ".user.json")).write_text(
+                json.dumps(user.json), encoding="utf-8"
+            )
+            print(
+                f"Set default user address to '{user.address}'.",
+                file=sys.stderr,
+            )
 
     # message store
     store = MessageStore(
@@ -246,8 +287,41 @@ def app_factory(
             status=200,
         )
 
+    @_app.route("/user/address", methods=["GET", "POST", "OPTIONS"])
+    @login_required(auth)
+    def user_address():
+        """
+        Interact with user.address (public address among peers).
+        """
+        if request.method == "GET":
+            if user.address:
+                return Response(
+                    user.address,
+                    headers={"Access-Control-Allow-Credentials": "true"},
+                    mimetype="text/plain",
+                    status=200,
+                )
+            return Response(
+                "Address has not been set.",
+                headers={"Access-Control-Allow-Credentials": "true"},
+                mimetype="text/plain",
+                status=404,
+            )
+        if request.method == "POST":
+            user.address = request.data.decode(encoding="utf-8")
+            Path(os.environ.get("USER_JSON_FILE", ".user.json")).write_text(
+                json.dumps(user.json), encoding="utf-8"
+            )
+            return Response(
+                "ok",
+                headers={"Access-Control-Allow-Credentials": "true"},
+                mimetype="text/plain",
+                status=200,
+            )
+        return jsonify(user_address_options_cached), 200
+
     # socket
-    _socket = socket_(auth, store, callback_url)
+    _socket = socket_(auth, store, user)
     _socket.init_app(_app)
 
     # API

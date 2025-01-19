@@ -6,7 +6,7 @@ from uuid import uuid4
 from json import dumps
 
 # pylint: disable=relative-beyond-top-level
-from ..app import load_config, load_auth, load_secret_key, app_factory
+from ..app import load_user_config, load_auth, load_secret_key, app_factory
 from ..common import User, Auth
 
 
@@ -25,7 +25,7 @@ def test_load_config(request, tmp: Path):
     file.write_text(user_json_text, encoding="utf-8")
 
     os.environ["USER_JSON_FILE"] = str(file)
-    user = load_config()
+    user = load_user_config()
     assert dumps(user.json) == user_json_text
 
 
@@ -36,7 +36,7 @@ def test_load_config_missing(request, tmp: Path):
     assert not file.exists()
 
     os.environ["USER_JSON_FILE"] = str(file)
-    user = load_config()
+    user = load_user_config()
     assert file.exists()
     assert dumps(user.json) == file.read_text(encoding="utf-8")
 
