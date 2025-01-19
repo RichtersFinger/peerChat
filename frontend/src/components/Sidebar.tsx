@@ -4,13 +4,14 @@ import { Sidebar as FBSidebar } from "flowbite-react";
 import { SocketContext } from "../App";
 import useConversationList from "../hooks/useConversationList";
 import { Conversation } from "../hooks/useConversation";
-import SidebarUserItem from "./SidebarUserItem";
+import SidebarUserItem, { DropdownItemType } from "./SidebarUserItem";
 import SidebarConversationItem from "./SidebarConversationItem";
 
 export type SidebarProps = {
   connected: boolean;
   url: string;
   selectedConversation?: string | null;
+  menuItems?: DropdownItemType[];
   onConversationClick?: (c: Conversation) => void;
 };
 
@@ -18,6 +19,7 @@ export default function Sidebar({
   connected,
   url,
   selectedConversation,
+  menuItems,
   onConversationClick,
 }: SidebarProps) {
   const socket = useContext(SocketContext);
@@ -38,19 +40,23 @@ export default function Sidebar({
           <FBSidebar.Logo href="#" img="/peerChat.svg" imgAlt="peerChat">
             peerChat
           </FBSidebar.Logo>
-          <SidebarUserItem connected={connected} url={url}/>
+          <SidebarUserItem
+            connected={connected}
+            url={url}
+            menuItems={menuItems}
+          />
         </div>
         <FBSidebar.Items>
           <FBSidebar.ItemGroup>
             <FBSidebar.Item>+ New Conversation</FBSidebar.Item>
             {cids.map((cid: string) => (
-                <SidebarConversationItem
-                  key={cid}
-                  cid={cid}
-                  useIndicator={selectedConversation !== cid}
-                  onClick={onConversationClick}
-                />
-              ))}
+              <SidebarConversationItem
+                key={cid}
+                cid={cid}
+                useIndicator={selectedConversation !== cid}
+                onClick={onConversationClick}
+              />
+            ))}
           </FBSidebar.ItemGroup>
         </FBSidebar.Items>
       </FBSidebar>

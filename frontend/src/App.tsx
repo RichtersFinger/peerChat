@@ -36,7 +36,9 @@ export default function App() {
     ).then(async (response) => {
       setLoggedIn(response.ok);
       setLoginChecked(true);
-      if (response.ok && !socket.connected) {socket.connect();}
+      if (response.ok && !socket.connected) {
+        socket.connect();
+      }
     });
   }, [setLoginChecked, setLoggedIn]);
 
@@ -110,6 +112,22 @@ export default function App() {
             onConversationClick={(c: Conversation) => {
               setActiveConversationId(c.id);
             }}
+            menuItems={[
+              ...(loggedIn
+                ? [
+                    { label: "Settings", onClick: () => {} },
+                    {
+                      label: "Logout",
+                      onClick: () => {
+                        document.cookie =
+                          authKey +
+                          "=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT";
+                        window.location.reload();
+                      },
+                    },
+                  ]
+                : []),
+            ]}
           />
         </div>
         {(configurationChecked && !configured) ||
