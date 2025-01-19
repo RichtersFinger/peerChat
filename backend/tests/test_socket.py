@@ -186,10 +186,19 @@ def test_api_post_message(clients: tuple[Flask, SocketIO]):
     assert response.status_code == 200
 
     msgs = socket_client.get_received()
-    assert len(msgs) == 1
-    assert msgs[0]["name"] == "got-message"
-    assert msgs[0]["args"] == [{"cid": cid, "mid": "0"}]
-
+    assert len(msgs) == 2
+    assert any(
+        msg["name"].startswith("update-conversation")
+        and msg["name"].endswith(cid)
+        for msg in msgs
+    )
+    assert any(
+        msg["name"].startswith("update-message")
+        and msg["args"][0]["cid"] == cid
+        and msg["args"][0]["message"]["id"] == "0"
+        and msg["args"][0]["message"]["body"] == m.body
+        for msg in msgs
+    )
     assert (
         socket_client.emit("get-message", cid, "0", callback=True)["body"]
         == m.body
