@@ -14,9 +14,9 @@ from flask import Flask, Response, jsonify, request
 from flask_socketio import SocketIO
 import requests
 
-from .common import User, Auth, MessageStore
-from .api.v0 import blueprint_factory as v0_blueprint
-from .socket import socket_
+from peer_chat.common import User, Auth, MessageStore
+from peer_chat.api.v0 import blueprint_factory as v0_blueprint
+from peer_chat.socket import socket_
 
 
 def load_user_config() -> User:

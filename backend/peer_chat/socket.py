@@ -7,7 +7,7 @@ import requests
 from flask import request
 from flask_socketio import SocketIO
 
-from .common import (
+from peer_chat.common import (
     Auth,
     User,
     MessageStore,

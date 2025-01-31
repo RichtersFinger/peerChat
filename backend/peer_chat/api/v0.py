@@ -10,8 +10,7 @@ from flask import (
 )
 from flask_socketio import SocketIO
 
-# pylint: disable=relative-beyond-top-level
-from ..common import (
+from peer_chat.common import (
     User,
     Auth,
     MessageStore,

@@ -8,10 +8,8 @@ import pytest
 from flask import Flask
 from flask_socketio import SocketIO
 
-# pylint: disable=relative-beyond-top-level
-from ..app import app_factory
-from ..common import Auth, Message, MessageStatus
-from .conftest import fake_conversation
+from peer_chat.app import app_factory
+from peer_chat.common import Auth, Message, MessageStatus
 
 
 def unload_environment_variable(name: str):
@@ -62,7 +60,7 @@ def test_ping(clients: tuple[Flask, SocketIO]):
     assert socket_client.emit("ping", callback=True) == "pong"
 
 
-def test_list_conversations(clients: tuple[Flask, SocketIO], tmp: Path):
+def test_list_conversations(clients: tuple[Flask, SocketIO], tmp: Path, fake_conversation):
     """Test 'list-conversations'-event."""
     _, socket_client = clients
 
@@ -81,7 +79,7 @@ def test_get_conversation_unknown(clients: tuple[Flask, SocketIO]):
     )
 
 
-def test_get_conversation(clients: tuple[Flask, SocketIO], tmp: Path):
+def test_get_conversation(clients: tuple[Flask, SocketIO], tmp: Path, fake_conversation):
     """Test 'get-conversation'-event."""
     _, socket_client = clients
 
@@ -110,7 +108,7 @@ def test_create_conversations(clients: tuple[Flask, SocketIO]):
     assert c["name"] == "some topic"
 
 
-def test_get_message_unknown(clients: tuple[Flask, SocketIO], tmp: Path):
+def test_get_message_unknown(clients: tuple[Flask, SocketIO], tmp: Path, fake_conversation):
     """Test 'get-message'-event for unknown message."""
     _, socket_client = clients
 
@@ -122,7 +120,7 @@ def test_get_message_unknown(clients: tuple[Flask, SocketIO], tmp: Path):
     )
 
 
-def test_get_message(clients: tuple[Flask, SocketIO], tmp: Path):
+def test_get_message(clients: tuple[Flask, SocketIO], tmp: Path, fake_conversation):
     """Test 'get-message'-event."""
     _, socket_client = clients
 
@@ -134,7 +132,7 @@ def test_get_message(clients: tuple[Flask, SocketIO], tmp: Path):
     )
 
 
-def test_post_message_minimal(clients: tuple[Flask, SocketIO], tmp: Path):
+def test_post_message_minimal(clients: tuple[Flask, SocketIO], tmp: Path, fake_conversation):
     """Test 'post-message'-event."""
     _, socket_client = clients
 
@@ -149,7 +147,7 @@ def test_post_message_minimal(clients: tuple[Flask, SocketIO], tmp: Path):
     ) == m.json | {"id": str(c.length)}
 
 
-def test_post_message(clients: tuple[Flask, SocketIO], tmp: Path):
+def test_post_message(clients: tuple[Flask, SocketIO], tmp: Path, fake_conversation):
     """Test 'post-message'-event."""
     _, socket_client = clients
 
@@ -213,7 +211,7 @@ def test_api_post_message_missing_json(clients: tuple[Flask, SocketIO]):
 
 
 def test_api_post_message_missing_json_content(
-    clients: tuple[Flask, SocketIO], tmp: Path
+    clients: tuple[Flask, SocketIO], tmp: Path, fake_conversation
 ):
     """Test API-endpoint for POST-/message with missing JSON content."""
     flask_client, _ = clients

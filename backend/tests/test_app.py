@@ -5,9 +5,13 @@ from pathlib import Path
 from uuid import uuid4
 from json import dumps
 
-# pylint: disable=relative-beyond-top-level
-from ..app import load_user_config, load_auth, load_secret_key, app_factory
-from ..common import User, Auth
+from peer_chat.app import (
+    load_user_config,
+    load_auth,
+    load_secret_key,
+    app_factory,
+)
+from peer_chat.common import User, Auth
 
 
 def unload_environment_variable(name: str):

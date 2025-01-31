@@ -4,9 +4,7 @@ from pathlib import Path
 from shutil import rmtree
 from json import dumps, loads
 
-# pylint: disable=relative-beyond-top-level
-from ..common import Message, Conversation, MessageStore
-from .conftest import fake_conversation
+from peer_chat.common import Message, Conversation, MessageStore
 
 
 def test_message_de_serialization():
@@ -21,7 +19,9 @@ def test_conversation_de_serialization(tmp: Path):
     assert c.json == Conversation.from_json(loads(dumps(c.json))).json
 
 
-def test_message_store_loading_and_caching_conversation(tmp: Path):
+def test_message_store_loading_and_caching_conversation(
+    tmp: Path, fake_conversation
+):
     """Test loading and caching of conversations in `MessageStore`."""
     store = MessageStore(tmp)
 
@@ -40,7 +40,9 @@ def test_message_store_loading_and_caching_conversation(tmp: Path):
     assert conversation is not None
 
 
-def test_message_store_loading_and_caching_messages(tmp: Path):
+def test_message_store_loading_and_caching_messages(
+    tmp: Path, fake_conversation
+):
     """Test loading and caching of messages in `MessageStore`."""
     store = MessageStore(tmp)
 
@@ -60,7 +62,7 @@ def test_message_store_loading_and_caching_messages(tmp: Path):
     assert message is not None
 
 
-def test_message_store_load_conversations(tmp: Path):
+def test_message_store_load_conversations(tmp: Path, fake_conversation):
     """Test method `list_conversations` of `MessageStore`."""
     store = MessageStore(tmp)
 

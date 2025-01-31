@@ -12,7 +12,7 @@ from multiprocessing import Process
 import pytest
 from flask import Flask
 
-from ..common import Conversation, Message, MessageStatus, MessageStore
+from peer_chat.common import Conversation, Message, MessageStatus, MessageStore
 
 
 @pytest.fixture(scope="session", name="tmp_base")
@@ -44,32 +44,36 @@ def _tmp(tmp_base: Path):
     return p
 
 
-def fake_conversation(dir_: Path) -> Conversation:
-    """
-    Creates a fake conversation and returns `Conversation`.
-    """
-    ms = MessageStore(dir_)
-    c = Conversation(
-        peer=".".join([str(random.randint(1, 255)) for _ in range(4)]),
-        name=f"conversation {random.randint(1, 10)}",
-        length=random.randint(1, 5),
-        last_modified=datetime.now(),
-    )
-    ms.set_conversation_path(c)
-    ms.create_conversation(c)
-    ms.write(c.id_)
-    for msg_id in map(str, range(c.length)):
-        ms.post_message(
-            c.id_,
-            Message(
-                msg_id,
-                random.choice(["cat", "dog", "bird"]),
-                random.choice(list(MessageStatus)),
-            ),
+@pytest.fixture(name="fake_conversation")
+def _fake_conversation():
+    def fake_conversation(dir_: Path) -> Conversation:
+        """
+        Creates a fake conversation and returns `Conversation`.
+        """
+        ms = MessageStore(dir_)
+        c = Conversation(
+            peer=".".join([str(random.randint(1, 255)) for _ in range(4)]),
+            name=f"conversation {random.randint(1, 10)}",
+            length=random.randint(1, 5),
+            last_modified=datetime.now(),
         )
-        ms.write(c.id_, msg_id)
+        ms.set_conversation_path(c)
+        ms.create_conversation(c)
+        ms.write(c.id_)
+        for msg_id in map(str, range(c.length)):
+            ms.post_message(
+                c.id_,
+                Message(
+                    msg_id,
+                    random.choice(["cat", "dog", "bird"]),
+                    random.choice(list(MessageStatus)),
+                ),
+            )
+            ms.write(c.id_, msg_id)
 
-    return c
+        return c
+
+    return fake_conversation
 
 
 @pytest.fixture(name="run_app")
