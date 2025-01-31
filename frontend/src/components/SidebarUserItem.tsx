@@ -49,7 +49,7 @@ export default function SidebarUserItem({
             )}
           >
             {menuItems.map((item: DropdownItemType) => (
-              <Dropdown.Item onClick={item.onClick}>{item.label}</Dropdown.Item>
+              <Dropdown.Item key={item.label} onClick={item.onClick}>{item.label}</Dropdown.Item>
             ))}
           </Dropdown>
         </div>

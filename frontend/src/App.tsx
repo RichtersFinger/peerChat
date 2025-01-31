@@ -8,6 +8,7 @@ import Sidebar from "./components/Sidebar";
 import Chat from "./components/Chat";
 import SetupDialog from "./modals/Setup";
 import LoginDialog from "./modals/Login";
+import ConfigurationDialog from "./modals/Configuration";
 
 export const ApiUrl = process.env.REACT_APP_API_BASE_URL ?? window.origin;
 const socket = io(ApiUrl, {
@@ -42,22 +43,23 @@ export default function App() {
     });
   }, [setLoginChecked, setLoggedIn]);
 
-  // configuration
-  const [configurationChecked, setConfigurationChecked] =
-    useState<boolean>(false);
-  const [configured, setConfigured] = useState<boolean>(false);
-  const [configurationDialog, setConfigurationDialog] =
-    useState<boolean>(false);
-  const checkConfiguration = useCallback(() => {
+  // setup
+  const [setupChecked, setSetupChecked] = useState<boolean>(false);
+  const [setup, setSetup] = useState<boolean>(false);
+  const [setupDialog, setSetupDialog] = useState<boolean>(false);
+  const checkSetup = useCallback(() => {
     fetch(ApiUrl + "/auth/key").then((response) => {
-      setConfigured(response.ok);
-      setConfigurationChecked(true);
+      setSetup(response.ok);
+      setSetupChecked(true);
       checkLogin();
     });
-  }, [setConfigurationChecked, setConfigured, checkLogin]);
+  }, [setSetupChecked, setSetup, checkLogin]);
 
-  // configuration status
-  useEffect(checkConfiguration, [checkConfiguration]);
+  // configuration
+  const [configuration, setConfiguration] = useState<boolean>(false);
+
+  // setup status
+  useEffect(checkSetup, [checkSetup]);
 
   // connection status-tracking
   useEffect(() => {
@@ -86,10 +88,10 @@ export default function App() {
   return (
     <SocketContext.Provider value={socketConnected ? socket : null}>
       <SetupDialog
-        open={configurationDialog}
+        open={setupDialog}
         onClose={() => {
-          setConfigurationDialog(false);
-          checkConfiguration();
+          setSetupDialog(false);
+          checkSetup();
         }}
       />
       <LoginDialog
@@ -103,6 +105,10 @@ export default function App() {
           checkLogin();
         }}
       />
+      <ConfigurationDialog
+        open={configuration}
+        onClose={() => setConfiguration(false)}
+      />
       <div className="flex flex-row">
         <div>
           <Sidebar
@@ -115,7 +121,10 @@ export default function App() {
             menuItems={[
               ...(loggedIn
                 ? [
-                    { label: "Settings", onClick: () => {} },
+                    {
+                      label: "Settings",
+                      onClick: () => setConfiguration(true),
+                    },
                     {
                       label: "Logout",
                       onClick: () => {
@@ -130,17 +139,16 @@ export default function App() {
             ]}
           />
         </div>
-        {(configurationChecked && !configured) ||
-        (loginChecked && !loggedIn) ? (
+        {(setupChecked && !setup) || (loginChecked && !loggedIn) ? (
           <div className="w-full h-screen place-content-center place-items-center">
             <Card className="min-w-96 max-w-96">
-              {configurationChecked && !configured ? (
+              {setupChecked && !setup ? (
                 <>
-                  <h5 className="text-xl font-bold">Configuration</h5>
+                  <h5 className="text-xl font-bold">Setup</h5>
                   <Alert color="failure" icon={FiAlertCircle}>
                     This server has not been configured yet.
                   </Alert>
-                  <Button onClick={() => setConfigurationDialog(true)}>
+                  <Button onClick={() => setSetupDialog(true)}>
                     Configure
                   </Button>
                 </>
