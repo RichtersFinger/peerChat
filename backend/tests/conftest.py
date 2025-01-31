@@ -12,6 +12,7 @@ from multiprocessing import Process
 import pytest
 from flask import Flask
 
+from peer_chat.config import AppConfig
 from peer_chat.common import Conversation, Message, MessageStatus, MessageStore
 
 
@@ -42,6 +43,15 @@ def _tmp(tmp_base: Path):
     p = tmp_base / str(uuid4())
     p.mkdir()
     return p
+
+
+@pytest.fixture(name="testing_config")
+def _testing_config(tmp):
+    class TestingConfig(AppConfig):
+        WORKING_DIRECTORY = tmp
+        TESTING = True
+
+    return TestingConfig()
 
 
 @pytest.fixture(name="fake_conversation")

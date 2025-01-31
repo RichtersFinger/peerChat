@@ -17,17 +17,31 @@ class User:
     """User definition."""
 
     name: str
-    avatar: Path
-    json_file: Path
+    avatar: Optional[Path] = None
     address: Optional[str] = None
 
     @property
     def json(self) -> dict:
         """Returns serialized representation of the given object."""
-        _json = {"name": self.name, "avatar": str(self.avatar)}
+        _json = {"name": self.name}
+        if self.avatar:
+            _json["avatar"] = str(self.avatar)
         if self.address:
             _json["address"] = self.address
         return _json
+
+    @classmethod
+    def from_json(cls, json_) -> "User":
+        """Returns deserialized object."""
+        return cls(
+            name=json_.get("name"),
+            avatar=Path(json_["avatar"]) if "avatar" in json_ else None,
+            address=json_.get("address")
+        )
+
+    def write(self, path: Path) -> None:
+        """Write to disk."""
+        path.write_text(json.dumps(self.json), encoding="utf-8")
 
 
 @dataclass
@@ -35,8 +49,13 @@ class Auth:
     """User auth information."""
 
     KEY = "peerChatAuth"
-    file: Path
     value: Optional[str]
+
+    def write(self, path: Path) -> None:
+        """Write to disk."""
+        if not path.is_file:
+            path.touch(mode=0o600)
+        path.write_text(self.value, encoding="utf-8")
 
 
 class MessageStatus(Enum):

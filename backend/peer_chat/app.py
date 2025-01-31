@@ -14,31 +14,37 @@ from flask import Flask, Response, jsonify, request
 from flask_socketio import SocketIO
 import requests
 
+from peer_chat.config import AppConfig
 from peer_chat.common import User, Auth, MessageStore
 from peer_chat.api.v0 import blueprint_factory as v0_blueprint
 from peer_chat.socket import socket_
 
 
-def load_user_config() -> User:
+def load_secret_key(path: Path) -> str:
+    """
+    Generates random key, writes to file, and returns value.
+    """
+    if path.is_file():
+        secret_key = path.read_text(encoding="utf-8")
+    else:
+        print(
+            f"INFO: Generating new secret key in '{path}'.",
+            file=sys.stderr,
+        )
+        secret_key = str(uuid4())
+        path.touch(mode=0o600)
+        path.write_text(secret_key, encoding="utf-8")
+    return secret_key
+
+
+def load_user_config(path: Path) -> User:
     """
     Returns user-config (from file if existent or newly generated
     otherwise) as `User`-object.
     """
 
-    # load and process (or initialize) user data
-    USER_JSON_FILE = Path(os.environ.get("USER_JSON_FILE", ".user.json"))
-    DEFAULT_NAME = "Anonymous"
-    DEFAULT_AVATAR = Path(
-        os.environ.get("DEFAULT_USER_AVATAR", Path("static") / "avatar.png")
-    )
-    if not DEFAULT_AVATAR.exists():
-        print(
-            "WARNING: Fallback-user avatar not available. "
-            + "(Set 'DEFAULT_USER_AVATAR' to correct path.)"
-        )
-
     try:
-        user_json = json.loads(USER_JSON_FILE.read_text(encoding="utf-8"))
+        user_json = json.loads(path.read_text(encoding="utf-8"))
     except (
         json.JSONDecodeError,
         FileNotFoundError,
@@ -47,59 +53,22 @@ def load_user_config() -> User:
             f"WARNING: Unable to load existing user json file: {exc_info}",
             file=sys.stderr,
         )
-        user_json = {"name": DEFAULT_NAME, "avatar": DEFAULT_AVATAR}
-    try:
-        user = User(
-            user_json["name"], Path(user_json["avatar"]), USER_JSON_FILE
-        )
-    except (KeyError, TypeError) as exc_info:
-        print(
-            f"WARNING: Bad data in user json file: {exc_info}", file=sys.stderr
-        )
-        user = User(DEFAULT_NAME, DEFAULT_AVATAR, USER_JSON_FILE)
-    if not user.avatar.exists():
-        user.avatar = DEFAULT_AVATAR
-    if "address" in user_json:
-        user.address = user_json["address"]
-    else:
-        print("WARNING: User address has not been set.", file=sys.stderr)
-    USER_JSON_FILE.write_text(json.dumps(user.json), encoding="utf-8")
+        user_json = {"name": "Anonymous"}
 
-    return user
+    return user_json
 
 
-# load auth information/prepare Auth-object
-def load_auth() -> Auth:
+def load_auth(path: Path) -> Optional[str]:
     """
     Returns existing auth-file contents as `Auth`-type.
     """
-    AUTH_FILE = Path(os.environ.get("AUTH_FILE", ".auth"))
-    if AUTH_FILE.exists():
-        auth = Auth(AUTH_FILE, AUTH_FILE.read_text(encoding="utf-8") or None)
-    else:
-        print(
-            f"INFO: Auth-key has not been set in '{AUTH_FILE}'.",
-            file=sys.stderr,
-        )
-        auth = Auth(AUTH_FILE, None)
-    return auth
-
-
-def load_secret_key() -> str:
-    """
-    Returns secret key (from disk if file exists or new key otherwise).
-    """
-    SECRET_KEY_FILE = Path(os.environ.get("SECRET_KEY_FILE", ".secret_key"))
-    if SECRET_KEY_FILE.exists():
-        secret_key = SECRET_KEY_FILE.read_text(encoding="utf-8")
-    else:
-        print(
-            f"INFO: Generating new secret key in '{SECRET_KEY_FILE}'.",
-            file=sys.stderr,
-        )
-        secret_key = str(uuid4())
-        SECRET_KEY_FILE.write_text(secret_key, encoding="utf-8")
-    return secret_key
+    if path.is_file():
+        return path.read_text(encoding="utf-8")
+    print(
+        f"INFO: Auth-key has not been set in '{path}'.",
+        file=sys.stderr,
+    )
+    return None
 
 
 def load_cors(_app: Flask) -> None:
@@ -192,39 +161,51 @@ def login_required(auth: Auth):
     return decorator
 
 
-def app_factory(
-    callback_url: Optional[str] = None, working_dir: Optional[Path] = None
-) -> tuple[Flask, SocketIO]:
+def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
     """Returns peerChat-Flask app."""
     # define Flask-app
     _app = Flask(__name__)
 
-    # load or generate (and store) secret key
-    _app.secret_key = load_secret_key()
+    # prepare storage
+    (config.WORKING_DIRECTORY / config.DATA_DIRECTORY).mkdir(
+        parents=True, exist_ok=True
+    )
 
-    # load user config and user auth
-    user = load_user_config()
-    auth = load_auth()
+    # load or generate (and store) secret key if not set yet
+    if not config.SECRET_KEY:
+        config.SECRET_KEY = load_secret_key(
+            config.WORKING_DIRECTORY / config.SECRET_KEY_PATH
+        )
+
+    # load user config
+    if not config.USER_CONFIG:
+        config.USER_CONFIG = load_user_config(
+            config.WORKING_DIRECTORY / config.USER_CONFIG_PATH
+        )
+    user = User.from_json(config.USER_CONFIG)
 
     # load user callback url
     user_address_options_cached = load_callback_url_options()
-    if callback_url:
-        user.address = callback_url
+    if config.USER_PEER_URL:
+        user.address = config.USER_PEER_URL
     else:
         if not user.address and user_address_options_cached:
             user.address = user_address_options_cached[0]["address"]
-            Path(os.environ.get("USER_JSON_FILE", ".user.json")).write_text(
-                json.dumps(user.json), encoding="utf-8"
-            )
-            print(
-                f"Set default user address to '{user.address}'.",
-                file=sys.stderr,
-            )
+    user.write(config.WORKING_DIRECTORY / config.USER_CONFIG_PATH)
+
+    # load user auth if not set yet
+    if not config.USER_AUTH_KEY:
+        config.USER_AUTH_KEY = load_auth(
+            config.WORKING_DIRECTORY / config.USER_AUTH_KEY_PATH
+        )
+    auth = Auth(config.USER_AUTH_KEY)
+    if auth.value:
+        auth.write(config.WORKING_DIRECTORY / config.USER_AUTH_KEY_PATH)
+
+    _app.config.from_object(config)
 
     # message store
-    store = MessageStore(
-        working_dir or Path(os.environ.get("WORKING_DIR", "./data"))
-    )
+    store = MessageStore(config.WORKING_DIRECTORY / config.DATA_DIRECTORY)
 
     # extensions
     load_cors(_app)
@@ -271,7 +252,7 @@ def app_factory(
                 auth.value = auth_json[auth.KEY]
             else:
                 auth.value = str(uuid4())
-            auth.file.write_text(auth.value, encoding="utf-8")
+            auth.write(config.WORKING_DIRECTORY / config.USER_AUTH_KEY_PATH)
             return Response(auth.value, mimetype="text/plain", status=200)
 
     @_app.route("/auth/test", methods=["GET"])

@@ -8,25 +8,19 @@ import pytest
 from flask import Flask
 from flask_socketio import SocketIO
 
+from peer_chat.config import AppConfig
 from peer_chat.app import app_factory
 from peer_chat.common import Auth, Message, MessageStatus
 
 
-def unload_environment_variable(name: str):
-    """Helper for environment cleanup. Unset env-variable."""
-    del os.environ[name]
-
-
 @pytest.fixture(name="clients")
-def _clients(request, tmp: Path):
+def _clients(testing_config: AppConfig):
     """Returns authenticated clients for http and websocket."""
-    request.addfinalizer(lambda: unload_environment_variable("AUTH_FILE"))
-    file = tmp / str(uuid4())
     key = str(uuid4())
-    file.write_text(key, encoding="utf-8")
-    os.environ["AUTH_FILE"] = str(file)
-
-    app, socket = app_factory(working_dir=tmp)
+    (
+        testing_config.WORKING_DIRECTORY / testing_config.USER_AUTH_KEY_PATH
+    ).write_text(key, encoding="utf-8")
+    app, socket = app_factory(testing_config)
     http_client = app.test_client()
     http_client.set_cookie(Auth.KEY, key)
     socket_client = socket.test_client(app=app, flask_test_client=http_client)
@@ -34,15 +28,14 @@ def _clients(request, tmp: Path):
     return http_client, socket_client
 
 
-def test_connect(request, tmp: Path):
+def test_connect(testing_config: AppConfig):
     """Test opening socket."""
-    request.addfinalizer(lambda: unload_environment_variable("AUTH_FILE"))
-    file = tmp / str(uuid4())
     key = str(uuid4())
-    file.write_text(key, encoding="utf-8")
-    os.environ["AUTH_FILE"] = str(file)
+    (
+        testing_config.WORKING_DIRECTORY / testing_config.USER_AUTH_KEY_PATH
+    ).write_text(key, encoding="utf-8")
 
-    app, socket = app_factory()
+    app, socket = app_factory(testing_config)
     http_client = app.test_client()
     socket_client = socket.test_client(app=app, flask_test_client=http_client)
 
@@ -60,11 +53,17 @@ def test_ping(clients: tuple[Flask, SocketIO]):
     assert socket_client.emit("ping", callback=True) == "pong"
 
 
-def test_list_conversations(clients: tuple[Flask, SocketIO], tmp: Path, fake_conversation):
+def test_list_conversations(
+    clients: tuple[Flask, SocketIO],
+    testing_config: AppConfig,
+    fake_conversation,
+):
     """Test 'list-conversations'-event."""
     _, socket_client = clients
 
-    c = fake_conversation(tmp)
+    c = fake_conversation(
+        testing_config.WORKING_DIRECTORY / testing_config.DATA_DIRECTORY
+    )
 
     assert socket_client.emit("list-conversations", callback=True) == [c.id_]
 
@@ -79,11 +78,17 @@ def test_get_conversation_unknown(clients: tuple[Flask, SocketIO]):
     )
 
 
-def test_get_conversation(clients: tuple[Flask, SocketIO], tmp: Path, fake_conversation):
+def test_get_conversation(
+    clients: tuple[Flask, SocketIO],
+    testing_config: AppConfig,
+    fake_conversation,
+):
     """Test 'get-conversation'-event."""
     _, socket_client = clients
 
-    c = fake_conversation(tmp)
+    c = fake_conversation(
+        testing_config.WORKING_DIRECTORY / testing_config.DATA_DIRECTORY
+    )
     c.messages = {}
 
     assert (
@@ -108,11 +113,17 @@ def test_create_conversations(clients: tuple[Flask, SocketIO]):
     assert c["name"] == "some topic"
 
 
-def test_get_message_unknown(clients: tuple[Flask, SocketIO], tmp: Path, fake_conversation):
+def test_get_message_unknown(
+    clients: tuple[Flask, SocketIO],
+    testing_config: AppConfig,
+    fake_conversation,
+):
     """Test 'get-message'-event for unknown message."""
     _, socket_client = clients
 
-    c = fake_conversation(tmp)
+    c = fake_conversation(
+        testing_config.WORKING_DIRECTORY / testing_config.DATA_DIRECTORY
+    )
 
     assert (
         socket_client.emit("get-message", c.id_, "unknown-id", callback=True)
@@ -120,11 +131,17 @@ def test_get_message_unknown(clients: tuple[Flask, SocketIO], tmp: Path, fake_co
     )
 
 
-def test_get_message(clients: tuple[Flask, SocketIO], tmp: Path, fake_conversation):
+def test_get_message(
+    clients: tuple[Flask, SocketIO],
+    testing_config: AppConfig,
+    fake_conversation,
+):
     """Test 'get-message'-event."""
     _, socket_client = clients
 
-    c = fake_conversation(tmp)
+    c = fake_conversation(
+        testing_config.WORKING_DIRECTORY / testing_config.DATA_DIRECTORY
+    )
 
     assert (
         socket_client.emit("get-message", c.id_, "0", callback=True)
@@ -132,11 +149,17 @@ def test_get_message(clients: tuple[Flask, SocketIO], tmp: Path, fake_conversati
     )
 
 
-def test_post_message_minimal(clients: tuple[Flask, SocketIO], tmp: Path, fake_conversation):
+def test_post_message_minimal(
+    clients: tuple[Flask, SocketIO],
+    testing_config: AppConfig,
+    fake_conversation,
+):
     """Test 'post-message'-event."""
     _, socket_client = clients
 
-    c = fake_conversation(tmp)
+    c = fake_conversation(
+        testing_config.WORKING_DIRECTORY / testing_config.DATA_DIRECTORY
+    )
     m = Message(body="text1")
 
     assert socket_client.emit(
@@ -147,11 +170,17 @@ def test_post_message_minimal(clients: tuple[Flask, SocketIO], tmp: Path, fake_c
     ) == m.json | {"id": str(c.length)}
 
 
-def test_post_message(clients: tuple[Flask, SocketIO], tmp: Path, fake_conversation):
+def test_post_message(
+    clients: tuple[Flask, SocketIO],
+    testing_config: AppConfig,
+    fake_conversation,
+):
     """Test 'post-message'-event."""
     _, socket_client = clients
 
-    c = fake_conversation(tmp)
+    c = fake_conversation(
+        testing_config.WORKING_DIRECTORY / testing_config.DATA_DIRECTORY
+    )
     m = Message(
         id_="1", body="text2", is_mine=True, status=MessageStatus.ERROR
     )
@@ -211,12 +240,16 @@ def test_api_post_message_missing_json(clients: tuple[Flask, SocketIO]):
 
 
 def test_api_post_message_missing_json_content(
-    clients: tuple[Flask, SocketIO], tmp: Path, fake_conversation
+    clients: tuple[Flask, SocketIO],
+    testing_config: AppConfig,
+    fake_conversation,
 ):
     """Test API-endpoint for POST-/message with missing JSON content."""
     flask_client, _ = clients
 
-    c = fake_conversation(tmp)
+    c = fake_conversation(
+        testing_config.WORKING_DIRECTORY / testing_config.DATA_DIRECTORY
+    )
     m = Message(body="text")
 
     assert (
@@ -278,12 +311,15 @@ def test_api_post_message_change_peer(clients: tuple[Flask, SocketIO]):
 
 
 def test_send_message(
-    clients: tuple[Flask, SocketIO], tmp_base: Path, run_app
+    clients: tuple[Flask, SocketIO], tmp: Path, run_app
 ):
     """Test API-endpoint for POST-/message with send-message-event."""
-    other_working_dir = tmp_base / "test_send_message"
+
+    class AnotherConfig(AppConfig):
+        WORKING_DIRECTORY = tmp / "test_send_message"
+
     run_app(
-        app_factory("http://localhost:8081", other_working_dir)[0],
+        app_factory(AnotherConfig())[0],
         "8081",
     )
 
@@ -298,10 +334,24 @@ def test_send_message(
     m = Message(body="text")
     mid = socket_client.emit("post-message", cid, m.json, callback=True)
 
-    assert not (other_working_dir / cid).exists()
+    assert not (
+        AnotherConfig.WORKING_DIRECTORY / AnotherConfig.DATA_DIRECTORY / cid
+    ).exists()
 
     assert socket_client.emit("send-message", cid, mid, callback=True)
 
-    assert (other_working_dir / cid).exists()
-    assert (other_working_dir / cid / "index.json").is_file()
-    assert (other_working_dir / cid / "0.json").is_file()
+    assert (
+        AnotherConfig.WORKING_DIRECTORY / AnotherConfig.DATA_DIRECTORY / cid
+    ).exists()
+    assert (
+        AnotherConfig.WORKING_DIRECTORY
+        / AnotherConfig.DATA_DIRECTORY
+        / cid
+        / "index.json"
+    ).is_file()
+    assert (
+        AnotherConfig.WORKING_DIRECTORY
+        / AnotherConfig.DATA_DIRECTORY
+        / cid
+        / "0.json"
+    ).is_file()
