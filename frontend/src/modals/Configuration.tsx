@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Modal,
   Alert,
@@ -15,6 +15,11 @@ import { FiInfo, FiAlertCircle } from "react-icons/fi";
 import { ApiUrl } from "../App";
 import useUser from "../hooks/useUser";
 
+type AdressOption = {
+  address: string;
+  name: string;
+};
+
 export type ConfigurationProps = {
   open: boolean;
   onClose?: () => void;
@@ -26,11 +31,48 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
   const [newAvatarPreview, setNewAvatarPreview] = useState<string | null>(null);
   const [userNameError, setUserNameError] = useState<string>("");
   const [userAvatarError, setUserAvatarError] = useState<string>("");
+  const [userAddress, setUserAddress] = useState<string | null>(null);
+  const [addressOptions, setAddressOptions] = useState<AdressOption[]>([]);
 
-  const addressOptions = [
-    { address: "192.168.178.20", name: "local" },
-    { address: "2.202.126.202", name: "global" },
-  ];
+  // fetch current address
+  useEffect(() => {
+    if (!open) return;
+    fetch(ApiUrl + "/user/address", {
+      method: "GET",
+      credentials: "include",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("HTTP-Error", { cause: response });
+        } else {
+          return response.text();
+        }
+      })
+      .then((text) => setUserAddress(text))
+      .catch((error) => {
+        console.error("Failed to fetch: ", error);
+      });
+  }, [open, setUserAddress]);
+
+  // fetch address-options
+  useEffect(() => {
+    if (!open) return;
+    fetch(ApiUrl + "/user/address-options", {
+      method: "GET",
+      credentials: "include",
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("HTTP-Error", { cause: response });
+        } else {
+          return response.json();
+        }
+      })
+      .then((json) => setAddressOptions(json))
+      .catch((error) => {
+        console.error("Failed to fetch: ", error);
+      });
+  }, [open, setAddressOptions]);
 
   return (
     <Modal dismissible={true} show={open} size="xl" onClose={onClose} popup>
@@ -113,14 +155,19 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
             ))}
             <div className="flex items-center gap-2">
               <Radio id="custom" name="address" value="custom" defaultChecked />
-              <TextInput sizing="sm" size={30}></TextInput>
+              <TextInput
+                sizing="sm"
+                size={30}
+                defaultValue={userAddress ?? ""}
+              ></TextInput>
             </div>
           </fieldset>
         </div>
         <Button
-          disabled={user.name === newUserName && newAvatarPreview === null}
+          disabled={(!newUserName || user.name === newUserName) && !newAvatarPreview}
           onClick={async () => {
-            if (user.name !== newUserName) {
+            var ok = true;
+            if (newUserName && user.name !== newUserName) {
               await fetch(ApiUrl + "/user/name", {
                 method: "POST",
                 credentials: "include",
@@ -137,6 +184,7 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
                   }
                 })
                 .catch((error) => {
+                  ok = false;
                   setUserNameError(error.toString());
                   console.error("Failed to post: ", error);
                 });
@@ -158,12 +206,13 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
                   }
                 })
                 .catch((error) => {
+                  ok = false;
                   setUserAvatarError(error.toString());
                   console.error("Failed to post: ", error);
                 });
             }
-            if (onClose) {
-              onClose();
+            if (ok) {
+              onClose?.();
               window.location.reload();
             }
           }}

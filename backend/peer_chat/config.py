@@ -8,6 +8,7 @@ from pathlib import Path
 class AppConfig:
     """peerChat-backend configuration info."""
 
+    FLASK_RUN_PORT = os.environ.get("FLASK_RUN_PORT")
     WORKING_DIRECTORY = (
         Path(os.environ["WORKING_DIRECTORY"])
         if "WORKING_DIRECTORY" in os.environ

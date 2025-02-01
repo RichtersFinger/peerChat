@@ -11,7 +11,7 @@ import socket
 from functools import wraps
 import base64
 
-from flask import Flask, Response, jsonify, request
+from flask import Flask, Response, jsonify, request, make_response
 from flask_socketio import SocketIO
 import requests
 
@@ -269,6 +269,16 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
             status=200,
         )
 
+    @_app.route("/user/address-options", methods=["GET"])
+    @login_required(auth)
+    def user_addresses():
+        """
+        List some options for public addresses.
+        """
+        r = make_response(jsonify(user_address_options_cached), 200)
+        r.headers["Access-Control-Allow-Credentials"] = "true"
+        return r
+
     @_app.route("/user/address", methods=["GET", "POST", "OPTIONS"])
     @login_required(auth)
     def user_address():
@@ -298,7 +308,7 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
                 mimetype="text/plain",
                 status=200,
             )
-        return jsonify(user_address_options_cached), 200
+        return None, 405
 
     @_app.route("/user/name", methods=["POST"])
     @login_required(auth)
