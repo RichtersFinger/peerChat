@@ -119,7 +119,7 @@ export default function App() {
               setActiveConversationId(c.id);
             }}
             menuItems={[
-              ...(loggedIn
+              ...((loggedIn && socketConnected)
                 ? [
                     {
                       label: "Settings",

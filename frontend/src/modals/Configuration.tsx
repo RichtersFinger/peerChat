@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import {
   Modal,
   Alert,
@@ -10,9 +10,10 @@ import {
   Avatar,
   Tooltip,
 } from "flowbite-react";
-import { FiInfo, FiAlertCircle, FiCheckCircle } from "react-icons/fi";
+import { FiInfo, FiAlertCircle } from "react-icons/fi";
 
 import { ApiUrl } from "../App";
+import useUser from "../hooks/useUser";
 
 export type ConfigurationProps = {
   open: boolean;
@@ -20,12 +21,11 @@ export type ConfigurationProps = {
 };
 
 export default function Configuration({ open, onClose }: ConfigurationProps) {
-  const usernameInputRef = useRef<HTMLInputElement>(null);
-  const avatarInputRef = useRef<HTMLInputElement>(null);
-  const addressInputRef = useRef<HTMLInputElement>(null);
-  const [inputOk, setInputOk] = useState<boolean>(false);
-  const [confirmation, setConfirmation] = useState<boolean>(false);
-  const [error, setError] = useState<string>("");
+  const user = useUser(ApiUrl);
+  const [newUserName, setNewUserName] = useState<string | null>(null);
+  const [newAvatarPreview, setNewAvatarPreview] = useState<string | null>(null);
+  const [userNameError, setUserNameError] = useState<string>("");
+  const [userAvatarError, setUserAvatarError] = useState<string>("");
 
   const addressOptions = [
     { address: "192.168.178.20", name: "local" },
@@ -44,15 +44,56 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
               htmlFor="username"
               value="Choose your displayed name"
             />
-            <TextInput ref={usernameInputRef} id="username" type="text" />
+            <TextInput
+              id="username"
+              type="text"
+              defaultValue={user.name ?? ""}
+              onChange={(e) => {
+                setNewUserName(e.target.value);
+              }}
+            />
           </div>
+          {userNameError ? (
+            <Alert color="failure" icon={FiAlertCircle}>
+              {userNameError}
+            </Alert>
+          ) : null}
           <div className="flex flex-row place-content-between">
             <div className="space-y-1">
               <Label htmlFor="avatar" value="Choose your avatar" />
-              <FileInput id="avatar" />
+              <FileInput
+                id="avatar"
+                onChange={async (e) => {
+                  const reader = new FileReader();
+                  reader.addEventListener(
+                    "load",
+                    () => {
+                      if (typeof reader.result === "string")
+                        setNewAvatarPreview(reader.result);
+                    },
+                    false
+                  );
+                  if (e.target.files?.[0]) {
+                    reader.readAsDataURL(e.target.files?.[0]);
+                  }
+                }}
+              />
             </div>
-            <Avatar rounded size="lg" />
+            <Avatar
+              rounded
+              size="lg"
+              {...(newAvatarPreview
+                ? { img: newAvatarPreview }
+                : user?.avatar
+                ? { img: user.avatar }
+                : {})}
+            />
           </div>
+          {userAvatarError ? (
+            <Alert color="failure" icon={FiAlertCircle}>
+              {userAvatarError}
+            </Alert>
+          ) : null}
           <fieldset className="flex flex-col gap-2">
             <div className="flex flex-row gap-2">
               <Label htmlFor="address" value="Choose your public address" />
@@ -75,18 +116,60 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
               <TextInput sizing="sm" size={30}></TextInput>
             </div>
           </fieldset>
-          {error ? (
-            <Alert color="failure" icon={FiAlertCircle}>
-              {error}
-            </Alert>
-          ) : null}
-          {confirmation ? (
-            <Alert color="success" icon={FiCheckCircle}>
-              Key has been set.
-            </Alert>
-          ) : null}
-          <Button onClick={() => {}}>Apply</Button>
         </div>
+        <Button
+          disabled={user.name === newUserName && newAvatarPreview === null}
+          onClick={async () => {
+            if (user.name !== newUserName) {
+              await fetch(ApiUrl + "/user/name", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                  "Content-Type": "text/plain",
+                },
+                body: newUserName,
+              })
+                .then((response) => {
+                  if (!response.ok) {
+                    throw new Error("HTTP-Error", { cause: response });
+                  } else {
+                    return response.text();
+                  }
+                })
+                .catch((error) => {
+                  setUserNameError(error.toString());
+                  console.error("Failed to post: ", error);
+                });
+            }
+            if (newAvatarPreview) {
+              await fetch(ApiUrl + "/user/avatar", {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                  "Content-Type": "text/plain",
+                },
+                body: newAvatarPreview,
+              })
+                .then((response) => {
+                  if (!response.ok) {
+                    throw new Error("HTTP-Error", { cause: response });
+                  } else {
+                    return response.text();
+                  }
+                })
+                .catch((error) => {
+                  setUserAvatarError(error.toString());
+                  console.error("Failed to post: ", error);
+                });
+            }
+            if (onClose) {
+              onClose();
+              window.location.reload();
+            }
+          }}
+        >
+          Apply
+        </Button>
       </Modal.Body>
     </Modal>
   );

@@ -9,6 +9,7 @@ from threading import Lock
 from uuid import uuid4
 import socket
 from functools import wraps
+import base64
 
 from flask import Flask, Response, jsonify, request
 from flask_socketio import SocketIO
@@ -290,9 +291,7 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
             )
         if request.method == "POST":
             user.address = request.data.decode(encoding="utf-8")
-            Path(os.environ.get("USER_JSON_FILE", ".user.json")).write_text(
-                json.dumps(user.json), encoding="utf-8"
-            )
+            user.write(config.WORKING_DIRECTORY / config.USER_CONFIG_PATH)
             return Response(
                 "ok",
                 headers={"Access-Control-Allow-Credentials": "true"},
@@ -300,6 +299,35 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
                 status=200,
             )
         return jsonify(user_address_options_cached), 200
+
+    @_app.route("/user/name", methods=["POST"])
+    @login_required(auth)
+    def set_user_name():
+        """Sets user name."""
+        user.name = request.data.decode(encoding="utf-8")
+        user.write(config.WORKING_DIRECTORY / config.USER_CONFIG_PATH)
+        return Response(
+            "ok",
+            headers={"Access-Control-Allow-Credentials": "true"},
+            mimetype="text/plain",
+            status=200,
+        )
+
+    @_app.route("/user/avatar", methods=["POST"])
+    @login_required(auth)
+    def set_user_avatar():
+        """Sets user avatar."""
+        (config.WORKING_DIRECTORY / config.USER_AVATAR_PATH).write_bytes(
+            base64.decodebytes(
+                request.data.decode(encoding="utf-8").split(",")[1].encode()
+            )
+        )
+        return Response(
+            "ok",
+            headers={"Access-Control-Allow-Credentials": "true"},
+            mimetype="text/plain",
+            status=200,
+        )
 
     # socket
     _socket = socket_(auth, store, user)
