@@ -308,8 +308,8 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
     # API
     _app.register_blueprint(
         v0_blueprint(
+            config,
             user,
-            auth,
             socket=_socket,
             store=store,
         ),

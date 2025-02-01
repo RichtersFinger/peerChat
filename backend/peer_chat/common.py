@@ -17,15 +17,12 @@ class User:
     """User definition."""
 
     name: str
-    avatar: Optional[Path] = None
     address: Optional[str] = None
 
     @property
     def json(self) -> dict:
         """Returns serialized representation of the given object."""
         _json = {"name": self.name}
-        if self.avatar:
-            _json["avatar"] = str(self.avatar)
         if self.address:
             _json["address"] = self.address
         return _json
@@ -35,7 +32,6 @@ class User:
         """Returns deserialized object."""
         return cls(
             name=json_.get("name"),
-            avatar=Path(json_["avatar"]) if "avatar" in json_ else None,
             address=json_.get("address")
         )
 

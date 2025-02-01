@@ -19,5 +19,6 @@ class AppConfig:
     USER_AUTH_KEY = os.environ.get("USER_AUTH_KEY")
     USER_CONFIG_PATH = Path(".user.json")
     USER_CONFIG = None
+    USER_AVATAR_PATH = Path(".avatar")
     USER_PEER_URL = os.environ.get("USER_PEER_URL")
     DATA_DIRECTORY = Path("data")

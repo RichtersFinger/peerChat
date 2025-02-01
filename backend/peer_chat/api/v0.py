@@ -10,9 +10,9 @@ from flask import (
 )
 from flask_socketio import SocketIO
 
+from peer_chat.config import AppConfig
 from peer_chat.common import (
     User,
-    Auth,
     MessageStore,
     Message,
     MessageStatus,
@@ -21,7 +21,7 @@ from peer_chat.common import (
 
 
 def blueprint_factory(
-    user: User, auth: Auth, socket: SocketIO, store: MessageStore
+    config: AppConfig, user: User, socket: SocketIO, store: MessageStore
 ) -> Blueprint:
     """Returns a flask-Blueprint implementing the API v0."""
     bp = Blueprint("v0", "v0")
@@ -39,8 +39,15 @@ def blueprint_factory(
     @bp.route("/user/avatar", methods=["GET"])
     def user_image():
         """Returns avatar as file (if configured)."""
-        if user.avatar:
-            r = make_response(send_file(user.avatar))
+        if (config.WORKING_DIRECTORY / config.USER_AVATAR_PATH).is_file():
+            r = make_response(
+                send_file(
+                    (
+                        config.WORKING_DIRECTORY / config.USER_AVATAR_PATH
+                    ).resolve(),
+                    mimetype="image/xyz",
+                )
+            )
             r.headers["Access-Control-Allow-Origin"] = "*"
             return r
         return jsonify(user.avatar), 404

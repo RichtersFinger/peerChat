@@ -1,6 +1,5 @@
 """Test module for backend Flask app."""
 
-import os
 from pathlib import Path
 from uuid import uuid4
 from json import dumps
@@ -18,9 +17,7 @@ from peer_chat.common import User, Auth
 def test_load_config(tmp: Path):
     """Test function `load_config`."""
     file = tmp / str(uuid4())
-    avatar = tmp / str(uuid4())
-    avatar.touch()
-    user = User("A", avatar, "http://localhost:5000").json
+    user = User("A", "http://localhost:5000").json
     file.write_text(dumps(user), encoding="utf-8")
 
     user_ = load_user_config(file)
