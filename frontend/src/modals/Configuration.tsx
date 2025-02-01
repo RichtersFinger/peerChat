@@ -31,34 +31,13 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
   const [newAvatarPreview, setNewAvatarPreview] = useState<string | null>(null);
   const [userNameError, setUserNameError] = useState<string>("");
   const [userAvatarError, setUserAvatarError] = useState<string>("");
-  const [userAddress, setUserAddress] = useState<string | null>(null);
+  const [newUserAddress, setnewUserAddress] = useState<string | null>(null);
   const [addressOptions, setAddressOptions] = useState<AdressOption[]>([]);
-
-  // fetch current address
-  useEffect(() => {
-    if (!open) return;
-    fetch(ApiUrl + "/user/address", {
-      method: "GET",
-      credentials: "include",
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("HTTP-Error", { cause: response });
-        } else {
-          return response.text();
-        }
-      })
-      .then((text) => setUserAddress(text))
-      .catch((error) => {
-        console.error("Failed to fetch: ", error);
-      });
-  }, [open, setUserAddress]);
 
   // fetch address-options
   useEffect(() => {
     if (!open) return;
     fetch(ApiUrl + "/user/address-options", {
-      method: "GET",
       credentials: "include",
     })
       .then((response) => {
@@ -158,13 +137,15 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
               <TextInput
                 sizing="sm"
                 size={30}
-                defaultValue={userAddress ?? ""}
+                defaultValue={user.address ?? ""}
               ></TextInput>
             </div>
           </fieldset>
         </div>
         <Button
-          disabled={(!newUserName || user.name === newUserName) && !newAvatarPreview}
+          disabled={
+            (!newUserName || user.name === newUserName) && !newAvatarPreview
+          }
           onClick={async () => {
             var ok = true;
             if (newUserName && user.name !== newUserName) {

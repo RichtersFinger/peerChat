@@ -34,7 +34,9 @@ export default function SidebarUserItem({
           <p className="max-w-48 truncate font-bold">
             {user?.name ? user.name : "-"}
           </p>
-          <p className="max-w-48 truncate text-sm text-gray-500">{url}</p>
+          <p className="max-w-48 truncate text-sm text-gray-500">
+            {user.address ?? url}
+          </p>
         </div>
       </div>
       {menuItems && menuItems.length > 0 ? (
@@ -49,7 +51,9 @@ export default function SidebarUserItem({
             )}
           >
             {menuItems.map((item: DropdownItemType) => (
-              <Dropdown.Item key={item.label} onClick={item.onClick}>{item.label}</Dropdown.Item>
+              <Dropdown.Item key={item.label} onClick={item.onClick}>
+                {item.label}
+              </Dropdown.Item>
             ))}
           </Dropdown>
         </div>
