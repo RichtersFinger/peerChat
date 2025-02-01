@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Modal,
   Alert,
@@ -31,8 +31,11 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
   const [newAvatarPreview, setNewAvatarPreview] = useState<string | null>(null);
   const [userNameError, setUserNameError] = useState<string>("");
   const [userAvatarError, setUserAvatarError] = useState<string>("");
-  const [newUserAddress, setnewUserAddress] = useState<string | null>(null);
+  const [newUserAddress, setNewUserAddress] = useState<string | null>(null);
+  const newUserAddressRadioRef = useRef<HTMLInputElement>(null);
+  const newUserAddressInputRef = useRef<HTMLInputElement>(null);
   const [addressOptions, setAddressOptions] = useState<AdressOption[]>([]);
+  const [userAddressError, setUserAddressError] = useState<string>("");
 
   // fetch address-options
   useEffect(() => {
@@ -125,7 +128,14 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
             <legend id="address" className="mb-4"></legend>
             {addressOptions.map((value) => (
               <div key={value.name} className="flex items-center gap-2">
-                <Radio id={value.name} name="address" value={value.address} />
+                <Radio
+                  id={value.name}
+                  name="address"
+                  value={value.address}
+                  onChange={() => {
+                    setNewUserAddress(value.address);
+                  }}
+                />
                 <Label htmlFor="spain">{value.name}</Label>
                 <p className="text-sm text-gray-500">
                   ({value.address}, automatically detected)
@@ -133,73 +143,120 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
               </div>
             ))}
             <div className="flex items-center gap-2">
-              <Radio id="custom" name="address" value="custom" defaultChecked />
+              <Radio
+                ref={newUserAddressRadioRef}
+                id="custom"
+                name="address"
+                value="custom"
+                defaultChecked
+                onChange={() => {
+                  setNewUserAddress(
+                    newUserAddressInputRef.current?.value ?? null
+                  );
+                }}
+              />
               <TextInput
+                ref={newUserAddressInputRef}
                 sizing="sm"
                 size={30}
                 defaultValue={user.address ?? ""}
+                onChange={() => {
+                  if (newUserAddressRadioRef.current?.checked)
+                    setNewUserAddress(
+                      newUserAddressInputRef.current?.value ?? null
+                    );
+                }}
               ></TextInput>
             </div>
           </fieldset>
+          {userAddressError ? (
+            <Alert color="failure" icon={FiAlertCircle}>
+              {userAddressError}
+            </Alert>
+          ) : null}
+          <Button
+            disabled={
+              (!newUserAddress || user.address === newUserAddress) &&
+              (!newUserName || user.name === newUserName) &&
+              !newAvatarPreview
+            }
+            onClick={async () => {
+              var ok = true;
+              if (newUserName && user.name !== newUserName) {
+                await fetch(ApiUrl + "/user/name", {
+                  method: "POST",
+                  credentials: "include",
+                  headers: {
+                    "Content-Type": "text/plain",
+                  },
+                  body: newUserName,
+                })
+                  .then((response) => {
+                    if (!response.ok) {
+                      throw new Error("HTTP-Error", { cause: response });
+                    } else {
+                      return response.text();
+                    }
+                  })
+                  .catch((error) => {
+                    ok = false;
+                    setUserNameError(error.toString());
+                    console.error("Failed to post: ", error);
+                  });
+              }
+              if (newAvatarPreview) {
+                await fetch(ApiUrl + "/user/avatar", {
+                  method: "POST",
+                  credentials: "include",
+                  headers: {
+                    "Content-Type": "text/plain",
+                  },
+                  body: newAvatarPreview,
+                })
+                  .then((response) => {
+                    if (!response.ok) {
+                      throw new Error("HTTP-Error", { cause: response });
+                    } else {
+                      return response.text();
+                    }
+                  })
+                  .catch((error) => {
+                    ok = false;
+                    setUserAvatarError(error.toString());
+                    console.error("Failed to post: ", error);
+                  });
+              }
+              if (newUserAddress && user.address !== newUserAddress) {
+                await fetch(ApiUrl + "/user/address", {
+                  method: "POST",
+                  credentials: "include",
+                  headers: {
+                    "Content-Type": "text/plain",
+                  },
+                  body: newUserAddress,
+                })
+                  .then((response) => {
+                    if (!response.ok) {
+                      throw new Error("HTTP-Error", { cause: response });
+                    } else {
+                      return response.text();
+                    }
+                  })
+                  .catch((error) => {
+                    ok = false;
+                    setUserAddressError(error.toString());
+                    console.error("Failed to post: ", error);
+                  });
+              }
+              if (ok) {
+                onClose?.();
+                window.location.reload();
+              }
+            }}
+          >
+            Apply
+          </Button>
         </div>
-        <Button
-          disabled={
-            (!newUserName || user.name === newUserName) && !newAvatarPreview
-          }
-          onClick={async () => {
-            var ok = true;
-            if (newUserName && user.name !== newUserName) {
-              await fetch(ApiUrl + "/user/name", {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                  "Content-Type": "text/plain",
-                },
-                body: newUserName,
-              })
-                .then((response) => {
-                  if (!response.ok) {
-                    throw new Error("HTTP-Error", { cause: response });
-                  } else {
-                    return response.text();
-                  }
-                })
-                .catch((error) => {
-                  ok = false;
-                  setUserNameError(error.toString());
-                  console.error("Failed to post: ", error);
-                });
-            }
-            if (newAvatarPreview) {
-              await fetch(ApiUrl + "/user/avatar", {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                  "Content-Type": "text/plain",
-                },
-                body: newAvatarPreview,
-              })
-                .then((response) => {
-                  if (!response.ok) {
-                    throw new Error("HTTP-Error", { cause: response });
-                  } else {
-                    return response.text();
-                  }
-                })
-                .catch((error) => {
-                  ok = false;
-                  setUserAvatarError(error.toString());
-                  console.error("Failed to post: ", error);
-                });
-            }
-            if (ok) {
-              onClose?.();
-              window.location.reload();
-            }
-          }}
-        >
-          Apply
-        </Button>
       </Modal.Body>
     </Modal>
   );

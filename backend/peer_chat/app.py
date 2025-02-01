@@ -106,7 +106,9 @@ def load_callback_url_options() -> list[dict]:
     s.settimeout(0)
     try:
         s.connect(("10.254.254.254", 1))
-        options.append({"address": s.getsockname()[0], "name": "local"})
+        options.append(
+            {"address": "http://" + s.getsockname()[0], "name": "local"}
+        )
     # pylint: disable=broad-exception-caught
     except Exception:
         pass
@@ -117,9 +119,8 @@ def load_callback_url_options() -> list[dict]:
     try:
         options.append(
             {
-                "address": requests.get(
-                    "https://api.ipify.org", timeout=1
-                ).text,
+                "address": "http://"
+                + requests.get("https://api.ipify.org", timeout=1).text,
                 "name": "global",
             }
         )
