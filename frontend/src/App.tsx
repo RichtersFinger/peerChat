@@ -9,6 +9,7 @@ import Chat from "./components/Chat";
 import SetupDialog from "./modals/Setup";
 import LoginDialog from "./modals/Login";
 import ConfigurationDialog from "./modals/Configuration";
+import NewConversationDialog from "./modals/NewConversation";
 
 export const ApiUrl = process.env.REACT_APP_API_BASE_URL ?? window.origin;
 const socket = io(ApiUrl, {
@@ -57,6 +58,9 @@ export default function App() {
 
   // configuration
   const [configuration, setConfiguration] = useState<boolean>(false);
+
+  // new conversation
+  const [newConversation, setNewConversation] = useState<boolean>(false);
 
   // setup status
   useEffect(checkSetup, [checkSetup]);
@@ -109,11 +113,16 @@ export default function App() {
         open={configuration}
         onClose={() => setConfiguration(false)}
       />
+      <NewConversationDialog
+        open={newConversation}
+        onClose={() => setNewConversation(false)}
+      />
       <div className="flex flex-row">
         <div>
           <Sidebar
             connected={socketConnected}
             url={ApiUrl}
+            onNewConversationClick={() => setNewConversation(true)}
             selectedConversation={activeConversationId}
             onConversationClick={(c: Conversation) => {
               setActiveConversationId(c.id);

@@ -12,6 +12,7 @@ export type SidebarProps = {
   url: string;
   selectedConversation?: string | null;
   menuItems?: DropdownItemType[];
+  onNewConversationClick?: () => void;
   onConversationClick?: (c: Conversation) => void;
 };
 
@@ -20,6 +21,7 @@ export default function Sidebar({
   url,
   selectedConversation,
   menuItems,
+  onNewConversationClick,
   onConversationClick,
 }: SidebarProps) {
   const socket = useContext(SocketContext);
@@ -48,7 +50,9 @@ export default function Sidebar({
         </div>
         <FBSidebar.Items>
           <FBSidebar.ItemGroup>
-            <FBSidebar.Item>+ New Conversation</FBSidebar.Item>
+            <FBSidebar.Item onClick={onNewConversationClick}>
+              + New Conversation
+            </FBSidebar.Item>
             {cids.map((cid: string) => (
               <SidebarConversationItem
                 key={cid}
