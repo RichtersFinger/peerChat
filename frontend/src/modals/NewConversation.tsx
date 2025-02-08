@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { Modal, Label, TextInput, Avatar, Button } from "flowbite-react";
+
+import useUser from "../hooks/useUser";
 
 export type NewConversationProps = {
   open: boolean;
@@ -9,8 +12,20 @@ export default function NewConversation({
   open,
   onClose,
 }: NewConversationProps) {
+  const [peerAddress, setPeerAddress] = useState<string | null>(null);
+  const peer = useUser(peerAddress ?? undefined);
+
   return (
-    <Modal dismissible={true} show={open} size="xl" onClose={onClose} popup>
+    <Modal
+      dismissible={true}
+      show={open}
+      size="xl"
+      onClose={() => {
+        onClose?.();
+        setPeerAddress(null);
+      }}
+      popup
+    >
       <Modal.Header />
       <Modal.Body>
         <div className="space-y-4">
@@ -43,14 +58,19 @@ export default function NewConversation({
                   e.target.select();
                 }}
                 onChange={(e) => {
-                  //setPeer(e.target.value);
+                  setPeerAddress(e.target.value);
                 }}
               />
               <div className="flex flex-row space-x-2 place-items-center">
                 <p className="max-w-128 truncate text-sm text-gray-500">
-                  peer name
+                  {peer.name ?? null}
                 </p>
-                <Avatar rounded size="md" />
+                <Avatar
+                  {...(peer.avatar ? { img: peer.avatar } : {})}
+                  rounded
+                  status={peer.name ? "online" : "offline"}
+                  size="md"
+                />
               </div>
             </div>
           </div>
