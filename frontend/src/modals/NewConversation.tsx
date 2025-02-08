@@ -12,6 +12,7 @@ export default function NewConversation({
   open,
   onClose,
 }: NewConversationProps) {
+  const [title, setTitle] = useState("New Conversation");
   const [peerAddress, setPeerAddress] = useState<string | null>(null);
   const peer = useUser(peerAddress ?? undefined);
 
@@ -39,13 +40,15 @@ export default function NewConversation({
             <TextInput
               id="title"
               type="text"
-              defaultValue="New Conversation"
+              defaultValue={title}
               onFocus={(e) => {
                 e.target.select();
               }}
               onChange={(e) => {
-                //setTitle(e.target.value);
+                setTitle(e.target.value);
               }}
+              required
+              color={title ? undefined: "failure"}
             />
           </div>
           <div className="space-y-1">
@@ -60,6 +63,8 @@ export default function NewConversation({
                 onChange={(e) => {
                   setPeerAddress(e.target.value);
                 }}
+                required
+                color={peerAddress ? undefined: "failure"}
               />
               <div className="flex flex-row space-x-2 place-items-center">
                 <p className="max-w-128 truncate text-sm text-gray-500">
@@ -74,7 +79,7 @@ export default function NewConversation({
               </div>
             </div>
           </div>
-          <Button>Apply</Button>
+          <Button disabled={!peerAddress || !title}>Apply</Button>
         </div>
       </Modal.Body>
     </Modal>
