@@ -24,10 +24,13 @@ build: venv build-frontend build-backend
 	source "${VENV}/bin/activate" && \
 		pip install --upgrade pip wheel setuptools && \
 		cd backend && \
-		VERSION=${VERSION} python3 setup.py sdist bdist_wheel
+		VERSION=${VERSION} python3 setup.py bdist_wheel
 
-publish:
-	echo "not yet implemented"
+publish: venv
+	source "${VENV}/bin/activate" && \
+		pip install --upgrade pip twine && \
+		cd backend && \
+		python3 -m twine upload dist/*
 
 clean-frontend:
 	rm -rf frontend/build
