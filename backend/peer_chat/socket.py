@@ -7,6 +7,7 @@ import requests
 from flask import request
 from flask_socketio import SocketIO
 
+from peer_chat.config import AppConfig
 from peer_chat.common import (
     Auth,
     User,
@@ -18,27 +19,20 @@ from peer_chat.common import (
 
 
 def socket_(
-    auth: Auth, store: MessageStore, user: User
+    config: AppConfig, auth: Auth, store: MessageStore, user: User
 ) -> SocketIO:
     """
     Returns a fully configured `SocketIO`-object that can be registered
     with a Flask-application.
     """
     # enable CORS in development-environment
-    try:
-        # pylint: disable=import-outside-toplevel, unused-import
-        from flask_cors import (
-            CORS,
-        )
-    except ImportError:
-        socketio = SocketIO()
-    else:
+    if config.MODE == "dev":
         print("INFO: Configuring socket for CORS.", file=sys.stderr)
         socketio = SocketIO(
-            cors_allowed_origins=os.environ.get(
-                "CORS_FRONTEND_URL", "http://localhost:3000"
-            )
+            cors_allowed_origins=config.DEV_CORS_FRONTEND_URL
         )
+    else:
+        socketio = SocketIO()
 
     @socketio.on("connect")
     def connect():

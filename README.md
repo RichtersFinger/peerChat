@@ -38,6 +38,7 @@ The following environment variables can be set to configure peerChat:
 - `WORKING_DIRECTORY` [DEFAULT ".peerChat"] working directory of the application; default is the subdirectory `.peerChat` in the current working directory
 - `SECRET_KEY` [DEFAULT null] override the otherwise automatically generated secret key
 - `USER_PEER_URL` [DEFAULT null] can be used to set the public peer-url; can also be set via the UI
+- `MODE` [DEFAULT prod] execution mode; one of "prod" or "dev"
 
 Extended options for configuration can be accessed via the `AppConfig`-class used by the underlying `flask`-webserver which is passed in to the app-factory.
 

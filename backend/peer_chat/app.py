@@ -11,7 +11,14 @@ import socket
 from functools import wraps
 import base64
 
-from flask import Flask, Response, jsonify, request, make_response
+from flask import (
+    Flask,
+    Response,
+    jsonify,
+    request,
+    make_response,
+    send_from_directory,
+)
 from flask_socketio import SocketIO
 import requests
 
@@ -72,24 +79,23 @@ def load_auth(path: Path) -> Optional[str]:
     return None
 
 
-def load_cors(_app: Flask) -> None:
+def load_cors(_app: Flask, url: str) -> None:
     """Loads CORS-extension if required."""
-    # configure for CORS (development environment-only)
     try:
+        # pylint: disable=import-outside-toplevel
         from flask_cors import CORS
     except ImportError:
-        pass
+        print(
+            "\033[31mERROR: Missing 'Flask-CORS'-package for dev-server. "
+            + "Install with 'pip install flask-cors'.\033[0m",
+            file=sys.stderr,
+        )
+        sys.exit(1)
     else:
         print("INFO: Configuring app for CORS.", file=sys.stderr)
         _ = CORS(
             _app,
-            resources={
-                "*": {
-                    "origins": os.environ.get(
-                        "CORS_FRONTEND_URL", "http://localhost:3000"
-                    )
-                }
-            },
+            resources={"*": {"origins": url}},
         )
 
 
@@ -166,7 +172,7 @@ def login_required(auth: Auth):
 def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
     """Returns peerChat-Flask app."""
     # define Flask-app
-    _app = Flask(__name__)
+    _app = Flask(__name__, static_folder=config.STATIC_PATH)
 
     # prepare storage
     (config.WORKING_DIRECTORY / config.DATA_DIRECTORY).mkdir(
@@ -210,7 +216,8 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
     store = MessageStore(config.WORKING_DIRECTORY / config.DATA_DIRECTORY)
 
     # extensions
-    load_cors(_app)
+    if config.MODE == "dev":
+        load_cors(_app, config.DEV_CORS_FRONTEND_URL)
 
     # initialize ressource-locks
     auth_lock = Lock()
@@ -340,8 +347,16 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
             status=200,
         )
 
+    @_app.route("/", defaults={"path": ""})
+    @_app.route("/<path:path>")
+    def serve(path):
+        """Serve static content."""
+        if path != "":
+            return send_from_directory(config.STATIC_PATH, path)
+        return send_from_directory(config.STATIC_PATH, "index.html")
+
     # socket
-    _socket = socket_(auth, store, user)
+    _socket = socket_(config, auth, store, user)
     _socket.init_app(_app)
 
     # API
@@ -366,15 +381,29 @@ def run(app=None, config=None):
     if not config:
         from .wsgi import config
 
+    # not intended for production due to, e.g., cors
+    if config.MODE != "prod":
+        print(
+            "\033[1;33mWARNING: RUNNING IN UNEXPECTED MODE '"
+            + config.MODE
+            + "'.\033[0m",
+            file=sys.stderr,
+        )
+
     # prioritize gunicorn over werkzeug
     try:
         import gunicorn.app.base
     except ImportError:
-        print("WARNING: RUNNING WITHOUT PROPER WSGI-SERVER.", file=sys.stderr)
+        print(
+            "\033[1;33mWARNING: RUNNING WITHOUT PROPER WSGI-SERVER.\033[0m",
+            file=sys.stderr,
+        )
         app.run(host="0.0.0.0", port=config.FLASK_RUN_PORT)
     else:
+
         class StandaloneApplication(gunicorn.app.base.BaseApplication):
             """See https://docs.gunicorn.org/en/stable/custom.html"""
+
             def __init__(self, app_, options=None):
                 self.options = options or {}
                 self.application = app_
@@ -392,11 +421,19 @@ def run(app=None, config=None):
             def load(self):
                 return self.application
 
+        if config.FLASK_THREADS == 1:
+            print(
+                "\033[1;33mWARNING: STARTING SINGLE-THREADED SERVER; "
+                + "SOCKET WILL LIKELY NOT FUNCTION PROPERLY.\033[0m",
+                file=sys.stderr,
+            )
+
         StandaloneApplication(
             app,
             {
                 "bind": f"0.0.0.0:{config.FLASK_RUN_PORT}",
                 "workers": 1,
                 "threads": config.FLASK_THREADS,
-            },
+            }
+            | (config.GUNICORN_OPTIONS or {}),
         ).run()

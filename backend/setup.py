@@ -13,7 +13,6 @@ setup(
         "Flask-SocketIO>=5.4,<6",
         "requests>=2.32,<3",
         "gunicorn",
-        # "eventlet>=0.38,<1",
     ],
     packages=[
         "peer_chat",
