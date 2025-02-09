@@ -1,8 +1,17 @@
 # peerChat
 
-A minimal self-hosted p2p chat application.
+A minimal self-hosted p2p chat application written in python (backend) and React (frontend).
 
-## Build
+## Install
+tdb
+
+## Run
+tdb
+
+## Update
+tdb
+
+## Build from source
 The provided `Makefile` provides targets for building from source.
 Run
 * `make build` to build the python package bundled with the static client (react)
@@ -15,53 +24,41 @@ A build requires `npm` as well as the `venv`-module of `python3` to be successfu
 
 ## Authorization-concept
 
-Since the service is intended for self-hosting, it only supports a single user per running instance of peerChat.
+Since the service is intended for self-hosting, it only supports a single user per running instance of `peerChat`.
 In order to identify a user, a (automatically generated or user-defined) key is used.
 The backend-API allows to configure this key only once.
-To reset that key, the corresponding key-file has to be deleted or another file has to be referenced (see variable `AUTH_FILE`) before restarting the service (backend, specifically).
 
-## Backend
+To reset that key, the corresponding key-file `.peerChat.auth` can be deleted.
+After deleting, the service needs to be restarted for changes to take effect.
 
-### General
+## Environment configuration
+The following environment variables can be set to configure peerChat:
 
-### Configuration
+- `FLASK_RUN_PORT` [DEFAULT 27182] peerChat port
+- `WORKING_DIRECTORY` [DEFAULT ".peerChat"] working directory of the application; default is the subdirectory `.peerChat` in the current working directory
+- `SECRET_KEY` [DEFAULT null] override the otherwise automatically generated secret key
+- `USER_PEER_URL` [DEFAULT null] can be used to set the public peer-url; can also be set via the UI
 
-- `USER_JSON_FILE` [DEFAULT ".user.json"] JSON-document location storing user profile settings
-- `DEFAULT_USER_AVATAR` [DEFAULT "static/avatar.png"] fallback user avatar location
-- `SECRET_KEY_FILE` [DEFAULT ".secret_key"] location for app's secret key file
-- `AUTH_FILE` [DEFAULT ".auth"] location for app's user-auth file
-- `WORKING_DIR` [DEFAULT "./data"] path to app's data-storage (messages, cached data, ..)
-- `USER_URL` [DEFAULT "http://localhost:5000"] callback-url (sent to other peers for new conversations)
-- `REACT_APP_API_BASE_URL` [DEFAULT "http://localhost:5000"] base-url for local peerChat API
+Extended options for configuration can be accessed via the `AppConfig`-class used by the underlying `flask`-webserver which is passed in to the app-factory.
 
-### Endpoints
+### Public API v0
+The following list briefly describes the public part of the peerChat API.
 
 - `GET-/ping` returns `"pong"`
 - `GET-/who` returns JSON-object that describes the available parts of the API in the format
   ```json
   { "api": { "0": "/api/v0" }, "name": "peerChatAPI" }
   ```
-- `GET-/auth/key` returns status `200` if key has been set (note that the key value will not be provided) and `404` otherwise
-- `POST-/auth/key` set new key if possible; returns status `409` if key has already been set and otherwise `200` along with the key value in plain text
-
-  expected request body-format for user-defined key:
-  ```json
-  {"peerChatAuth": <value>}
-  ```
-
-### API v0
-
-### Endpoints
-
-See [general endpoint](#endpoints) `GET-/who` for base-url path
-
 - `GET-/user/name` returns the client's name
 - `GET-/user/avatar` returns the client's avatar
 - `POST-/message` post new message; return `200` if request is ok, `400` on bad body
 
   expected request body-format
   ```json
-  {"cid": <conversation-id>, "msg": <Message.json>, "peer": <origin-peer-url>}
+  {
+    "cid": <conversation-id>,
+    "msg": <Message.json>,  // TODO
+    "peer": <origin-peer-url>
+  }
   ```
-  (optional `"peer"` can be used to provide a callback-url for the given conversation)
-
+  (the optional field `"peer"` can be used to provide a callback-url for the given conversation)
