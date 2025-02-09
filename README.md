@@ -2,6 +2,17 @@
 
 A minimal self-hosted p2p chat application.
 
+## Build
+The provided `Makefile` provides targets for building from source.
+Run
+* `make build` to build the python package bundled with the static client (react)
+  * the distribution-files can be found in `backend/dist`
+  * the build version can be set with `make build VERSION="1.0.0.post5+a6cd1d01"`
+  * the client build can be skipped with `make build SKIP_CLIENT="yes"`
+* `make clean` to remove build artifacts
+
+A build requires `npm` as well as the `venv`-module of `python3` to be successful.
+
 ## Authorization-concept
 
 Since the service is intended for self-hosting, it only supports a single user per running instance of peerChat.

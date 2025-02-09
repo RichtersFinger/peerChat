@@ -1,8 +1,9 @@
+import os
 from setuptools import setup
 
 
 setup(
-    version="0.0.0",
+    version=os.environ.get("VERSION", "0.0.0"),
     name="peerChat",
     description="A minimal self-hosted p2p chat application.",
     project_urls={"Source": "https://github.com/RichtersFinger/peerChat"},
@@ -17,6 +18,7 @@ setup(
         "peer_chat",
         "peer_chat.api",
     ],
+    package_data={"peer_chat": ["client/**/*"]},
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: End Users/Desktop",
