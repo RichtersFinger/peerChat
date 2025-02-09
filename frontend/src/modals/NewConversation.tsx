@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { Modal, Label, TextInput, Avatar, Button } from "flowbite-react";
+import { useState, useContext } from "react";
+import { Modal, Label, TextInput, Avatar, Button, Alert } from "flowbite-react";
+import { FiAlertCircle } from "react-icons/fi";
 
+import { SocketContext } from "../App";
 import useUser from "../hooks/useUser";
 
 export type NewConversationProps = {
@@ -12,6 +14,8 @@ export default function NewConversation({
   open,
   onClose,
 }: NewConversationProps) {
+  const socket = useContext(SocketContext);
+  const [error, setError] = useState<string | null>(null);
   const [title, setTitle] = useState("New Conversation");
   const [peerAddress, setPeerAddress] = useState<string | null>(null);
   const peer = useUser(peerAddress ?? undefined);
@@ -48,7 +52,7 @@ export default function NewConversation({
                 setTitle(e.target.value);
               }}
               required
-              color={title ? undefined: "failure"}
+              color={title ? undefined : "failure"}
             />
           </div>
           <div className="space-y-1">
@@ -64,7 +68,7 @@ export default function NewConversation({
                   setPeerAddress(e.target.value);
                 }}
                 required
-                color={peerAddress ? undefined: "failure"}
+                color={peerAddress ? undefined : "failure"}
               />
               <div className="flex flex-row space-x-2 place-items-center">
                 <p className="max-w-128 truncate text-sm text-gray-500">
@@ -79,7 +83,24 @@ export default function NewConversation({
               </div>
             </div>
           </div>
-          <Button disabled={!peerAddress || !title}>Apply</Button>
+          {error ? (
+            <Alert color="failure" icon={FiAlertCircle}>
+              {error}
+            </Alert>
+          ) : null}
+          <Button
+            disabled={!socket || !peerAddress || !title}
+            onClick={() => {
+              if (socket?.emit("create-conversation", peerAddress, title)) {
+                onClose?.();
+                setPeerAddress(null);
+              } else {
+                setError("Some error occurred.");
+              }
+            }}
+          >
+            Apply
+          </Button>
         </div>
       </Modal.Body>
     </Modal>

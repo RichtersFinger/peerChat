@@ -75,6 +75,7 @@ def socket_(
         c = Conversation(peer=peer, name=name)
         store.set_conversation_path(c)
         store.create_conversation(c)
+        socketio.emit("new-conversation", c.id_)
         return c.id_
 
     @socketio.on("list-conversations")
