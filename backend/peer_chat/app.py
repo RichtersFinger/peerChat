@@ -356,3 +356,47 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
     )
 
     return _app, _socket
+
+
+def run(app=None, config=None):
+    """Run flask-app."""
+    # load defaults
+    if not app:
+        from .wsgi import app
+    if not config:
+        from .wsgi import config
+
+    # prioritize gunicorn over werkzeug
+    try:
+        import gunicorn.app.base
+    except ImportError:
+        print("WARNING: RUNNING WITHOUT PROPER WSGI-SERVER.", file=sys.stderr)
+        app.run(host="0.0.0.0", port=config.FLASK_RUN_PORT)
+    else:
+        class StandaloneApplication(gunicorn.app.base.BaseApplication):
+            """See https://docs.gunicorn.org/en/stable/custom.html"""
+            def __init__(self, app_, options=None):
+                self.options = options or {}
+                self.application = app_
+                super().__init__()
+
+            def load_config(self):
+                _config = {
+                    key: value
+                    for key, value in self.options.items()
+                    if key in self.cfg.settings and value is not None
+                }
+                for key, value in _config.items():
+                    self.cfg.set(key.lower(), value)
+
+            def load(self):
+                return self.application
+
+        StandaloneApplication(
+            app,
+            {
+                "bind": f"0.0.0.0:{config.FLASK_RUN_PORT}",
+                "workers": 1,
+                "threads": config.FLASK_THREADS,
+            },
+        ).run()

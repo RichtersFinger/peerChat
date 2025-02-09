@@ -12,13 +12,19 @@ setup(
         "Flask>=3,<4",
         "Flask-SocketIO>=5.4,<6",
         "requests>=2.32,<3",
+        "gunicorn",
         # "eventlet>=0.38,<1",
     ],
     packages=[
         "peer_chat",
         "peer_chat.api",
     ],
-    package_data={"peer_chat": ["client/**/*"]},
+    package_data={"peer_chat": ["client/**/*", "wsgi.py"]},
+    entry_points={
+        "console_scripts": [
+            "peerChat = peer_chat.app:run",
+        ],
+    },
     classifiers=[
         "Development Status :: 2 - Pre-Alpha",
         "Intended Audience :: End Users/Desktop",
