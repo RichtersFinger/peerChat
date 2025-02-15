@@ -3,6 +3,7 @@ import { Socket, io } from "socket.io-client";
 import { Button, Card, Alert } from "flowbite-react";
 import { FiAlertCircle } from "react-icons/fi";
 
+import useStore from "./stores";
 import { Conversation } from "./hooks/useConversation";
 import Sidebar from "./components/Sidebar";
 import Chat from "./components/Chat";
@@ -22,7 +23,7 @@ export const authKey = "peerChatAuth";
 export const authKeyMaxAge = "2147483647";
 
 export default function App() {
-  const [socketConnected, setSocketConnected] = useState<boolean>(false);
+  const socketState = useStore((state) => state.socket);
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
   >(null);
@@ -68,7 +69,7 @@ export default function App() {
   // connection status-tracking
   useEffect(() => {
     socket.on("connect", () => {
-      setSocketConnected(true);
+      socketState.connect();
       // refresh auth-cookie
       const auth = decodeURIComponent(document.cookie)
         .split(";")
@@ -78,8 +79,8 @@ export default function App() {
         document.cookie =
           authKey + "=" + auth + "; path=/; max-age=" + authKeyMaxAge;
     });
-    socket.on("disconnect", () => setSocketConnected(false));
-  }, []);
+    socket.on("disconnect", () => socketState.disconnect());
+  }, [socketState]);
 
   // configure socket and connect
   useEffect(() => {
@@ -90,7 +91,7 @@ export default function App() {
   }, [loggedIn]);
 
   return (
-    <SocketContext.Provider value={socketConnected ? socket : null}>
+    <SocketContext.Provider value={socketState.connected ? socket : null}>
       <SetupDialog
         open={setupDialog}
         onClose={() => {
@@ -120,7 +121,6 @@ export default function App() {
       <div className="flex flex-row">
         <div>
           <Sidebar
-            connected={socketConnected}
             url={ApiUrl}
             onNewConversationClick={() => setNewConversation(true)}
             selectedConversation={activeConversationId}
@@ -128,7 +128,7 @@ export default function App() {
               setActiveConversationId(c.id);
             }}
             menuItems={[
-              ...(loggedIn && socketConnected
+              ...(loggedIn && socketState.connected
                 ? [
                     {
                       label: "Settings",

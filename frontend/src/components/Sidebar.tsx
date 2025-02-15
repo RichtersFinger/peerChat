@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { Sidebar as FBSidebar } from "flowbite-react";
 
+import useStore from "../stores";
 import { SocketContext } from "../App";
 import useConversationList from "../hooks/useConversationList";
 import { Conversation } from "../hooks/useConversation";
@@ -8,7 +9,6 @@ import SidebarUserItem, { DropdownItemType } from "./SidebarUserItem";
 import SidebarConversationItem from "./SidebarConversationItem";
 
 export type SidebarProps = {
-  connected: boolean;
   url: string;
   selectedConversation?: string | null;
   menuItems?: DropdownItemType[];
@@ -17,13 +17,13 @@ export type SidebarProps = {
 };
 
 export default function Sidebar({
-  connected,
   url,
   selectedConversation,
   menuItems,
   onNewConversationClick,
   onConversationClick,
 }: SidebarProps) {
+  const connected = useStore((state) => state.socket.connected);
   const socket = useContext(SocketContext);
   const cids = useConversationList(socket);
 
