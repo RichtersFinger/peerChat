@@ -88,9 +88,9 @@ def blueprint_factory(
                 ),
             )
             m = store.load_message(c.id_, mid)
-            socket.emit(f"update-conversation-{c.id_}", c.json)
+            socket.emit("update-conversation", c.json)
             socket.emit(
-                f"update-message-{c.id_}.{mid}",
+                "update-message",
                 {"cid": c.id_, "message": m.json},
             )
         # pylint: disable=broad-exception-caught

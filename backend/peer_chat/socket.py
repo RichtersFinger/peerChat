@@ -129,7 +129,7 @@ def socket_(
         m.status = MessageStatus.OK
         store.post_message(cid, m)
         socketio.emit(
-            f"update-message-{cid}.{m.id_}", {"cid": cid, "message": m.json}
+            "update-message", {"cid": cid, "message": m.json}
         )
         return True
 

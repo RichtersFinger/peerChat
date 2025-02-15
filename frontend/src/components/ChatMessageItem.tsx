@@ -1,18 +1,18 @@
-import { useContext } from "react";
 import { Spinner } from "flowbite-react";
 
-import { SocketContext } from "../App";
-import useMessage from "../hooks/useMessage";
-
-export type ChatMessageItemProps = {
-  cid: string;
-  mid: string;
+export type Message = {
+  id: string;
+  body: string | null;
+  status: "ok" | "queued" | "sending" | "draft" | "deleted" | "error";
+  isMine: boolean;
+  lastModified: string;
 };
 
-export default function ChatMessageItem({ cid, mid }: ChatMessageItemProps) {
-  const socket = useContext(SocketContext);
-  const message = useMessage(socket, cid, mid);
+export type ChatMessageItemProps = {
+  message: Message;
+};
 
+export default function ChatMessageItem({ message }: ChatMessageItemProps) {
   return (
     <div
       className={

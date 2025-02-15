@@ -79,7 +79,6 @@ const useStore = create<StoreState>((set, get) => ({
         get().conversations.fetch(socket, id)
       );
       socket.on("update-conversation", (c: Conversation) => {
-        console.log(c.length);
         get().conversations.setConversation(c);
       });
     },

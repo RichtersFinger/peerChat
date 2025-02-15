@@ -1,8 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import { Button } from "flowbite-react";
 
 import { Conversation } from "../stores";
+import { SocketContext } from "../App";
 import ChatMessageItem from "./ChatMessageItem";
+import { Message } from "./ChatMessageItem";
 
 export type ChatBodyProps = {
   conversation: Conversation;
@@ -12,10 +14,48 @@ const DEFAULT_NMESSAGES = 10;
 const DEFAULT_NMESSAGES_INCREMENT = 10;
 
 export default function ChatBody({ conversation }: ChatBodyProps) {
+  const socket = useContext(SocketContext);
   const [nMessages, setNMessages] = useState<number>(DEFAULT_NMESSAGES);
+  const [messages, setMessages] = useState<Record<string, Message>>({});
+
+  const pushMessage = useCallback(
+    (m: Message) =>
+      setMessages((messages) => {
+        return { ...messages, [m.id]: m };
+      }),
+    [setMessages]
+  );
+
+  // load initial set of messages
+  useEffect(() => {
+    Array(Math.min(conversation.length ?? 0, nMessages))
+      .fill(0)
+      .map((_, index) => (conversation.length ?? 0) - 1 - index)
+      .forEach((mid: number) => {
+        socket?.emit("get-message", conversation.id, mid, (m: Message) => {
+          pushMessage(m);
+        });
+      });
+  }, [conversation.id, conversation.length, socket, nMessages, pushMessage]);
+
+  // configure socket events
+  useEffect(() => {
+    socket?.on(
+      "update-message",
+      ({ cid, message }: { cid: string; message: Message }) => {
+        if (cid !== conversation.id) return;
+        pushMessage(message);
+      }
+    );
+
+    return () => {
+      socket?.off("update-message");
+    };
+  }, [conversation.id, socket, pushMessage]);
 
   // reset initial values for state if conversation changes
   useEffect(() => {
+    setMessages({});
     setNMessages(DEFAULT_NMESSAGES);
   }, [conversation]);
 
@@ -44,17 +84,12 @@ export default function ChatBody({ conversation }: ChatBodyProps) {
         ) : null}
       </div>
       <div className="space-y-3">
-        {Array(Math.min(conversation.length ?? 0, nMessages))
-          .fill(0)
-          .map((_, index) => (conversation.length ?? 0) - 1 - index)
-          .map((mid: number) => (
-            <ChatMessageItem
-              key={mid}
-              cid={conversation.id}
-              mid={mid.toString()}
-            />
-          ))
-          .reverse()}
+        {Object.keys(messages)
+          .map(Number)
+          .sort((a, b) => a - b)
+          .map((mid) => (
+            <ChatMessageItem key={mid} message={messages[mid.toString()]} />
+          ))}
       </div>
     </div>
   );

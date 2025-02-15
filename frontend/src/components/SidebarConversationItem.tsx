@@ -16,7 +16,7 @@ export default function SidebarConversationItem({
   onClick,
 }: SidebarConversationItemProps) {
   const [indicator, setIndicator] = useState<boolean>(false);
-  const user = useUser(conversation.peer);
+  const user = useUser(conversation?.peer);
 
   return (
     <FBSidebar.Item
@@ -36,10 +36,10 @@ export default function SidebarConversationItem({
         />
         <div className="flex-col space-y-1 font-medium">
           <p className="max-w-48 truncate">
-            {conversation.name ?? conversation.id}
+            {conversation?.name ?? conversation?.id}
           </p>
           <p className="max-w-48 truncate text-sm text-gray-500">
-            {user.name ?? conversation.peer ?? "-"}
+            {user.name ?? conversation?.peer ?? "-"}
           </p>
         </div>
         {indicator ? (
