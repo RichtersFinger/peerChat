@@ -34,7 +34,7 @@ After deleting, the service needs to be restarted for changes to take effect.
 ## Environment configuration
 The following environment variables can be set to configure peerChat:
 
-- `FLASK_RUN_PORT` [DEFAULT 27182] peerChat port
+- `PORT` [DEFAULT 27182] peerChat port
 - `WORKING_DIRECTORY` [DEFAULT ".peerChat"] working directory of the application; default is the subdirectory `.peerChat` in the current working directory
 - `SECRET_KEY` [DEFAULT null] override the otherwise automatically generated secret key
 - `USER_PEER_URL` [DEFAULT null] can be used to set the public peer-url; can also be set via the UI

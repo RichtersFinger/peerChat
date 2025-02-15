@@ -398,7 +398,7 @@ def run(app=None, config=None):
             "\033[1;33mWARNING: RUNNING WITHOUT PROPER WSGI-SERVER.\033[0m",
             file=sys.stderr,
         )
-        app.run(host="0.0.0.0", port=config.FLASK_RUN_PORT)
+        app.run(host="0.0.0.0", port=config.PORT)
     else:
 
         class StandaloneApplication(gunicorn.app.base.BaseApplication):
@@ -431,7 +431,7 @@ def run(app=None, config=None):
         StandaloneApplication(
             app,
             {
-                "bind": f"0.0.0.0:{config.FLASK_RUN_PORT}",
+                "bind": f"0.0.0.0:{config.PORT}",
                 "workers": 1,
                 "threads": config.FLASK_THREADS,
             }

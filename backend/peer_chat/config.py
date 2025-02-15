@@ -12,7 +12,7 @@ class AppConfig:
     DEV_CORS_FRONTEND_URL = os.environ.get(
         "DEV_CORS_FRONTEND_URL", "http://localhost:3000"
     )
-    FLASK_RUN_PORT = os.environ.get("FLASK_RUN_PORT", "27182")
+    PORT = os.environ.get("PORT", "27182")
     FLASK_THREADS = 2
     GUNICORN_OPTIONS = None
 
