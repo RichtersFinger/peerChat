@@ -13,18 +13,21 @@ build-frontend:
 	[ "${SKIP_CLIENT}" != "yes" ] && \
 		cd frontend && \
 		npm install && \
-		GENERATE_SOURCEMAP=false npm run build || \
-		echo "skip building client"
+		GENERATE_SOURCEMAP=false npm run build
 
 build-backend:
 	rm -rf backend/peer_chat/client
 	cp -r frontend/build backend/peer_chat/client
 
 build: venv build-frontend build-backend
+	[ "${VERSION}" != "" ] && \
+		VERSIONENV="VERSION=${VERSION}" || \
+		echo "Using default version"
 	source "${VENV}/bin/activate" && \
 		pip install --upgrade pip wheel setuptools && \
 		cd backend && \
-		VERSION=${VERSION} python3 setup.py bdist_wheel
+		${VERSIONENV} python3 setup.py bdist_wheel || \
+		python3 setup.py bdist_wheel
 
 publish: venv
 	source "${VENV}/bin/activate" && \
