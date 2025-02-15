@@ -1,28 +1,21 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { Sidebar as FBSidebar, Avatar } from "flowbite-react";
 
-import { SocketContext } from "../App";
-import useConversation, { Conversation } from "../hooks/useConversation";
+import { Conversation } from "../stores";
 import useUser from "../hooks/useUser";
 
 export type SidebarConversationItemProps = {
-  cid: string;
+  conversation: Conversation;
   useIndicator?: boolean;
   onClick?: (c: Conversation) => void;
 };
 
 export default function SidebarConversationItem({
-  cid,
+  conversation,
   useIndicator = true,
   onClick,
 }: SidebarConversationItemProps) {
-  const socket = useContext(SocketContext);
   const [indicator, setIndicator] = useState<boolean>(false);
-  const conversation = useConversation(
-    socket,
-    cid,
-    useIndicator ? () => setIndicator(true) : undefined
-  );
   const user = useUser(conversation.peer);
 
   return (

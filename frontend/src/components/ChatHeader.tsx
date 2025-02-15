@@ -1,7 +1,7 @@
 import { Avatar } from "flowbite-react";
 
 import useUser from "../hooks/useUser";
-import { Conversation } from "../hooks/useConversation";
+import { Conversation } from "../stores";
 
 export type ChatHeaderProps = {
   conversation: Conversation;

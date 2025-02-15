@@ -1,10 +1,7 @@
-import { useContext } from "react";
 import { Sidebar as FBSidebar } from "flowbite-react";
+import { useShallow } from "zustand/react/shallow";
 
-import useStore from "../stores";
-import { SocketContext } from "../App";
-import useConversationList from "../hooks/useConversationList";
-import { Conversation } from "../hooks/useConversation";
+import useStore, { Conversation } from "../stores";
 import SidebarUserItem, { DropdownItemType } from "./SidebarUserItem";
 import SidebarConversationItem from "./SidebarConversationItem";
 
@@ -24,8 +21,10 @@ export default function Sidebar({
   onConversationClick,
 }: SidebarProps) {
   const connected = useStore((state) => state.socket.connected);
-  const socket = useContext(SocketContext);
-  const cids = useConversationList(socket);
+  const cids = useStore(useShallow((state) => state.conversations.ids));
+  const conversations = useStore(
+    useShallow((state) => state.conversations.data)
+  );
 
   return (
     <>
@@ -56,7 +55,7 @@ export default function Sidebar({
             {cids.map((cid: string) => (
               <SidebarConversationItem
                 key={cid}
-                cid={cid}
+                conversation={conversations[cid]}
                 useIndicator={selectedConversation !== cid}
                 onClick={onConversationClick}
               />

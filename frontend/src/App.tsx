@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback, createContext } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { Socket, io } from "socket.io-client";
 import { Button, Card, Alert } from "flowbite-react";
 import { FiAlertCircle } from "react-icons/fi";
 
-import useStore from "./stores";
-import { Conversation } from "./hooks/useConversation";
+import useStore, { Conversation } from "./stores";
 import Sidebar from "./components/Sidebar";
 import Chat from "./components/Chat";
 import SetupDialog from "./modals/Setup";
@@ -23,7 +23,8 @@ export const authKey = "peerChatAuth";
 export const authKeyMaxAge = "2147483647";
 
 export default function App() {
-  const socketState = useStore((state) => state.socket);
+  const socketState = useStore(useShallow((state) => state.socket));
+  const conversations = useStore(useShallow((state) => state.conversations));
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
   >(null);
@@ -70,6 +71,8 @@ export default function App() {
   useEffect(() => {
     socket.on("connect", () => {
       socketState.connect();
+      conversations.fetchAll(socket);
+      conversations.listen(socket);
       // refresh auth-cookie
       const auth = decodeURIComponent(document.cookie)
         .split(";")
@@ -79,8 +82,11 @@ export default function App() {
         document.cookie =
           authKey + "=" + auth + "; path=/; max-age=" + authKeyMaxAge;
     });
-    socket.on("disconnect", () => socketState.disconnect());
-  }, [socketState]);
+    socket.on("disconnect", () => {
+      socketState.disconnect();
+      conversations.stopListening(socket);
+    });
+  }, [socketState, conversations]);
 
   // configure socket and connect
   useEffect(() => {

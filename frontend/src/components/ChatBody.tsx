@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "flowbite-react";
 
-import { Conversation } from "../hooks/useConversation";
+import { Conversation } from "../stores";
 import ChatMessageItem from "./ChatMessageItem";
 
 export type ChatBodyProps = {

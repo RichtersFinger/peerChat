@@ -1,6 +1,5 @@
 """Socket.IO-websocket definition."""
 
-import os
 import sys
 import requests
 
@@ -110,7 +109,7 @@ def socket_(
         if not c:
             return False
 
-        socketio.emit(f"update-conversation-{c.id_}", c.json)
+        socketio.emit("update-conversation", c.json)
         try:
             body = {"cid": cid, "msg": m.json}
             if user.address:
