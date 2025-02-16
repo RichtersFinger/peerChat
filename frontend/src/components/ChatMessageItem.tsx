@@ -3,7 +3,7 @@ import { Spinner } from "flowbite-react";
 export type Message = {
   id: number;
   body: string | null;
-  status: "ok" | "queued" | "sending" | "draft" | "deleted" | "error";
+  status: "ok" | "sending" | "draft" | "deleted" | "error";
   isMine: boolean;
   lastModified: string;
 };

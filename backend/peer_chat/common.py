@@ -58,7 +58,6 @@ class MessageStatus(Enum):
     """Message status enum."""
 
     OK = "ok"
-    QUEUED = "queued"
     SENDING = "sending"
     DRAFT = "draft"
     DELETED = "deleted"
