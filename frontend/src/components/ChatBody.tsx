@@ -15,13 +15,12 @@ const DEFAULT_NMESSAGES_INCREMENT = 10;
 
 export default function ChatBody({ conversation }: ChatBodyProps) {
   const socket = useContext(SocketContext);
-  const [nMessages, setNMessages] = useState<number>(DEFAULT_NMESSAGES);
   const [messages, setMessages] = useState<Record<string, Message>>({});
 
   const pushMessage = useCallback(
     (m: Message) =>
       setMessages((messages) => {
-        return { ...messages, [m.id]: m };
+        return { ...messages, [m.id.toString()]: m };
       }),
     [setMessages]
   );
@@ -34,13 +33,23 @@ export default function ChatBody({ conversation }: ChatBodyProps) {
     [socket, pushMessage, conversation.id]
   );
 
+  const pullNMessages = useCallback(
+    (n: number) => {
+      const currentIndex = Math.min(...Object.keys(messages).map(Number));
+      for (let index = currentIndex; index >= currentIndex - n; index--) {
+        if (index < 0) break;
+        pullMessage(index);
+      }
+    },
+    [messages, pullMessage]
+  );
+
   // load initial set of messages
   useEffect(() => {
-    Array(DEFAULT_NMESSAGES)
-      .fill(0)
-      .map((_, index) => -index - 1)
-      .forEach(pullMessage);
-  }, [conversation.id, socket, nMessages, pullMessage]);
+    for (let index = -1; index >= -DEFAULT_NMESSAGES; index--) {
+      pullMessage(index);
+    }
+  }, [conversation.id, pullMessage]);
 
   // configure socket events
   useEffect(() => {
@@ -60,28 +69,17 @@ export default function ChatBody({ conversation }: ChatBodyProps) {
   // reset initial values for state if conversation changes
   useEffect(() => {
     setMessages({});
-    setNMessages(DEFAULT_NMESSAGES);
   }, [conversation.id]);
 
   return (
     <div className="m-4 space-y-3 overflow-y-auto h-full">
       <div className="justify-items-center">
-        {(conversation.length ?? 0) > 0 &&
-        nMessages < (conversation.length ?? 0) ? (
+        {!Object.keys(messages).includes("0") ? (
           <div className="flex flex-row space-x-2">
-            <Button
-              onClick={() =>
-                setNMessages((previous: number) =>
-                  Math.min(
-                    conversation.length ?? 0,
-                    previous + DEFAULT_NMESSAGES_INCREMENT
-                  )
-                )
-              }
-            >
+            <Button onClick={() => pullNMessages(DEFAULT_NMESSAGES_INCREMENT)}>
               Load more
             </Button>
-            <Button onClick={() => setNMessages(conversation.length ?? 0)}>
+            <Button onClick={() => pullNMessages(conversation.length ?? 0)}>
               Load all
             </Button>
           </div>
