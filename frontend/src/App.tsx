@@ -131,6 +131,7 @@ export default function App() {
             onNewConversationClick={() => setNewConversation(true)}
             selectedConversation={activeConversationId}
             onConversationClick={(c: Conversation) => {
+              socket.emit("mark-conversation-read", c.id);
               setActiveConversationId(c.id);
             }}
             menuItems={[

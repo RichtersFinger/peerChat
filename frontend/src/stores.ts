@@ -14,6 +14,7 @@ export type Conversation = {
   peer?: string;
   name?: string;
   length?: number;
+  unreadMessages?: boolean;
 };
 
 interface Conversations {

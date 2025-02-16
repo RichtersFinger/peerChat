@@ -52,14 +52,16 @@ export default function Sidebar({
             <FBSidebar.Item onClick={onNewConversationClick}>
               + New Conversation
             </FBSidebar.Item>
-            {cids.map((cid: string) => (
-              <SidebarConversationItem
-                key={cid}
-                conversation={conversations[cid]}
-                useIndicator={selectedConversation !== cid}
-                onClick={onConversationClick}
-              />
-            ))}
+            {cids.map((cid: string) =>
+              conversations[cid] ? (
+                <SidebarConversationItem
+                  key={cid}
+                  conversation={conversations[cid]}
+                  showIndicator={selectedConversation !== cid}
+                  onClick={onConversationClick}
+                />
+              ) : null
+            )}
           </FBSidebar.ItemGroup>
         </FBSidebar.Items>
       </FBSidebar>

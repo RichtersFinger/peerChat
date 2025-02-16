@@ -76,6 +76,7 @@ def blueprint_factory(
             else:
                 if "peer" in json:
                     c.peer = json["peer"]
+                c.unread_messages = True
             mid = store.post_message(
                 c.id_,
                 Message.from_json(

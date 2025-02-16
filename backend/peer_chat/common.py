@@ -130,6 +130,7 @@ class Conversation:
     path: Optional[Path] = None  # points to directory
     length: int = 0
     last_modified: datetime = field(default_factory=datetime.now)
+    unread_messages: bool = True
     messages: dict[int, Message] = field(default_factory=dict)
 
     @property
@@ -141,6 +142,7 @@ class Conversation:
             "name": self.name,
             "length": self.length,
             "lastModified": self.last_modified.isoformat(),
+            "unreadMessages": self.unread_messages,
         }
 
     @staticmethod
@@ -155,6 +157,7 @@ class Conversation:
             path=(None if "path" not in json_ else Path(json_["path"])),
             length=json_["length"],
             last_modified=datetime.fromisoformat(json_["lastModified"]),
+            unread_messages=json_["unreadMessages"],
         )
 
 
@@ -276,6 +279,22 @@ class MessageStore:
             c.path.mkdir(parents=True, exist_ok=True)
             self._cache[c.id_] = c
             self.write(c.id_)
+
+    def set_conversation_read(self, cid: str) -> Optional[Conversation]:
+        """
+        Marks conversation as read.
+
+        Keyword arguments:
+        cid -- conversation id
+        """
+        c = self.load_conversation(cid)
+        if c is None:
+            return None
+
+        with self._check_locks(c.id_):
+            c.unread_messages = False
+            self.write(c.id_)
+            return c
 
     def delete_conversation(self, c: Conversation) -> None:
         """

@@ -84,6 +84,13 @@ def socket_(
         except AttributeError:
             return None
 
+    @socketio.on("mark-conversation-read")
+    def mark_conversation_read(cid: str):
+        """Mark conversation as read."""
+        c = store.set_conversation_read(cid)
+        if c:
+            socketio.emit("update-conversation", c.json)
+
     @socketio.on("get-message")
     def get_message(cid: str, mid: int):
         """Returns message data."""

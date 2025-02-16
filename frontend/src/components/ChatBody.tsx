@@ -57,6 +57,7 @@ export default function ChatBody({ conversation }: ChatBodyProps) {
       "update-message",
       ({ cid, message }: { cid: string; message: Message }) => {
         if (cid !== conversation.id) return;
+        socket.emit("mark-conversation-read", cid);
         pushMessage(message);
       }
     );
