@@ -85,7 +85,7 @@ def socket_(
             return None
 
     @socketio.on("get-message")
-    def get_message(cid: str, mid: str):
+    def get_message(cid: str, mid: int):
         """Returns message data."""
         try:
             return store.load_message(cid, mid).json
@@ -98,7 +98,7 @@ def socket_(
         return store.post_message(cid, Message.from_json(msg))
 
     @socketio.on("send-message")
-    def send_message(cid: str, mid: str):
+    def send_message(cid: str, mid: int):
         """Send message to peer."""
         m = store.load_message(cid, mid)
         if not m:

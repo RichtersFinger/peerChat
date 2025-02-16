@@ -25,7 +25,7 @@ export default function ChatInput({ cid }: ChatInputProps) {
               (mid: number) => {
                 if (newMessageRef.current?.value)
                   newMessageRef.current.value = "";
-                socket.emit("send-message", cid, mid.toString());
+                socket.emit("send-message", cid, mid);
               }
             );
           }}

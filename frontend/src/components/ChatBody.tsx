@@ -26,17 +26,21 @@ export default function ChatBody({ conversation }: ChatBodyProps) {
     [setMessages]
   );
 
+  const pullMessage = useCallback(
+    (mid: number) =>
+      socket?.emit("get-message", conversation.id, mid, (m: Message) => {
+        if (m) pushMessage(m);
+      }),
+    [socket, pushMessage, conversation.id]
+  );
+
   // load initial set of messages
   useEffect(() => {
-    Array(Math.min(conversation.length ?? 0, nMessages))
+    Array(DEFAULT_NMESSAGES)
       .fill(0)
-      .map((_, index) => (conversation.length ?? 0) - 1 - index)
-      .forEach((mid: number) => {
-        socket?.emit("get-message", conversation.id, mid, (m: Message) => {
-          pushMessage(m);
-        });
-      });
-  }, [conversation.id, conversation.length, socket, nMessages, pushMessage]);
+      .map((_, index) => -index - 1)
+      .forEach(pullMessage);
+  }, [conversation.id, socket, nMessages, pullMessage]);
 
   // configure socket events
   useEffect(() => {
@@ -57,7 +61,7 @@ export default function ChatBody({ conversation }: ChatBodyProps) {
   useEffect(() => {
     setMessages({});
     setNMessages(DEFAULT_NMESSAGES);
-  }, [conversation]);
+  }, [conversation.id]);
 
   return (
     <div className="m-4 space-y-3 overflow-y-auto h-full">

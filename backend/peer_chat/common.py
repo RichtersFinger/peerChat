@@ -71,10 +71,11 @@ class Message:
     Record class for message metadata and content. Implements
     (de-)serialization methods `json` and `from_json`.
 
-    Message `id_`s are strings of integer values 0, 1, 2...
+    Message `id_`s are integer values 0, 1, 2... representing order of
+    messages.
     """
 
-    id_: Optional[str] = None
+    id_: Optional[int] = None
     body: Optional[str] = None
     status: MessageStatus = MessageStatus.DRAFT
     is_mine: bool = True
@@ -121,7 +122,7 @@ class Conversation:
     Record class for conversation metadata and content. Implements
     (de-)serialization methods `json` and `from_json`.
 
-    The keys in `messages` are strings of integer values 0, 1, 2...
+    The keys in `messages` are `Message.id_`s.
     """
 
     peer: str
@@ -130,7 +131,7 @@ class Conversation:
     path: Optional[Path] = None  # points to directory
     length: int = 0
     last_modified: datetime = field(default_factory=datetime.now)
-    messages: dict[str, Message] = field(default_factory=dict)
+    messages: dict[int, Message] = field(default_factory=dict)
 
     @property
     def json(self) -> dict:
@@ -224,7 +225,7 @@ class MessageStore:
                 return None
             return self._cache[cid]
 
-    def load_message(self, cid: str, mid: str) -> Optional[Message]:
+    def load_message(self, cid: str, mid: int) -> Optional[Message]:
         """
         Loads conversation-metadata into memory and returns
         `Conversation` (or `None` in case of error).
@@ -237,6 +238,11 @@ class MessageStore:
             c = self.load_conversation(cid)
             if c is None:
                 return None
+
+            # convert to int and check for negative values (indicating pulling
+            # "from back")
+            if mid < 0:
+                mid = c.length + mid
 
             if mid in c.messages:
                 return c.messages[mid]
@@ -284,7 +290,7 @@ class MessageStore:
             if c.path:
                 rmtree(c.path)
 
-    def post_message(self, cid: str, msg: Message) -> str:
+    def post_message(self, cid: str, msg: Message) -> int:
         """
         Handle request to post new message in existing conversation.
         Returns `Message.id_`.
@@ -302,18 +308,18 @@ class MessageStore:
                 )
                 return
             if msg.id_ is None:
-                msg.id_ = str(c.length)
+                msg.id_ = c.length
                 c.length += 1
             c.messages[msg.id_] = msg
             self.write(c.id_, msg.id_)
             self.write(c.id_)
             return msg.id_
 
-    def write(self, cid: str, mid: Optional[str] = None) -> None:
+    def write(self, cid: str, mid: Optional[int] = None) -> None:
         """
         Write `Conversation` metadata or `Message` from cache to disk.
 
-        If `mid` is not `None`, the references `Message` will be written
+        If `mid` is not `None`, the referenced `Message` will be written
         instead of the Conversation-metadata
 
         Keyword arguments:
