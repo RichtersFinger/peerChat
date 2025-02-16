@@ -9,11 +9,15 @@ _:
 venv:
 	[ -d "${VENV}" ] || python3 -m venv venv
 
+ifeq ($(SKIP_CLIENT), yes)
+$(info skipping client!)
 build-frontend:
-	[ "${SKIP_CLIENT}" != "yes" ] && \
-		cd frontend && \
+else
+build-frontend:
+	cd frontend && \
 		npm install && \
 		GENERATE_SOURCEMAP=false npm run build
+endif
 
 build-backend:
 	rm -rf backend/peer_chat/client
