@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useCallback } from "react";
+import { useRef, useState, useEffect, useContext, useCallback } from "react";
 import { Button } from "flowbite-react";
 
 import { Conversation } from "../stores";
@@ -12,10 +12,12 @@ export type ChatBodyProps = {
 
 const DEFAULT_NMESSAGES = 10;
 const DEFAULT_NMESSAGES_INCREMENT = 10;
+const AUTOSCROLL_RANGE = 200;
 
 export default function ChatBody({ conversation }: ChatBodyProps) {
   const socket = useContext(SocketContext);
   const [messages, setMessages] = useState<Record<string, Message>>({});
+  const bodyRef = useRef<HTMLDivElement>(null);
 
   const pushMessage = useCallback(
     (m: Message) =>
@@ -72,8 +74,24 @@ export default function ChatBody({ conversation }: ChatBodyProps) {
     setMessages({});
   }, [conversation.id]);
 
+  // scroll to new messages
+  useEffect(() => {
+    if (
+      bodyRef.current &&
+      AUTOSCROLL_RANGE >=
+        Math.abs(bodyRef.current.scrollHeight -
+          bodyRef.current.offsetHeight -
+          bodyRef.current.scrollTop)
+    ) {
+      bodyRef.current?.scrollTo(0, bodyRef.current?.scrollHeight ?? 0);
+    }
+  }, [messages]);
+
   return (
-    <div className="flex flex-col m-4 space-y-3 overflow-y-auto h-full">
+    <div
+      ref={bodyRef}
+      className="flex flex-col m-4 space-y-3 overflow-y-auto h-full"
+    >
       {!Object.keys(messages).includes("0") &&
       Object.keys(messages).length > 0 ? (
         <div className="flex flex-row justify-center space-x-2">
