@@ -118,7 +118,7 @@ def socket_(
 
         socketio.emit("update-conversation", c.json)
         try:
-            body = {"cid": cid, "msg": m.json}
+            body = {"cid": cid, "msg": m.json, "name": c.name}
             if user.address:
                 body["peer"] = user.address
             requests.post(

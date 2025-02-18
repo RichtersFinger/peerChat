@@ -56,19 +56,18 @@ def blueprint_factory(
     def post_message():
         """
         Processes posted messages. Expected json-contents
-        `{"cid": <conversation-id>, "msg": <Message.json>, "peer": <origin-peer-url>}`.
+        `{"cid": <conversation-id>, "name": <conversation-name>, "msg": <Message.json>, "peer": <origin-peer-url>}`.
         """
         json = request.get_json(silent=True)
         if not json:
             return Response("Missing JSON.", mimetype="text/plain", status=400)
-        # TODO: validate 'cid'-format (alphanumeric/uuid?)
         c = None
         try:
             c = store.load_conversation(json["cid"])
             if c is None:
                 c = Conversation(
                     json.get("peer", request.remote_addr),
-                    name="New Conversation",
+                    name=json.get("name", "New Conversation"),
                     id_=json["cid"],
                 )
                 store.set_conversation_path(c)
