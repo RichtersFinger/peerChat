@@ -76,14 +76,20 @@ export default function ChatBody({ conversation }: ChatBodyProps) {
     <div className="m-4 space-y-3 overflow-y-auto h-full">
       <div className="justify-items-center">
         {!Object.keys(messages).includes("0") ? (
-          <div className="flex flex-row space-x-2">
-            <Button onClick={() => pullNMessages(DEFAULT_NMESSAGES_INCREMENT)}>
-              Load more
-            </Button>
-            <Button onClick={() => pullNMessages(conversation.length ?? 0)}>
-              Load all
-            </Button>
-          </div>
+          Object.keys(messages).length > 0 ? (
+            <div className="flex flex-row space-x-2">
+              <Button
+                onClick={() => pullNMessages(DEFAULT_NMESSAGES_INCREMENT)}
+              >
+                Load more
+              </Button>
+              <Button onClick={() => pullNMessages(conversation.length ?? 0)}>
+                Load all
+              </Button>
+            </div>
+          ) : (
+            <span className="text-gray-300">No messages yet</span>
+          )
         ) : null}
       </div>
       <div className="space-y-3">
