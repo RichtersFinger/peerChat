@@ -73,32 +73,33 @@ export default function ChatBody({ conversation }: ChatBodyProps) {
   }, [conversation.id]);
 
   return (
-    <div className="m-4 space-y-3 overflow-y-auto h-full">
-      <div className="justify-items-center">
-        {!Object.keys(messages).includes("0") ? (
-          Object.keys(messages).length > 0 ? (
-            <div className="flex flex-row space-x-2">
-              <Button
-                onClick={() => pullNMessages(DEFAULT_NMESSAGES_INCREMENT)}
-              >
-                Load more
-              </Button>
-              <Button onClick={() => pullNMessages(conversation.length ?? 0)}>
-                Load all
-              </Button>
-            </div>
-          ) : (
+    <div className="flex flex-col m-4 space-y-3 overflow-y-auto h-full">
+      {!Object.keys(messages).includes("0") &&
+      Object.keys(messages).length > 0 ? (
+        <div className="flex flex-row justify-center space-x-2">
+          <Button onClick={() => pullNMessages(DEFAULT_NMESSAGES_INCREMENT)}>
+            Load more
+          </Button>
+          <Button onClick={() => pullNMessages(conversation.length ?? 0)}>
+            Load all
+          </Button>
+        </div>
+      ) : null}
+      <div className="flex items-end grow">
+        {Object.keys(messages).length === 0 ? (
+          <div className="flex grow justify-center">
             <span className="text-gray-300">No messages yet</span>
-          )
-        ) : null}
-      </div>
-      <div className="space-y-3">
-        {Object.keys(messages)
-          .map(Number)
-          .sort((a, b) => a - b)
-          .map((mid) => (
-            <ChatMessageItem key={mid} message={messages[mid.toString()]} />
-          ))}
+          </div>
+        ) : (
+          <div className="flex flex-col grow space-y-3 ">
+            {Object.keys(messages)
+              .map(Number)
+              .sort((a, b) => a - b)
+              .map((mid) => (
+                <ChatMessageItem key={mid} message={messages[mid.toString()]} />
+              ))}
+          </div>
+        )}
       </div>
     </div>
   );
