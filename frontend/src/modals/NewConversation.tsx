@@ -7,11 +7,13 @@ import useUser from "../hooks/useUser";
 
 export type NewConversationProps = {
   open: boolean;
+  onSuccess?: (cid: string) => void;
   onClose?: () => void;
 };
 
 export default function NewConversation({
   open,
+  onSuccess,
   onClose,
 }: NewConversationProps) {
   const socket = useContext(SocketContext);
@@ -91,12 +93,15 @@ export default function NewConversation({
           <Button
             disabled={!socket || !peerAddress || !title}
             onClick={() => {
-              if (socket?.emit("create-conversation", peerAddress, title)) {
-                onClose?.();
-                setPeerAddress(null);
-              } else {
-                setError("Some error occurred.");
-              }
+              socket?.emit("create-conversation", peerAddress, title, (cid: string) => {
+                if (cid) {
+                  onSuccess?.(cid);
+                  onClose?.();
+                  setPeerAddress(null);
+                } else {
+                  setError("Some error occurred.");
+                }
+              })
             }}
           >
             Apply

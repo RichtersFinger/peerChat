@@ -122,6 +122,7 @@ export default function App() {
       />
       <NewConversationDialog
         open={newConversation}
+        onSuccess={(cid) => setActiveConversationId(cid)}
         onClose={() => setNewConversation(false)}
       />
       <div className="flex flex-row">
