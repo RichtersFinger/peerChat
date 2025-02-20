@@ -193,7 +193,10 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
     user = User.from_json(config.USER_CONFIG)
 
     # load user callback url
-    user_address_options_cached = load_callback_url_options()
+    user_address_options_cached = [
+        {"address": f"{o['address']}:{config.PORT}", "name": o["name"]}
+        for o in load_callback_url_options()
+    ]
     if config.USER_PEER_URL:
         user.address = config.USER_PEER_URL
     else:
