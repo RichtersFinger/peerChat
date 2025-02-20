@@ -90,7 +90,7 @@ export default function ChatBody({ conversation }: ChatBodyProps) {
   return (
     <div
       ref={bodyRef}
-      className="flex flex-col m-4 space-y-3 overflow-y-auto h-full"
+      className="flex flex-col m-4 pr-2 space-y-3 overflow-y-auto hide-scrollbar hover:show-scrollbar h-full"
     >
       {!Object.keys(messages).includes("0") &&
       Object.keys(messages).length > 0 ? (

@@ -33,7 +33,7 @@ export default function Sidebar({
         theme={{
           root: {
             inner:
-              "w-[260px] h-full overflow-y-auto overflow-x-hidden bg-slate-200 py-2 flex flex-col justify-between",
+              "overflow-y-auto hide-scrollbar hover:show-scrollbar w-[260px] h-full overflow-x-hidden bg-slate-200 py-2 flex flex-col justify-between",
           },
         }}
       >
