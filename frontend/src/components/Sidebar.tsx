@@ -33,11 +33,11 @@ export default function Sidebar({
         theme={{
           root: {
             inner:
-              "w-64 h-full overflow-y-auto overflow-x-hidden bg-slate-200 px-1 py-2 flex flex-col justify-between",
+              "w-[260px] h-full overflow-y-auto overflow-x-hidden bg-slate-200 py-2 flex flex-col justify-between",
           },
         }}
       >
-        <div>
+        <div className="mb-24">
           <FBSidebar.Logo href="#" img="/peerChat.svg" imgAlt="peerChat">
             peerChat
           </FBSidebar.Logo>
