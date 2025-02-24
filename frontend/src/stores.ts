@@ -21,6 +21,7 @@ interface Conversations {
   data: Record<string, Conversation>;
   ids: string[];
   setConversation: (c: Conversation) => void;
+  removeConversation: (id: string) => void;
   fetch: (socket: Socket, id: string) => void;
   fetchAll: (socket: Socket) => void;
   listen: (socket: Socket) => void;
@@ -60,6 +61,18 @@ const useStore = create<StoreState>((set, get) => ({
         })
       );
     },
+    removeConversation: (id: string) => {
+      set(
+        produce((state: StoreState) => {
+          if (state.conversations.ids.includes(id)) {
+            delete state.conversations.data[id];
+            state.conversations.ids = state.conversations.ids.filter(
+              (id_: string) => id_ !== id
+            );
+          }
+        })
+      );
+    },
     fetch: (socket, id) => {
       socket.emit("get-conversation", id, (c: Conversation) => {
         get().conversations.setConversation(c);
@@ -82,10 +95,14 @@ const useStore = create<StoreState>((set, get) => ({
       socket.on("update-conversation", (c: Conversation) => {
         get().conversations.setConversation(c);
       });
+      socket.on("removed-conversation", (id: string) => {
+        get().conversations.removeConversation(id);
+      });
     },
     stopListening: (socket) => {
       socket.off("new-conversation");
       socket.off("update-conversation");
+      socket.off("removed-conversation");
     },
   },
 }));

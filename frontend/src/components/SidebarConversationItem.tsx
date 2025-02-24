@@ -1,6 +1,8 @@
+import { useContext } from "react";
 import { Sidebar as FBSidebar, Avatar, Dropdown } from "flowbite-react";
 import { FiMoreVertical } from "react-icons/fi";
 
+import { SocketContext } from "../App";
 import { Conversation } from "../stores";
 import useUser from "../hooks/useUser";
 
@@ -15,6 +17,7 @@ export default function SidebarConversationItem({
   showIndicator = true,
   onClick,
 }: SidebarConversationItemProps) {
+  const socket = useContext(SocketContext);
   const user = useUser(conversation?.peer);
 
   return (
@@ -55,7 +58,13 @@ export default function SidebarConversationItem({
             )}
           >
             <Dropdown.Item onClick={undefined}>Edit</Dropdown.Item>
-            <Dropdown.Item onClick={undefined}>Delete</Dropdown.Item>
+            <Dropdown.Item
+              onClick={() =>
+                socket?.emit("delete-conversation", conversation.id)
+              }
+            >
+              Delete
+            </Dropdown.Item>
           </Dropdown>
         </div>
       </div>

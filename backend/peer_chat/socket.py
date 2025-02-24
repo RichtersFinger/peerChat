@@ -71,6 +71,15 @@ def socket_(
         socketio.emit("new-conversation", c.id_)
         return c.id_
 
+    @socketio.on("delete-conversation")
+    def delete_conversation(cid: str):
+        """Deletes an existing conversation."""
+        c = store.load_conversation(cid)
+        if not c:
+            return
+        store.delete_conversation(c)
+        socketio.emit("removed-conversation", cid)
+
     @socketio.on("list-conversations")
     def list_conversations():
         """Returns a (heuristic) list of conversations."""
