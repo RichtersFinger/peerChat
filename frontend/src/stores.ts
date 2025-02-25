@@ -28,9 +28,16 @@ interface Conversations {
   stopListening: (socket: Socket) => void;
 }
 
+interface ActiveConversation {
+  id?: string;
+  setId: (id: string) => void;
+  unset: () => void;
+}
+
 interface StoreState {
   socket: ConnectionState;
   conversations: Conversations;
+  activeConversation: ActiveConversation;
 }
 
 const useStore = create<StoreState>((set, get) => ({
@@ -103,6 +110,22 @@ const useStore = create<StoreState>((set, get) => ({
       socket.off("new-conversation");
       socket.off("update-conversation");
       socket.off("removed-conversation");
+    },
+  },
+  activeConversation: {
+    setId: (id) => {
+      set(
+        produce((state: StoreState) => {
+          state.activeConversation.id = id;
+        })
+      );
+    },
+    unset: () => {
+      set(
+        produce((state: StoreState) => {
+          state.activeConversation.id = undefined;
+        })
+      );
     },
   },
 }));

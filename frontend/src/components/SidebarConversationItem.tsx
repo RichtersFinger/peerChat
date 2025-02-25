@@ -1,9 +1,10 @@
 import { useContext } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { Sidebar as FBSidebar, Avatar, Dropdown } from "flowbite-react";
 import { FiMoreVertical } from "react-icons/fi";
 
+import useStore, { Conversation } from "../stores";
 import { SocketContext } from "../App";
-import { Conversation } from "../stores";
 import useUser from "../hooks/useUser";
 
 export type SidebarConversationItemProps = {
@@ -19,6 +20,9 @@ export default function SidebarConversationItem({
 }: SidebarConversationItemProps) {
   const socket = useContext(SocketContext);
   const user = useUser(conversation?.peer);
+  const activeConversation = useStore(
+    useShallow((state) => state.activeConversation)
+  );
 
   return (
     <FBSidebar.Item
@@ -48,7 +52,7 @@ export default function SidebarConversationItem({
             <div className="absolute bg-red-500 w-2.5 aspect-square rounded-full top-5 -left-5"></div>
           ) : null}
         </div>
-        <div className="absolute left-52 -top-1">
+        <div className="absolute left-52 -top-1" onClick={(e) => e.stopPropagation()}>
           <Dropdown
             dismissOnClick={true}
             renderTrigger={() => (
@@ -59,9 +63,10 @@ export default function SidebarConversationItem({
           >
             <Dropdown.Item onClick={undefined}>Edit</Dropdown.Item>
             <Dropdown.Item
-              onClick={() =>
-                socket?.emit("delete-conversation", conversation.id)
-              }
+              onClick={() => {
+                socket?.emit("delete-conversation", conversation.id);
+                activeConversation.unset();
+              }}
             >
               Delete
             </Dropdown.Item>

@@ -7,7 +7,7 @@ import SidebarConversationItem from "./SidebarConversationItem";
 
 export type SidebarProps = {
   url: string;
-  selectedConversation?: string | null;
+  selectedConversation?: string;
   menuItems?: DropdownItemType[];
   onNewConversationClick?: () => void;
   onConversationClick?: (c: Conversation) => void;

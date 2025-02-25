@@ -25,9 +25,7 @@ export const authKeyMaxAge = "2147483647";
 export default function App() {
   const socketState = useStore(useShallow((state) => state.socket));
   const conversations = useStore(useShallow((state) => state.conversations));
-  const [activeConversationId, setActiveConversationId] = useState<
-    string | null
-  >(null);
+  const activeConversation = useStore(useShallow((state) => state.activeConversation));
 
   // login
   const [loginChecked, setLoginChecked] = useState<boolean>(false);
@@ -122,7 +120,7 @@ export default function App() {
       />
       <NewConversationDialog
         open={newConversation}
-        onSuccess={(cid) => setActiveConversationId(cid)}
+        onSuccess={(cid) => activeConversation.setId(cid)}
         onClose={() => setNewConversation(false)}
       />
       <div className="flex flex-row">
@@ -130,10 +128,10 @@ export default function App() {
           <Sidebar
             url={ApiUrl}
             onNewConversationClick={() => setNewConversation(true)}
-            selectedConversation={activeConversationId}
+            selectedConversation={activeConversation.id}
             onConversationClick={(c: Conversation) => {
               socket.emit("mark-conversation-read", c.id);
-              setActiveConversationId(c.id);
+              activeConversation.setId(c.id);
             }}
             menuItems={[
               ...(loggedIn && socketState.connected
@@ -181,7 +179,7 @@ export default function App() {
             </Card>
           </div>
         ) : null}
-        {activeConversationId ? <Chat cid={activeConversationId} /> : null}
+        {activeConversation.id ? <Chat cid={activeConversation.id} /> : null}
       </div>
     </SocketContext.Provider>
   );
