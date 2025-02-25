@@ -1,8 +1,9 @@
 """Socket.IO-websocket definition."""
 
 import sys
-import requests
+from datetime import datetime
 
+import requests
 from flask import request
 from flask_socketio import SocketIO
 
@@ -124,6 +125,7 @@ def socket_(
         c = store.load_conversation(cid)
         if not c:
             return False
+        c.last_modified = datetime.now()
 
         socketio.emit("update-conversation", c.json)
         try:

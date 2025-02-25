@@ -1,5 +1,7 @@
 """Definition of blueprint for backend API v0."""
 
+from datetime import datetime
+
 from flask import (
     Blueprint,
     Response,
@@ -87,6 +89,7 @@ def blueprint_factory(
                     }
                 ),
             )
+            c.last_modified = datetime.now()
             m = store.load_message(c.id_, mid)
             socket.emit("update-conversation", c.json)
             socket.emit(
