@@ -43,48 +43,60 @@ export default function SidebarConversationItem({
       />
       <FBSidebar.Item
         theme={{
-          base: "flex items-start	justify-start rounded-lg py-2 text-base font-normal text-gray-900 hover:bg-gray-100",
+          base:
+            "flex items-start	justify-start rounded-lg py-2 text-base font-normal text-gray-900" +
+            (activeConversation.id !== conversation.id
+              ? " hover:bg-gray-100"
+              : ""),
         }}
         onClick={() => {
           if (onClick) onClick(conversation);
         }}
       >
-        <div className="relative">
-          <div className="flex flex-row space-x-2">
-            <Avatar
-              {...(user.avatar ? { img: user.avatar } : {})}
-              rounded
-              size="md"
-            />
-            <div className="flex-col space-y-1 font-medium">
-              <p className="max-w-48 truncate">
-                {conversation.name ?? conversation.id}
-              </p>
-              <p className="max-w-48 truncate text-sm text-gray-500">
-                {user.name ?? conversation.peer ?? "-"}
-              </p>
+        <div
+          className={
+            activeConversation.id === conversation.id
+              ? "rounded-xl bg-white"
+              : ""
+          }
+        >
+          <div className="relative">
+            <div className="flex flex-row space-x-2">
+              <Avatar
+                {...(user.avatar ? { img: user.avatar } : {})}
+                rounded
+                size="md"
+              />
+              <div className="flex-col space-y-1 font-medium">
+                <p className="max-w-48 truncate">
+                  {conversation.name ?? conversation.id}
+                </p>
+                <p className="max-w-48 truncate text-sm text-gray-500">
+                  {user.name ?? conversation.peer ?? "-"}
+                </p>
+              </div>
+              {showIndicator && conversation.unreadMessages ? (
+                <div className="absolute bg-red-500 w-2.5 aspect-square rounded-full top-5 -left-5"></div>
+              ) : null}
             </div>
-            {showIndicator && conversation.unreadMessages ? (
-              <div className="absolute bg-red-500 w-2.5 aspect-square rounded-full top-5 -left-5"></div>
-            ) : null}
-          </div>
-          <div
-            className="absolute left-52 -top-1"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Dropdown
-              dismissOnClick={true}
-              renderTrigger={() => (
-                <div>
-                  <FiMoreVertical className="rounded-lg px-0.5 h-8 w-5 transition ease-in-out bg-gray-200 hover:bg-gray-100" />
-                </div>
-              )}
+            <div
+              className="absolute left-52 top-1.5"
+              onClick={(e) => e.stopPropagation()}
             >
-              <Dropdown.Item onClick={undefined}>Edit</Dropdown.Item>
-              <Dropdown.Item onClick={() => setShowDeleteConfirmation(true)}>
-                Delete
-              </Dropdown.Item>
-            </Dropdown>
+              <Dropdown
+                dismissOnClick={true}
+                renderTrigger={() => (
+                  <div>
+                    <FiMoreVertical className="rounded-lg px-0.5 h-8 w-5 transition ease-in-out hover:bg-gray-200" />
+                  </div>
+                )}
+              >
+                <Dropdown.Item onClick={undefined}>Edit</Dropdown.Item>
+                <Dropdown.Item onClick={() => setShowDeleteConfirmation(true)}>
+                  Delete
+                </Dropdown.Item>
+              </Dropdown>
+            </div>
           </div>
         </div>
       </FBSidebar.Item>
