@@ -21,7 +21,6 @@ export default function Sidebar({
   onConversationClick,
 }: SidebarProps) {
   const connected = useStore((state) => state.socket.connected);
-  const cids = useStore(useShallow((state) => state.conversations.ids));
   const conversations = useStore(
     useShallow((state) => state.conversations.data)
   );
@@ -52,16 +51,17 @@ export default function Sidebar({
             <FBSidebar.Item onClick={onNewConversationClick}>
               + New Conversation
             </FBSidebar.Item>
-            {cids.map((cid: string) =>
-              conversations[cid] ? (
+            {Object.values(conversations)
+              .sort((a, b) => (a.lastModified < b.lastModified ? 1 : -1))
+              .sort((a, b) => a.unreadMessages && ! b.unreadMessages ? -1 : 1)
+              .map((c: Conversation) => (
                 <SidebarConversationItem
-                  key={cid}
-                  conversation={conversations[cid]}
-                  showIndicator={selectedConversation !== cid}
+                  key={c.id}
+                  conversation={c}
+                  showIndicator={selectedConversation !== c.id}
                   onClick={onConversationClick}
                 />
-              ) : null
-            )}
+              ))}
           </FBSidebar.ItemGroup>
         </FBSidebar.Items>
       </FBSidebar>
