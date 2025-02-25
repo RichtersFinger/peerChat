@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { Sidebar as FBSidebar, Avatar, Dropdown } from "flowbite-react";
 import { FiMoreVertical } from "react-icons/fi";
@@ -6,7 +6,6 @@ import { FiMoreVertical } from "react-icons/fi";
 import useStore, { Conversation } from "../stores";
 import { SocketContext } from "../App";
 import Confirmation from "../modals/Confirmation";
-import useUser from "../hooks/useUser";
 
 export type SidebarConversationItemProps = {
   conversation: Conversation;
@@ -20,11 +19,15 @@ export default function SidebarConversationItem({
   onClick,
 }: SidebarConversationItemProps) {
   const socket = useContext(SocketContext);
-  const user = useUser(conversation?.peer);
   const activeConversation = useStore(
     useShallow((state) => state.activeConversation)
   );
+  const peers = useStore(useShallow((state) => state.peers));
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+
+  useEffect(() => {
+    if (conversation?.peer) peers.fetch(conversation.peer);
+  }, [conversation.peer, peers]);
 
   return (
     <>
@@ -63,7 +66,7 @@ export default function SidebarConversationItem({
           <div className="relative">
             <div className="flex flex-row space-x-2">
               <Avatar
-                {...(user.avatar ? { img: user.avatar } : {})}
+                {...{ img: peers.data[conversation?.peer ?? ""]?.avatar }}
                 rounded
                 size="md"
               />
@@ -72,7 +75,9 @@ export default function SidebarConversationItem({
                   {conversation.name ?? conversation.id}
                 </p>
                 <p className="max-w-48 truncate text-sm text-gray-500">
-                  {user.name ?? conversation.peer ?? "-"}
+                  {peers.data[conversation?.peer ?? ""]?.name ??
+                    conversation.peer ??
+                    "-"}
                 </p>
               </div>
               {showIndicator && conversation.unreadMessages ? (

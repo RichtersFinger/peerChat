@@ -34,10 +34,25 @@ interface ActiveConversation {
   unset: () => void;
 }
 
+interface PeerStatus {
+  name?: string;
+  avatar?: string;
+}
+
+interface Peers {
+  data: Record<string, PeerStatus>;
+  setName: (address: string, name: string) => void;
+  setAvatar: (address: string, avatar: string) => void;
+  fetch: (address: string) => void;
+  listen: (socket: Socket) => void;
+  stopListening: (socket: Socket) => void;
+}
+
 interface StoreState {
   socket: ConnectionState;
   conversations: Conversations;
   activeConversation: ActiveConversation;
+  peers: Peers;
 }
 
 const useStore = create<StoreState>((set, get) => ({
@@ -126,6 +141,78 @@ const useStore = create<StoreState>((set, get) => ({
           state.activeConversation.id = undefined;
         })
       );
+    },
+  },
+  peers: {
+    data: {},
+    setName: (address, name) => {
+      set(
+        produce((state: StoreState) => {
+          if (!state.peers.data[address])
+            state.peers.data = { ...state.peers.data, [address]: {} };
+          state.peers.data[address].name = name;
+        })
+      );
+    },
+    setAvatar: (address, avatar) => {
+      set(
+        produce((state: StoreState) => {
+          if (!state.peers.data[address])
+            state.peers.data = { ...state.peers.data, [address]: {} };
+          state.peers.data[address].avatar = avatar;
+        })
+      );
+    },
+    fetch: (address) => {
+      // fetch username
+      fetch(address + "/api/v0/user/name")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("HTTP-Error", { cause: response });
+          } else {
+            return response.text();
+          }
+        })
+        .then((text) => {
+          if (!text.startsWith("<!DOCTYPE html>"))
+            get().peers.setName(address, text);
+        })
+        .catch((error) => {
+          console.error(`Failed to fetch username at '${address}': `, error);
+        });
+      // fetch avatar
+      fetch(address + "/api/v0/user/avatar")
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("HTTP-Error", { cause: response });
+          } else {
+            return response.blob();
+          }
+        })
+        .then((blob) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            if (
+              reader.result &&
+              typeof reader.result === "string" &&
+              reader.result.startsWith("data:image")
+            ) {
+              get().peers.setAvatar(address, reader.result);
+            }
+          };
+          reader.readAsDataURL(blob);
+        })
+        .catch((error) => {
+          console.error(`Failed to fetch username at '${address}': `, error);
+        });
+    },
+    listen: (socket) => {
+      socket.on("changed-peer", (address: string) =>
+        get().peers.fetch(address)
+      );
+    },
+    stopListening: (socket) => {
+      socket.off("changed-peer");
     },
   },
 }));
