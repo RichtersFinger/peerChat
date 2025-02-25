@@ -6,6 +6,7 @@ setup(
     version=os.environ.get("VERSION", "0.0.0"),
     name="peerChat",
     description="A minimal self-hosted p2p chat application.",
+    url="https://pypi.org/project/peerChat/",
     project_urls={"Source": "https://github.com/RichtersFinger/peerChat"},
     python_requires=">=3.10",
     install_requires=[
