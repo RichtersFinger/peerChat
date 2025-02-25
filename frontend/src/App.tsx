@@ -25,7 +25,9 @@ export const authKeyMaxAge = "2147483647";
 export default function App() {
   const socketState = useStore(useShallow((state) => state.socket));
   const conversations = useStore(useShallow((state) => state.conversations));
-  const activeConversation = useStore(useShallow((state) => state.activeConversation));
+  const activeConversation = useStore(
+    useShallow((state) => state.activeConversation)
+  );
 
   // login
   const [loginChecked, setLoginChecked] = useState<boolean>(false);
@@ -49,11 +51,13 @@ export default function App() {
   const [setup, setSetup] = useState<boolean>(false);
   const [setupDialog, setSetupDialog] = useState<boolean>(false);
   const checkSetup = useCallback(() => {
-    fetch(ApiUrl + "/auth/key").then((response) => {
-      setSetup(response.ok);
-      setSetupChecked(true);
-      checkLogin();
-    });
+    fetch(ApiUrl + "/auth/key")
+      .then((response) => {
+        setSetup(response.ok);
+        setSetupChecked(true);
+        checkLogin();
+      })
+      .catch((error) => console.error("Failed to fetch resource: ", error));
   }, [setSetupChecked, setSetup, checkLogin]);
 
   // configuration
