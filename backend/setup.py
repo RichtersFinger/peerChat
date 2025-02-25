@@ -17,6 +17,7 @@ setup(
     packages=[
         "peer_chat",
         "peer_chat.api",
+        "peer_chat.common",
     ],
     package_data={"peer_chat": ["client/**/*", "wsgi.py"]},
     entry_points={
