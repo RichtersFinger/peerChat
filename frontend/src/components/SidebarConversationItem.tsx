@@ -68,7 +68,7 @@ export default function SidebarConversationItem({
                 size="md"
               />
               <div className="flex-col space-y-1 font-medium">
-                <p className="max-w-48 truncate">
+                <p className="max-w-40 truncate">
                   {conversation.name ?? conversation.id}
                 </p>
                 <p className="max-w-48 truncate text-sm text-gray-500">
@@ -80,7 +80,7 @@ export default function SidebarConversationItem({
               ) : null}
             </div>
             <div
-              className="absolute left-52 top-1.5"
+              className="absolute left-52 -top-1"
               onClick={(e) => e.stopPropagation()}
             >
               <Dropdown
