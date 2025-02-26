@@ -1,7 +1,6 @@
 """peerChat-backend definition."""
 
 from typing import Optional
-import os
 import sys
 from pathlib import Path
 import json
@@ -23,7 +22,7 @@ from flask_socketio import SocketIO
 import requests
 
 from peer_chat.config import AppConfig
-from peer_chat.common import User, Auth, MessageStore
+from peer_chat.common import User, Auth, MessageStore, inform_peers
 from peer_chat.api.v0 import blueprint_factory as v0_blueprint
 from peer_chat.socket import socket_
 
@@ -327,6 +326,8 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         """Sets user name."""
         user.name = request.data.decode(encoding="utf-8")
         user.write(config.WORKING_DIRECTORY / config.USER_CONFIG_PATH)
+        # not needed as long as client reloads
+        # inform_peers(store, user)
         return Response(
             "ok",
             headers={"Access-Control-Allow-Credentials": "true"},
@@ -343,6 +344,8 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
                 request.data.decode(encoding="utf-8").split(",")[1].encode()
             )
         )
+        # not needed as long as client reloads
+        # inform_peers(store, user)
         return Response(
             "ok",
             headers={"Access-Control-Allow-Credentials": "true"},

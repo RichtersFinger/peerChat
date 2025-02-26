@@ -15,6 +15,7 @@ from peer_chat.common import (
     Conversation,
     Message,
     MessageStatus,
+    inform_peers as _inform_peers
 )
 
 
@@ -64,23 +65,7 @@ def socket_(
     @socketio.on("inform-peers")
     def inform_peers():
         """Posts update-notification to all peers."""
-        completed = []
-        for cid in store.list_conversations():
-            c = store.load_conversation(cid)
-            if c is None or c.peer in completed:
-                continue
-            try:
-                requests.post(
-                    c.peer + "/api/v0/update-available",
-                    json={"peer": user.address},
-                    timeout=2,
-                )
-            except (
-                requests.exceptions.BaseHTTPError,
-                requests.exceptions.ConnectionError,
-            ):
-                pass
-            completed.append(c.peer)
+        _inform_peers(store, user)
 
     @socketio.on("create-conversation")
     def create_conversation(peer: str, name: str):
