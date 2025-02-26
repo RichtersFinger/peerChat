@@ -203,7 +203,7 @@ const useStore = create<StoreState>((set, get) => ({
           reader.readAsDataURL(blob);
         })
         .catch((error) => {
-          console.error(`Failed to fetch username at '${address}': `, error);
+          console.error(`Failed to fetch avatar at '${address}': `, error);
         });
     },
     listen: (socket) => {

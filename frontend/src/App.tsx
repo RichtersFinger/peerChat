@@ -28,6 +28,7 @@ export default function App() {
   const activeConversation = useStore(
     useShallow((state) => state.activeConversation)
   );
+  const peers = useStore(useShallow((state) => state.peers));
 
   // login
   const [loginChecked, setLoginChecked] = useState<boolean>(false);
@@ -75,6 +76,7 @@ export default function App() {
       socketState.connect();
       conversations.fetchAll(socket);
       conversations.listen(socket);
+      peers.listen(socket);
       // refresh auth-cookie
       const auth = decodeURIComponent(document.cookie)
         .split(";")
@@ -87,8 +89,9 @@ export default function App() {
     socket.on("disconnect", () => {
       socketState.disconnect();
       conversations.stopListening(socket);
+      peers.stopListening(socket);
     });
-  }, [socketState, conversations]);
+  }, [socketState, conversations, peers]);
 
   // configure socket and connect
   useEffect(() => {
