@@ -28,9 +28,7 @@ def socket_(
     # enable CORS in development-environment
     if config.MODE == "dev":
         print("INFO: Configuring socket for CORS.", file=sys.stderr)
-        socketio = SocketIO(
-            cors_allowed_origins=config.DEV_CORS_FRONTEND_URL
-        )
+        socketio = SocketIO(cors_allowed_origins=config.DEV_CORS_FRONTEND_URL)
     else:
         socketio = SocketIO()
 
@@ -62,6 +60,27 @@ def socket_(
     @socketio.on("ping")
     def ping():
         return "pong"
+
+    @socketio.on("inform-peers")
+    def inform_peers():
+        """Posts update-notification to all peers."""
+        completed = []
+        for cid in store.list_conversations():
+            c = store.load_conversation(cid)
+            if c is None or c.peer in completed:
+                continue
+            try:
+                requests.post(
+                    c.peer + "/api/v0/update-available",
+                    json={"peer": user.address},
+                    timeout=2,
+                )
+            except (
+                requests.exceptions.BaseHTTPError,
+                requests.exceptions.ConnectionError,
+            ):
+                pass
+            completed.append(c.peer)
 
     @socketio.on("create-conversation")
     def create_conversation(peer: str, name: str):
@@ -146,9 +165,7 @@ def socket_(
             return False
         m.status = MessageStatus.OK
         store.post_message(cid, m)
-        socketio.emit(
-            "update-message", {"cid": cid, "message": m.json}
-        )
+        socketio.emit("update-message", {"cid": cid, "message": m.json})
         return True
 
     return socketio

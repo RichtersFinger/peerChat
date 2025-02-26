@@ -77,6 +77,7 @@ export default function App() {
       conversations.fetchAll(socket);
       conversations.listen(socket);
       peers.listen(socket);
+      socket.emit("inform-peers");
       // refresh auth-cookie
       const auth = decodeURIComponent(document.cookie)
         .split(";")
