@@ -57,7 +57,9 @@ def blueprint_factory(
     @bp.route("/message", methods=["POST"])
     def post_message():
         """
-        Processes posted messages. Expected json-contents
+        Processes posted messages.
+
+        Expected JSON
         `{"cid": <conversation-id>, "name": <conversation-name>, "msg": <Message.json>, "peer": <origin-peer-url>}`.
         """
         json = request.get_json(silent=True)
@@ -107,5 +109,22 @@ def blueprint_factory(
                 status=400,
             )
         return Response(c.id_, mimetype="text/plain", status=200)
+
+    @bp.route("/update-available", methods=["POST"])
+    def post_update():
+        """
+        Handles update notification (online status, changed avatar, or
+        changed name).
+
+        Expected JSON
+        `{"peer": <origin-peer-url>}`.
+        """
+        json = request.get_json(silent=True)
+        if not json:
+            return Response("Missing JSON.", mimetype="text/plain", status=400)
+        if "peer" not in json:
+            return Response("Bad JSON.", mimetype="text/plain", status=422)
+        socket.emit("changed-peer", json["peer"])
+        return Response("OK", mimetype="text/plain", status=200)
 
     return bp
