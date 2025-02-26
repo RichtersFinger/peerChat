@@ -13,7 +13,7 @@ class AppConfig:
         "DEV_CORS_FRONTEND_URL", "http://localhost:3000"
     )
     PORT = os.environ.get("PORT", "27182")
-    FLASK_THREADS = 2
+    FLASK_THREADS = 3
     GUNICORN_OPTIONS = None
 
     STATIC_PATH = Path(__file__).parent / "client"
