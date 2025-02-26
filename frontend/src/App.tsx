@@ -91,6 +91,10 @@ export default function App() {
       conversations.stopListening(socket);
       peers.stopListening(socket);
     });
+    return () => {
+      socket.off("connect");
+      socket.off("disconnect");
+    }
   }, [socketState, conversations, peers]);
 
   // configure socket and connect
