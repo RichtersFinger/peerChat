@@ -1,9 +1,9 @@
-import { Spinner } from "flowbite-react";
+import { Tooltip, Spinner } from "flowbite-react";
 
 export type Message = {
   id: number;
   body: string | null;
-  status: "ok" | "sending" | "draft" | "deleted" | "error";
+  status: "ok" | "sending" | "draft" | "queued" | "deleted" | "error";
   isMine: boolean;
   lastModified: string;
 };
@@ -13,11 +13,33 @@ export type ChatMessageItemProps = {
 };
 
 export default function ChatMessageItem({ message }: ChatMessageItemProps) {
+  /**
+   * Returns re-formatted ISO-datetime
+   * @param date ISO-datetime
+   * @returns formatted datetime
+   */
+  function formatDate(date: string): string {
+    const _date = new Date(message.lastModified);
+    const today = new Date();
+
+    return (
+      (new Date(_date).setHours(0, 0, 0, 0) === today.setHours(0, 0, 0, 0)
+        ? "today"
+        : _date.toDateString()) +
+      ", " +
+      String(_date.getHours()).padStart(2, "0") +
+      ":" +
+      String(_date.getMinutes()).padStart(2, "0") +
+      ":" +
+      String(_date.getSeconds()).padStart(2, "0")
+    );
+  }
+
   return (
     <div
       className={
-        "rounded-md px-4 py-2 " +
-        (message?.isMine ? "bg-slate-200 ms-10" : "bg-green-100 me-10")
+        "rounded-md px-4 py-2 drop-shadow-md " +
+        (message?.isMine ? "bg-slate-200 ms-20" : "bg-green-100 me-20")
       }
     >
       {message ? (
@@ -25,10 +47,18 @@ export default function ChatMessageItem({ message }: ChatMessageItemProps) {
           <p className={message?.isMine ? "text-end" : "text-start"}>
             {message.body}
           </p>
-          <p className="text-end text-xs text-gray-500">
-            {message.status !== "ok" ? message.status + " • " : ""}
-            {message.lastModified}
-          </p>
+          <div className="flex flex-row place-content-between items-end">
+            {message.status === "sending" ? (
+              <Tooltip content="sending">
+                <Spinner size="xs" />
+              </Tooltip>
+            ) : (
+              <div/>
+            )}
+            <p className="text-end text-xs text-gray-500">
+              {formatDate(message.lastModified)}
+            </p>
+          </div>
         </div>
       ) : (
         <Spinner />
