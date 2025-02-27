@@ -1,4 +1,4 @@
-import { Tooltip, Spinner } from "flowbite-react";
+import { Tooltip, Spinner, Alert, Button } from "flowbite-react";
 
 export type Message = {
   id: number;
@@ -53,12 +53,27 @@ export default function ChatMessageItem({ message }: ChatMessageItemProps) {
                 <Spinner size="xs" />
               </Tooltip>
             ) : (
-              <div/>
+              <div />
             )}
             <p className="text-end text-xs text-gray-500">
               {formatDate(message.lastModified)}
             </p>
           </div>
+          {message.status === "queued" ? (
+            <Alert color="light">
+              <div className="space-y-2">
+                <p>This message is currently queued and will be sent automatically when peer is available.</p>
+                <div className="flex flex-row space-x-2 justify-end">
+                  <Button outline color="failure" size="xs">
+                    Delete
+                  </Button>
+                  <Button outline color="info" size="xs">
+                    Retry
+                  </Button>
+                </div>
+              </div>
+            </Alert>
+          ) : null}
         </div>
       ) : (
         <Spinner />
