@@ -15,6 +15,7 @@ export type Conversation = {
   name?: string;
   length?: number;
   unreadMessages?: boolean;
+  queuedMessages?: number[];
 };
 
 interface Conversations {
