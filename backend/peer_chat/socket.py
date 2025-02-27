@@ -126,6 +126,7 @@ def socket_(
             return False
         m.status = MessageStatus.SENDING
         store.post_message(cid, m)
+        socketio.emit("update-message", {"cid": cid, "message": m.json})
         c = store.load_conversation(cid)
         if not c:
             return False
@@ -147,6 +148,11 @@ def socket_(
                 f"ERROR: Unable to send message '{cid}.{mid}': {exc_info}",
                 file=sys.stderr,
             )
+            m.status = MessageStatus.QUEUED
+            if m.id_ not in c.queued_messages:
+                c.queued_messages.append(m.id_)
+            store.post_message(cid, m)
+            socketio.emit("update-message", {"cid": cid, "message": m.json})
             return False
         m.status = MessageStatus.OK
         store.post_message(cid, m)

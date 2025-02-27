@@ -57,6 +57,7 @@ class MessageStatus(Enum):
     OK = "ok"
     SENDING = "sending"
     DRAFT = "draft"
+    QUEUED = "queued"
     DELETED = "deleted"
     ERROR = "error"
 
@@ -128,6 +129,7 @@ class Conversation:
     length: int = 0
     last_modified: datetime = field(default_factory=datetime.now)
     unread_messages: bool = True
+    queued_messages: list[int] = field(default_factory=list)
     messages: dict[int, Message] = field(default_factory=dict)
 
     @property
@@ -140,6 +142,7 @@ class Conversation:
             "length": self.length,
             "lastModified": self.last_modified.isoformat(),
             "unreadMessages": self.unread_messages,
+            "queuedMessages": self.queued_messages,
         }
 
     @staticmethod
@@ -155,4 +158,5 @@ class Conversation:
             length=json_["length"],
             last_modified=datetime.fromisoformat(json_["lastModified"]),
             unread_messages=json_["unreadMessages"],
+            queued_messages=json_.get("queuedMessages"),
         )
