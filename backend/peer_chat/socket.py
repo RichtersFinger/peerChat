@@ -15,7 +15,8 @@ from peer_chat.common import (
     Conversation,
     Message,
     MessageStatus,
-    inform_peers as _inform_peers
+    inform_peers as _inform_peers,
+    send_message as _send_message,
 )
 
 
@@ -124,39 +125,12 @@ def socket_(
         m = store.load_message(cid, mid)
         if not m:
             return False
-        m.status = MessageStatus.SENDING
-        store.post_message(cid, m)
-        socketio.emit("update-message", {"cid": cid, "message": m.json})
         c = store.load_conversation(cid)
         if not c:
             return False
         c.last_modified = datetime.now()
-
         socketio.emit("update-conversation", c.json)
-        try:
-            body = {"cid": cid, "msg": m.json, "name": c.name}
-            if user.address:
-                body["peer"] = user.address
-            requests.post(
-                c.peer + "/api/v0/message",
-                json=body,
-                timeout=2,
-            )
-        # pylint: disable=broad-exception-caught
-        except Exception as exc_info:
-            print(
-                f"ERROR: Unable to send message '{cid}.{mid}': {exc_info}",
-                file=sys.stderr,
-            )
-            m.status = MessageStatus.QUEUED
-            if m.id_ not in c.queued_messages:
-                c.queued_messages.append(m.id_)
-            store.post_message(cid, m)
-            socketio.emit("update-message", {"cid": cid, "message": m.json})
-            return False
-        m.status = MessageStatus.OK
-        store.post_message(cid, m)
-        socketio.emit("update-message", {"cid": cid, "message": m.json})
-        return True
+
+        return _send_message(c, m, store, user, socketio)
 
     return socketio
