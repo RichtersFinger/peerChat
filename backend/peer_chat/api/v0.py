@@ -19,6 +19,7 @@ from peer_chat.common import (
     Message,
     MessageStatus,
     Conversation,
+    send_message as _send_message
 )
 
 
@@ -125,6 +126,20 @@ def blueprint_factory(
         if "peer" not in json:
             return Response("Bad JSON.", mimetype="text/plain", status=422)
         socket.emit("changed-peer", json["peer"])
+        # retry sending messages
+        for cid in store.list_conversations():
+            c = store.load_conversation(cid)
+            if c.peer != json["peer"]:
+                continue
+            if not c.queued_messages:
+                continue
+            for mid in c.queued_messages.copy():
+                m = store.load_message(cid, mid)
+                if _send_message(c, m, store, user, socket):
+                    c.queued_messages.remove(mid)
+                    store.write(c.id_)
+            socket.emit("update-conversation", c.json)
+
         return Response("OK", mimetype="text/plain", status=200)
 
     return bp

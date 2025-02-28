@@ -22,7 +22,13 @@ from flask_socketio import SocketIO
 import requests
 
 from peer_chat.config import AppConfig
-from peer_chat.common import User, Auth, MessageStore, inform_peers
+from peer_chat.common import (
+    User,
+    Auth,
+    MessageStore,
+    inform_peers,
+    send_message,
+)
 from peer_chat.api.v0 import blueprint_factory as v0_blueprint
 from peer_chat.socket import socket_
 
@@ -375,6 +381,18 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         ),
         url_prefix="/api/v0",
     )
+
+    # retry sending messages
+    for cid in store.list_conversations():
+        c = store.load_conversation(cid)
+        if not c.queued_messages:
+            continue
+        for mid in c.queued_messages.copy():
+            m = store.load_message(cid, mid)
+            if send_message(c, m, store, user, _socket):
+                c.queued_messages.remove(mid)
+                store.write(c.id_)
+        _socket.emit("update-conversation", c.json)
 
     return _app, _socket
 
