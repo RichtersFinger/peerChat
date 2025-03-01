@@ -108,6 +108,18 @@ def socket_(
         if c:
             socketio.emit("update-conversation", c.json)
 
+    @socketio.on("change-conversation-details")
+    def change_conversation_details(cid: str, name: str, peer: str):
+        """Mark conversation as read."""
+        c = store.load_conversation(cid)
+        if not c:
+            return False
+        c.name = name
+        c.peer = peer
+        store.write(cid)
+        socketio.emit("update-conversation", c.json)
+        return True
+
     @socketio.on("get-message")
     def get_message(cid: str, mid: int):
         """Returns message data."""

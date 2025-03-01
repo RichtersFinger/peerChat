@@ -6,6 +6,7 @@ import { FiMoreVertical } from "react-icons/fi";
 import useStore, { Conversation } from "../stores";
 import { SocketContext } from "../App";
 import Confirmation from "../modals/Confirmation";
+import EditConversation from "../modals/EditConversation";
 
 export type SidebarConversationItemProps = {
   conversation: Conversation;
@@ -23,6 +24,7 @@ export default function SidebarConversationItem({
     useShallow((state) => state.activeConversation)
   );
   const peers = useStore(useShallow((state) => state.peers));
+  const [editConversation, setEditConversation] = useState(false);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
 
   useEffect(() => {
@@ -43,6 +45,11 @@ export default function SidebarConversationItem({
             activeConversation.unset();
           setShowDeleteConfirmation(false);
         }}
+      />
+      <EditConversation
+        open={editConversation}
+        conversation={conversation}
+        onClose={() => setEditConversation(false)}
       />
       <FBSidebar.Item
         theme={{
@@ -112,7 +119,7 @@ export default function SidebarConversationItem({
                   </div>
                 )}
               >
-                <Dropdown.Item onClick={undefined}>Edit</Dropdown.Item>
+                <Dropdown.Item onClick={() => setEditConversation(true)}>Edit</Dropdown.Item>
                 <Dropdown.Item onClick={() => setShowDeleteConfirmation(true)}>
                   Delete
                 </Dropdown.Item>
