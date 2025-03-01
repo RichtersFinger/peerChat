@@ -73,7 +73,7 @@ export default function ChatMessageItem({
             </p>
           </div>
           {message.status === "queued" ? (
-            <Alert color="light">
+            <Alert className="items-end" color="light">
               <div className="space-y-2">
                 <p>
                   This message is currently queued and will be sent
