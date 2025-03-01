@@ -4,11 +4,12 @@ from typing import Optional
 import sys
 from pathlib import Path
 import json
-from threading import Lock
+from threading import Lock, Thread
 from uuid import uuid4
 import socket
 from functools import wraps
 import base64
+from time import time, sleep
 
 from flask import (
     Flask,
@@ -382,17 +383,40 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         url_prefix="/api/v0",
     )
 
-    # retry sending messages
-    for cid in store.list_conversations():
-        c = store.load_conversation(cid)
-        if not c.queued_messages:
-            continue
-        for mid in c.queued_messages.copy():
-            m = store.load_message(cid, mid)
-            if send_message(c, m, store, user, _socket):
-                c.queued_messages.remove(mid)
-                store.write(c.id_)
-        _socket.emit("update-conversation", c.json)
+    def run_post_startup_tasks():
+        """
+        Run post-startup-tasks by listening until server comes online
+        first.
+        """
+        time0 = time()
+        while time() - time0 < 10:
+            try:
+                if (
+                    requests.get(
+                        f"http://localhost:{config.PORT}/ping",
+                        timeout=0.2
+                    ).status_code
+                    == 200
+                ):
+                    break
+            except requests.exceptions.RequestException:
+                pass
+            sleep(0.2)
+        # inform peers
+        inform_peers(store, user)
+        # retry sending messages
+        for cid in store.list_conversations():
+            c = store.load_conversation(cid)
+            if not c.queued_messages:
+                continue
+            for mid in c.queued_messages.copy():
+                m = store.load_message(cid, mid)
+                if send_message(c, m, store, user, _socket):
+                    c.queued_messages.remove(mid)
+                    store.write(c.id_)
+            _socket.emit("update-conversation", c.json)
+
+    Thread(target=run_post_startup_tasks, daemon=True).start()
 
     return _app, _socket
 
