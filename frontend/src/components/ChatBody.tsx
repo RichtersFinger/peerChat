@@ -13,11 +13,15 @@ export type ChatBodyProps = {
 const DEFAULT_NMESSAGES = 10;
 const DEFAULT_NMESSAGES_INCREMENT = 10;
 const AUTOSCROLL_RANGE = 200;
+const INITIAL_AUTOSCROLL_TIMEOUT = 200;
 
 export default function ChatBody({ conversation }: ChatBodyProps) {
   const socket = useContext(SocketContext);
   const [messages, setMessages] = useState<Record<string, Message>>({});
   const bodyRef = useRef<HTMLDivElement>(null);
+  const [initializedScrollTimer, setInitializedScrollTimer] = useState(
+    Date.now()
+  );
 
   const pushMessage = useCallback(
     (m: Message) =>
@@ -71,10 +75,16 @@ export default function ChatBody({ conversation }: ChatBodyProps) {
 
   // reset initial values for state if conversation changes
   useEffect(() => {
+    setInitializedScrollTimer(Date.now());
     setMessages({});
-  }, [conversation.id]);
+  }, [conversation.id, setInitializedScrollTimer, setMessages]);
 
   // scroll to new messages
+  useEffect(() => {
+    if (Date.now() - initializedScrollTimer < INITIAL_AUTOSCROLL_TIMEOUT) {
+      bodyRef.current?.scrollTo(0, bodyRef.current?.scrollHeight);
+    }
+  }, [messages, conversation.id, initializedScrollTimer]);
   useEffect(() => {
     if (
       bodyRef.current &&

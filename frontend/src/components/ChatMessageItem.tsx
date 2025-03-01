@@ -72,7 +72,7 @@ export default function ChatMessageItem({
               {formatDate(message.lastModified)}
             </p>
           </div>
-          {message.status === "queued" ? (
+          {message.status === "queued" && (
             <Alert className="items-end" color="light">
               <div className="space-y-2">
                 <p>
@@ -103,7 +103,7 @@ export default function ChatMessageItem({
                 </div>
               </div>
             </Alert>
-          ) : null}
+          )}
         </div>
       ) : (
         <Spinner />
