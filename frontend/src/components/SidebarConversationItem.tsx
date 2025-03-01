@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { Sidebar as FBSidebar, Avatar, Dropdown } from "flowbite-react";
+import { Sidebar as FBSidebar, Avatar, Dropdown, Badge } from "flowbite-react";
 import { FiMoreVertical } from "react-icons/fi";
 
 import useStore, { Conversation } from "../stores";
@@ -81,7 +81,23 @@ export default function SidebarConversationItem({
                 </p>
               </div>
               {showIndicator && conversation.unreadMessages ? (
-                <div className="absolute bg-red-500 w-2.5 aspect-square rounded-full top-5 -left-5"></div>
+                <div className="absolute -top-1 -left-4">
+                  <Badge
+                    className="px-1 py-0.5"
+                    color="failure"
+                    size="xs"
+                    theme={{
+                      root: {
+                        color: {
+                          failure:
+                            "bg-red-600 text-white",
+                        },
+                      },
+                    }}
+                  >
+                    New
+                  </Badge>
+                </div>
               ) : null}
             </div>
             <div
