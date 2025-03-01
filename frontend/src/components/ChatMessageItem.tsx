@@ -1,4 +1,7 @@
+import { useContext } from "react";
 import { Tooltip, Spinner, Alert, Button } from "flowbite-react";
+
+import { SocketContext } from "../App";
 
 export type Message = {
   id: number;
@@ -9,10 +12,16 @@ export type Message = {
 };
 
 export type ChatMessageItemProps = {
+  cid: string;
   message: Message;
 };
 
-export default function ChatMessageItem({ message }: ChatMessageItemProps) {
+export default function ChatMessageItem({
+  cid,
+  message,
+}: ChatMessageItemProps) {
+  const socket = useContext(SocketContext);
+
   /**
    * Returns re-formatted ISO-datetime
    * @param date ISO-datetime
@@ -62,12 +71,22 @@ export default function ChatMessageItem({ message }: ChatMessageItemProps) {
           {message.status === "queued" ? (
             <Alert color="light">
               <div className="space-y-2">
-                <p>This message is currently queued and will be sent automatically when peer is available.</p>
+                <p>
+                  This message is currently queued and will be sent
+                  automatically when peer is available.
+                </p>
                 <div className="flex flex-row space-x-2 justify-end">
                   <Button outline color="failure" size="xs">
                     Delete
                   </Button>
-                  <Button outline color="info" size="xs">
+                  <Button
+                    outline
+                    color="info"
+                    size="xs"
+                    onClick={() =>
+                      socket?.emit("send-message", cid, message.id)
+                    }
+                  >
                     Retry
                   </Button>
                 </div>

@@ -79,9 +79,11 @@ export default function ChatBody({ conversation }: ChatBodyProps) {
     if (
       bodyRef.current &&
       AUTOSCROLL_RANGE >=
-        Math.abs(bodyRef.current.scrollHeight -
-          bodyRef.current.offsetHeight -
-          bodyRef.current.scrollTop)
+        Math.abs(
+          bodyRef.current.scrollHeight -
+            bodyRef.current.offsetHeight -
+            bodyRef.current.scrollTop
+        )
     ) {
       bodyRef.current?.scrollTo(0, bodyRef.current?.scrollHeight ?? 0);
     }
@@ -114,7 +116,11 @@ export default function ChatBody({ conversation }: ChatBodyProps) {
               .map(Number)
               .sort((a, b) => a - b)
               .map((mid) => (
-                <ChatMessageItem key={mid} message={messages[mid.toString()]} />
+                <ChatMessageItem
+                  key={mid}
+                  cid={conversation.id}
+                  message={messages[mid.toString()]}
+                />
               ))}
           </div>
         )}
