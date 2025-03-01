@@ -1,0 +1,171 @@
+openapi: '3.0.3'
+info:
+  title: peerChat - OpenAPI-Document
+  description: |-
+    This is the OpenAPI 3.0 specification describing the public API of
+    peerChat.
+
+    Note that the paths in this document are given relative to the base
+    '/api/v0'.
+  version: v0
+servers:
+  - url: 'http://localhost:5000/'
+externalDocs:
+  description: See official peerChat GitHub-repository.
+  url: 'https://github.com/RichtersFinger/peerChat'
+tags:
+  - name: default
+    description: miscellaneous endpoints
+  - name: user
+    description: user-related endpoints
+  - name: messaging
+    description: messaging-related endpoints
+paths:
+  /ping:
+    get:
+      summary: ping test
+      description: Returns 'pong'.
+      tags:
+        - default
+      responses:
+        '200':
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: pong
+  /user/name:
+    get:
+      summary: get user name
+      description: Returns peer's current name.
+      tags:
+        - user
+      responses:
+        '200':
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Peter Test
+  /user/avatar:
+    get:
+      summary: get user avatar
+      description: Returns peer's current avatar.
+      tags:
+        - user
+      responses:
+        '200':
+          description: success
+          content:
+            image/xyz:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Avatar not available
+  /message:
+    post:
+      summary: post new message
+      description: Returns a detailed description of the container properties.
+      tags:
+        - messaging
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: message POST-body
+              properties:
+                cid:
+                  type: string
+                  description: conversation id associated with this message
+                  example: cadeb4e5-ee18-4834-a7b9-f7d2dce3284b
+                name:
+                  type: string
+                  description: conversation name; only for new conversation
+                  example: New Conversation
+                msg:
+                  type: object
+                  description: message object
+                  properties:
+                    body:
+                      type: string
+                      description: message body
+                      example: hello!
+                    last_modified:
+                      type: string
+                      format: date-time
+                      example: '2025-03-01T00:00:00.000000'
+                  required:
+                    - body
+                peer:
+                  type: string
+                  description:
+                    origin peer address; used to update outdated
+                    information if provided
+                  example: 'http://localhost:27182'
+              required:
+                - cid
+                - msg
+      responses:
+        '200':
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: conversation id
+                example: cadeb4e5-ee18-4834-a7b9-f7d2dce3284b
+        '400':
+          description: malformed request body
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Missing data
+  /update-available:
+    post:
+      summary: notify of available update
+      description:
+        Can be used to notify that a change in peer-status like
+        peer being online/offline, user name, or user avatar has
+        occurred.
+      tags:
+        - user
+        - messaging
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: message POST-body
+              properties:
+                peer:
+                  type: string
+                  description: origin peer address
+                  example: 'http://localhost:27182'
+              required:
+                - peer
+      responses:
+        '200':
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: OK
+        '400':
+          description: malformed request body
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: Missing data
+
