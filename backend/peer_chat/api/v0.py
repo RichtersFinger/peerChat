@@ -19,7 +19,7 @@ from peer_chat.common import (
     Message,
     MessageStatus,
     Conversation,
-    send_message as _send_message
+    send_message as _send_message,
 )
 
 
@@ -28,6 +28,16 @@ def blueprint_factory(
 ) -> Blueprint:
     """Returns a flask-Blueprint implementing the API v0."""
     bp = Blueprint("v0", "v0")
+
+    @bp.route("/ping", methods=["GET"])
+    def ping():
+        """Returns 'pong'."""
+        return Response(
+            "pong",
+            headers={"Access-Control-Allow-Origin": "*"},
+            mimetype="text/plain",
+            status=200,
+        )
 
     @bp.route("/user/name", methods=["GET"])
     def user_name():
