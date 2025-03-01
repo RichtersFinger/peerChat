@@ -63,7 +63,12 @@ def blueprint_factory(
             )
             r.headers["Access-Control-Allow-Origin"] = "*"
             return r
-        return jsonify(user.avatar), 404
+        return Response(
+            "Avatar not available.",
+            headers={"Access-Control-Allow-Origin": "*"},
+            mimetype="text/plain",
+            status=404,
+        )
 
     @bp.route("/message", methods=["POST"])
     def post_message():
