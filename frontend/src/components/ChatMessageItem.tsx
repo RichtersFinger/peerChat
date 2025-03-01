@@ -54,9 +54,11 @@ export default function ChatMessageItem({
     >
       {message ? (
         <div className="space-y-2">
-          <p className={message?.isMine ? "text-end" : "text-start"}>
-            {message.body}
-          </p>
+          <div className={message?.isMine ? "text-end" : "text-start"}>
+            {message.body?.split(/\r?\n|\r|\n/g).map((line, index) => (
+              <p key={index}>{line}</p>
+            ))}
+          </div>
           <div className="flex flex-row place-content-between items-end">
             {message.status === "sending" ? (
               <Tooltip content="sending">
