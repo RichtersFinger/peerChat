@@ -28,7 +28,7 @@ export default function ChatMessageItem({
    * @returns formatted datetime
    */
   function formatDate(date: string): string {
-    const _date = new Date(message.lastModified);
+    const _date = new Date(date);
     const today = new Date();
 
     return (
@@ -47,8 +47,9 @@ export default function ChatMessageItem({
   return (
     <div
       className={
-        "rounded-md px-4 py-2 drop-shadow-md " +
-        (message?.isMine ? "bg-slate-200 ms-20" : "bg-green-100 me-20")
+        "rounded-md px-4 py-2 drop-shadow-md" +
+        (message.isMine ? " bg-slate-200 ms-20" : " bg-green-100 me-20") +
+        (message.status === "deleted" ? " opacity-30" : "")
       }
     >
       {message ? (
@@ -65,6 +66,9 @@ export default function ChatMessageItem({
               <div />
             )}
             <p className="text-end text-xs text-gray-500">
+              {message.status === "deleted" && "deleted • "}
+              {message.status === "queued" && "queued • "}
+              {message.status === "sending" && "sending • "}
               {formatDate(message.lastModified)}
             </p>
           </div>
