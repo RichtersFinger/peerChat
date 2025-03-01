@@ -76,7 +76,14 @@ export default function ChatMessageItem({
                   automatically when peer is available.
                 </p>
                 <div className="flex flex-row space-x-2 justify-end">
-                  <Button outline color="failure" size="xs">
+                  <Button
+                    outline
+                    color="failure"
+                    size="xs"
+                    onClick={() =>
+                      socket?.emit("delete-message", cid, message.id)
+                    }
+                  >
                     Delete
                   </Button>
                   <Button

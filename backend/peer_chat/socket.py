@@ -133,4 +133,23 @@ def socket_(
 
         return _send_message(c, m, store, user, socketio)
 
+    @socketio.on("delete-message")
+    def delete_message(cid: str, mid: int):
+        """Send message to peer."""
+        c = store.load_conversation(cid)
+        if not c:
+            return
+        m = store.load_message(cid, mid)
+        if not m or m.status != MessageStatus.QUEUED:
+            return
+        c.queued_messages.remove(mid)
+        m.status = MessageStatus.DELETED
+        store.write(cid)
+        store.write(cid, mid)
+        socketio.emit("update-conversation", c.json)
+        socketio.emit(
+            "update-message",
+            {"cid": c.id_, "message": m.json},
+        )
+
     return socketio
