@@ -11,6 +11,8 @@ export type NewConversationProps = {
   onClose?: () => void;
 };
 
+const DEFAULT_TITLE = "New Conversation";
+
 export default function NewConversation({
   open,
   onSuccess,
@@ -18,7 +20,7 @@ export default function NewConversation({
 }: NewConversationProps) {
   const socket = useContext(SocketContext);
   const [error, setError] = useState<string | null>(null);
-  const [title, setTitle] = useState("New Conversation");
+  const [title, setTitle] = useState(DEFAULT_TITLE);
   const [peerAddress, setPeerAddress] = useState<string | null>(null);
   const peer = useUser(peerAddress ?? undefined);
 
@@ -29,6 +31,7 @@ export default function NewConversation({
       size="xl"
       onClose={() => {
         onClose?.();
+        setTitle(DEFAULT_TITLE);
         setPeerAddress(null);
       }}
       popup
@@ -53,7 +56,6 @@ export default function NewConversation({
               onChange={(e) => {
                 setTitle(e.target.value);
               }}
-              required
               color={title ? undefined : "failure"}
             />
           </div>
@@ -69,7 +71,6 @@ export default function NewConversation({
                 onChange={(e) => {
                   setPeerAddress(e.target.value);
                 }}
-                required
                 color={peerAddress ? undefined : "failure"}
               />
               <div className="flex flex-row space-x-2 place-items-center">
@@ -93,15 +94,21 @@ export default function NewConversation({
           <Button
             disabled={!socket || !peerAddress || !title}
             onClick={() => {
-              socket?.emit("create-conversation", peerAddress, title, (cid: string) => {
-                if (cid) {
-                  onSuccess?.(cid);
-                  onClose?.();
-                  setPeerAddress(null);
-                } else {
-                  setError("Some error occurred.");
+              socket?.emit(
+                "create-conversation",
+                title,
+                peerAddress,
+                (cid: string) => {
+                  if (cid) {
+                    onSuccess?.(cid);
+                    onClose?.();
+                    setTitle(DEFAULT_TITLE);
+                    setPeerAddress(null);
+                  } else {
+                    setError("Some error occurred.");
+                  }
                 }
-              })
+              );
             }}
           >
             Apply

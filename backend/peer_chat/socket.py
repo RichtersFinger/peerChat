@@ -69,11 +69,13 @@ def socket_(
         _inform_peers(store, user)
 
     @socketio.on("create-conversation")
-    def create_conversation(peer: str, name: str):
+    def create_conversation(name: str, peer: str):
         """Creates a new conversation and returns its id."""
         c = Conversation(peer=peer, name=name)
         store.set_conversation_path(c)
         store.create_conversation(c)
+        c.unread_messages = False
+        store.write(c.id_)
         socketio.emit("new-conversation", c.id_)
         return c.id_
 
