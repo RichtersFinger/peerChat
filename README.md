@@ -1,17 +1,48 @@
 # peerChat
 
-A minimal self-hosted p2p chat application written in python (backend) and React (frontend).
+A minimal self-hosted peer-to-peer chat application written in python (Flask+Socket.IO-backend) and TypeScript (React-frontend).
+
+It is
+* platform-independent,
+* easy to setup and use,
+
+and features for example
+* message queues (auto-resend if peers are offline)
 
 ## Install
-tdb
+`peerChat` can be installed using `pip` by entering
+```
+pip install peerChat
+```
+It is recommended to use a virtual environment
+```
+python3 -m venv venv
+source venv/bin/activate
+```
 
 ## Run
-tdb
+Start the `peerChat`-application with
+```
+peerChat
+```
+By default, the web-UI is available on port `http://localhost:27182`.
+If you are done, stop by hitting `Ctrl`+`C`.
+
+When the UI is first opened, some configuration has to be performed.
+Follow the dialog shown in the UI to set a key (or password) that will be used to authenticate with the server.
+Note that this key will be stored unencrypted in your file system (`peerChat` is intended to be run locally so usually that key will never leave the local machine).
+
+After this technical setup is complete, your profile can be customized by selecting `Settings` in the context menu at the top of the sidebar.
+Here, most importantly, you should set your public network address to ensure your peers can respond to your messages.
 
 ## Update
-tdb
+Run
+```
+pip install --upgrade peerChat
+```
+to get the latest version.
 
-## Build from source
+## Building from source
 The provided `Makefile` provides targets for building from source.
 Run
 * `make build` to build the python package bundled with the static client (react)
@@ -23,7 +54,6 @@ Run
 A build requires `npm` as well as the `venv`-module of `python3` to be successful.
 
 ## Authorization-concept
-
 Since the service is intended for self-hosting, it only supports a single user per running instance of `peerChat`.
 In order to identify a user, a (automatically generated or user-defined) key is used.
 The backend-API allows to configure this key only once.
@@ -42,24 +72,33 @@ The following environment variables can be set to configure peerChat:
 
 Extended options for configuration can be accessed via the `AppConfig`-class used by the underlying `flask`-webserver which is passed in to the app-factory.
 
-### Public API v0
-The following list briefly describes the public part of the peerChat API.
+### Public API
+The public part of the `peerChat`-API can be used to
+* fetch information on a given peer,
+* post messages, and
+* notify of changes.
 
-- `GET-/ping` returns `"pong"`
-- `GET-/who` returns JSON-object that describes the available parts of the API in the format
-  ```json
-  { "api": { "0": "/api/v0" }, "name": "peerChatAPI" }
-  ```
-- `GET-/user/name` returns the client's name
-- `GET-/user/avatar` returns the client's avatar
-- `POST-/message` post new message; return `200` if request is ok, `400` on bad body
+Please refer to the OpenAPI v3-document `openapi.yaml` for details.
 
-  expected request body-format
-  ```json
-  {
-    "cid": <conversation-id>,
-    "msg": <Message.json>,  // TODO
-    "peer": <origin-peer-url>
-  }
-  ```
-  (the optional field `"peer"` can be used to provide a callback-url for the given conversation)
+### Running in dev-mode
+The development setup requires both `python3` and the node package manager `npm` to be installed.
+Contrary to the pure python production server, back- and frontend are run separately in the development context.
+
+To run the backend server, enter
+```
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install .
+pip install -r dev-requirements.txt
+MODE=dev flask run
+```
+
+Based on pre-defined scripts, the frontend development server can be started with
+```
+cd frontend
+npm install
+npm start
+```
+
+The client can then be accessed via the node-development server at `http://localhost:3000`.
