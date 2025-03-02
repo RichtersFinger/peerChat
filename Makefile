@@ -10,7 +10,7 @@ SERVICE_FILE = ${HOME}/.config/systemd/user/peerChat.service
 define SERVICE_STARTSH
 #!/bin/bash
 
-cd "$$(dirname "$0")" \
+cd "$$(dirname "$$0")" \
   && source venv/bin/activate \
   && peerChat
 
