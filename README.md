@@ -9,6 +9,8 @@ It is
 and features for example
 * message queues (auto-resend if peers are offline)
 
+See the [demo-gallery](./gallery/gallery.md) for some impressions.
+
 ## Install
 `peerChat` can be installed using `pip` by entering
 ```
