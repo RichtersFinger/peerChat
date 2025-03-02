@@ -136,11 +136,11 @@ def socket_(
     @socketio.on("send-message")
     def send_message(cid: str, mid: int):
         """Send message to peer."""
-        m = store.load_message(cid, mid)
-        if not m:
-            return False
         c = store.load_conversation(cid)
         if not c:
+            return False
+        m = store.load_message(cid, mid)
+        if not m:
             return False
         c.last_modified = datetime.now()
         socketio.emit("update-conversation", c.json)

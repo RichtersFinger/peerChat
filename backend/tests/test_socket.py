@@ -102,8 +102,8 @@ def test_create_conversations(clients: tuple[Flask, SocketIO]):
 
     cid = socket_client.emit(
         "create-conversation",
-        "hostname.com",
         "some topic",
+        "hostname.com",
         callback=True,
     )
 
@@ -126,7 +126,7 @@ def test_get_message_unknown(
     )
 
     assert (
-        socket_client.emit("get-message", c.id_, "unknown-id", callback=True)
+        socket_client.emit("get-message", c.id_, 999, callback=True)
         == []
     )
 
@@ -144,8 +144,8 @@ def test_get_message(
     )
 
     assert (
-        socket_client.emit("get-message", c.id_, "0", callback=True)
-        == c.messages["0"].json
+        socket_client.emit("get-message", c.id_, 0, callback=True)
+        == c.messages[0].json
     )
 
 
@@ -164,10 +164,10 @@ def test_post_message_minimal(
 
     assert socket_client.emit(
         "post-message", c.id_, m.json, callback=True
-    ) == str(c.length)
+    ) == c.length
     assert socket_client.emit(
-        "get-message", c.id_, str(c.length), callback=True
-    ) == m.json | {"id": str(c.length)}
+        "get-message", c.id_, c.length, callback=True
+    ) == m.json | {"id": c.length}
 
 
 def test_post_message(
@@ -182,7 +182,7 @@ def test_post_message(
         testing_config.WORKING_DIRECTORY / testing_config.DATA_DIRECTORY
     )
     m = Message(
-        id_="1", body="text2", is_mine=True, status=MessageStatus.ERROR
+        id_=1, body="text2", is_mine=True, status=MessageStatus.ERROR
     )
 
     assert (
@@ -201,8 +201,8 @@ def test_api_post_message(clients: tuple[Flask, SocketIO]):
 
     cid = socket_client.emit(
         "create-conversation",
-        "hostname.com",
         "some topic",
+        "hostname.com",
         callback=True,
     )
     m = Message(body="text")
@@ -213,21 +213,20 @@ def test_api_post_message(clients: tuple[Flask, SocketIO]):
     assert response.status_code == 200
 
     msgs = socket_client.get_received()
-    assert len(msgs) == 2
+    assert len(msgs) == 3
     assert any(
-        msg["name"].startswith("update-conversation")
-        and msg["name"].endswith(cid)
+        msg["name"] == "update-conversation"
         for msg in msgs
     )
     assert any(
-        msg["name"].startswith("update-message")
+        msg["name"] == "update-message"
         and msg["args"][0]["cid"] == cid
-        and msg["args"][0]["message"]["id"] == "0"
+        and msg["args"][0]["message"]["id"] == 0
         and msg["args"][0]["message"]["body"] == m.body
         for msg in msgs
     )
     assert (
-        socket_client.emit("get-message", cid, "0", callback=True)["body"]
+        socket_client.emit("get-message", cid, 0, callback=True)["body"]
         == m.body
     )
 
@@ -287,8 +286,8 @@ def test_api_post_message_change_peer(clients: tuple[Flask, SocketIO]):
 
     cid = socket_client.emit(
         "create-conversation",
-        "hostname.com",
         "some topic",
+        "hostname.com",
         callback=True,
     )
     assert (
@@ -327,8 +326,8 @@ def test_send_message(
 
     cid = socket_client.emit(
         "create-conversation",
-        "http://localhost:8081",
         "some topic",
+        "http://localhost:8081",
         callback=True,
     )
     m = Message(body="text")

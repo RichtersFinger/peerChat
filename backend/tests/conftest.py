@@ -70,7 +70,7 @@ def _fake_conversation():
         ms.set_conversation_path(c)
         ms.create_conversation(c)
         ms.write(c.id_)
-        for msg_id in map(str, range(c.length)):
+        for msg_id in range(c.length):
             ms.post_message(
                 c.id_,
                 Message(
