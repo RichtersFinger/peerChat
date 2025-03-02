@@ -44,6 +44,22 @@ pip install --upgrade peerChat
 ```
 to get the latest version.
 
+## Running as a systemd-service
+The `peerChat`-app can be run as a systemd-service (linux) that automatically starts with the system.
+After cloning this repository, simply run
+```
+make service
+```
+for a default configuration (install/working directory is given by `~/.local/share/peerChat` and the service-file is written to `~/.config/systemd/user/peerChat.service`).
+Check the service's status with
+```
+systemctl --user status peerChat.service
+```
+Disable or stop the service by entering
+```
+systemctl --user <disable|stop> peerChat.service
+```
+
 ## Building from source
 The provided `Makefile` provides targets for building from source.
 Run
