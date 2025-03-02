@@ -30,8 +30,8 @@ build: venv build-frontend build-backend
 	source "${VENV}/bin/activate" && \
 		pip install --upgrade pip wheel setuptools && \
 		cd backend && \
-		${VERSIONENV} python3 setup.py bdist_wheel || \
-		python3 setup.py bdist_wheel
+		${VERSIONENV} python3 setup.py sdist bdist_wheel || \
+		python3 setup.py sdist bdist_wheel
 
 publish: venv
 	source "${VENV}/bin/activate" && \
