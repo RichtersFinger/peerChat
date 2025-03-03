@@ -12,6 +12,8 @@
 
 ### Fixed
 
+- fixed bug where malformed messages sent in existing conversations could lead to deletion of conversation
+
 ## [0.1.0] - 2025-03-02
 
 ### Changed

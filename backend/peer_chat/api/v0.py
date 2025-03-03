@@ -81,6 +81,7 @@ def blueprint_factory(
         json = request.get_json(silent=True)
         if not json:
             return Response("Missing JSON.", mimetype="text/plain", status=400)
+        new_conversation = False
         c = None
         try:
             c = store.load_conversation(json["cid"])
@@ -92,6 +93,7 @@ def blueprint_factory(
                 )
                 store.set_conversation_path(c)
                 store.create_conversation(c)
+                new_conversation = True
             else:
                 if "peer" in json:
                     c.peer = json["peer"]
@@ -116,7 +118,7 @@ def blueprint_factory(
             )
         # pylint: disable=broad-exception-caught
         except Exception as exc_info:
-            if c is not None:
+            if new_conversation and c is not None:
                 store.delete_conversation(c)
             return Response(
                 f"Error processing request: {exc_info} "
