@@ -1,14 +1,10 @@
 # Changelog
 
-## [x.y.z] - ???-??-??
-
-### Changed
+## [0.1.1] - 2025-03-03
 
 ### Added
 
 - added 'service'-target to Makefile for easy configuration with `systemd`
-
-### Removed
 
 ### Fixed
 
