@@ -1,5 +1,15 @@
 # Changelog
 
+## [x.y.z] - 2025-??-??
+
+### Changed
+
+### Added
+
+### Removed
+
+### Fixed
+
 ## [0.1.1] - 2025-03-03
 
 ### Added
