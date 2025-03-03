@@ -3,7 +3,6 @@
 import sys
 from datetime import datetime
 
-import requests
 from flask import request
 from flask_socketio import SocketIO
 

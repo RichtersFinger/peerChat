@@ -2,6 +2,35 @@ SHELL := /bin/bash
 VENV := venv
 SKIP_CLIENT =
 VERSION =
+INSTALLLOCATION := ${HOME}/.local/share/
+INSTALLNAME := peerChat
+INSTALLPATH = ${INSTALLLOCATION}${INSTALLNAME}
+SERVICE_FILE = ${HOME}/.config/systemd/user/peerChat.service
+
+define SERVICE_STARTSH
+#!/bin/bash
+
+cd "$$(dirname "$$0")" \
+  && source venv/bin/activate \
+  && peerChat
+
+endef
+export SERVICE_STARTSH
+
+define SERVICE
+[Unit]
+Description=peerChat-service
+
+[Service]
+Type=simple
+ExecStart=${INSTALLPATH}/start.sh
+Restart=always
+
+[Install]
+WantedBy=default.target
+
+endef
+export SERVICE
 
 _:
 	echo "Missing target. See README for details."
@@ -54,3 +83,33 @@ clean-build:
 	rm -rf backend/peer_chat/client
 
 clean: clean-frontend clean-backend clean-build
+
+service:
+	# prepare target directory
+	if [ -d "${INSTALLPATH}" ]; then \
+		echo "destination '${INSTALLPATH}' already exists"; \
+		exit 1; \
+	fi
+	mkdir -p "${INSTALLPATH}"
+
+	# install peerChat in venv
+	cd "${INSTALLPATH}" && \
+		python3 -m venv venv && \
+		source venv/bin/activate && \
+		pip install peerChat
+
+	# add startup-script
+	echo "$${SERVICE_STARTSH}" > "${INSTALLPATH}/start.sh" && \
+		chmod +x "${INSTALLPATH}/start.sh"
+
+	# add service-file
+	mkdir -p "${HOME}/.config/systemd/user/"
+	if [ -f "${SERVICE_FILE}" ]; then \
+		echo "service file '${SERVICE_FILE}' already exists"; \
+		exit 1; \
+	fi
+	echo "$${SERVICE}" > "${SERVICE_FILE}"
+
+	# enable/start service
+	systemctl --user enable peerChat.service
+	systemctl --user start peerChat.service
