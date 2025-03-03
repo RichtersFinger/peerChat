@@ -8,6 +8,8 @@
 
 ### Added
 
+- add software-version info to UI
+
 ### Removed
 
 ### Fixed

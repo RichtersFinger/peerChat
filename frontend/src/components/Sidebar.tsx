@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Sidebar as FBSidebar } from "flowbite-react";
 import { useShallow } from "zustand/react/shallow";
 
@@ -24,6 +25,18 @@ export default function Sidebar({
   const conversations = useStore(
     useShallow((state) => state.conversations.data)
   );
+  const [versionString, setVersionString] = useState<string | null>(null);
+
+  // fetch software-version
+  useEffect(() => {
+    fetch(url + "/version")
+      .then((response) => {
+        if (!response.ok) throw Error("Unable to load software-version.");
+        return response.text();
+      })
+      .then((text) => setVersionString(text))
+      .catch((e) => console.error(e));
+  }, [url]);
 
   return (
     <>
@@ -37,8 +50,15 @@ export default function Sidebar({
         }}
       >
         <div className="mb-24">
-          <FBSidebar.Logo href="#" img="/peerChat.svg" imgAlt="peerChat">
-            peerChat
+          <FBSidebar.Logo href="" img="/peerChat.svg" imgAlt="peerChat">
+            <div className="flex flex-row">
+              peerChat
+              {versionString ? (
+                <span className="w-28 truncate text-gray-400 text-xs transition ease-in-out opacity-0 hover:opacity-100">
+                  v{versionString}
+                </span>
+              ) : null}
+            </div>
           </FBSidebar.Logo>
           <SidebarUserItem
             connected={connected}
@@ -53,7 +73,7 @@ export default function Sidebar({
             </FBSidebar.Item>
             {Object.values(conversations)
               .sort((a, b) => (a.lastModified < b.lastModified ? 1 : -1))
-              .sort((a, b) => a.unreadMessages && ! b.unreadMessages ? -1 : 1)
+              .sort((a, b) => (a.unreadMessages && !b.unreadMessages ? -1 : 1))
               .map((c: Conversation) => (
                 <SidebarConversationItem
                   key={c.id}
