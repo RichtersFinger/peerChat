@@ -1,18 +1,14 @@
 # Changelog
 
-## [x.y.z] - 2025-??-??
+## [0.2.0] - 2025-03-03
 
 ### Changed
 
-- changed avatar fit to cover
+- changed avatar image-fit to 'cover'
 
 ### Added
 
 - add software-version info to UI
-
-### Removed
-
-### Fixed
 
 ## [0.1.1] - 2025-03-03
 
