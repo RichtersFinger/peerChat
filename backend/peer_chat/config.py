@@ -31,3 +31,4 @@ class AppConfig:
     USER_AVATAR_PATH = Path(".avatar")
     USER_PEER_URL = os.environ.get("USER_PEER_URL")
     DATA_DIRECTORY = Path("data")
+    UPDATES_FILE_PATH = Path(".updates")

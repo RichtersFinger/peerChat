@@ -296,6 +296,44 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
             status=200,
         )
 
+    @_app.route("/update-info", methods=["GET"])
+    @login_required(auth)
+    def update_info():
+        """
+        Returns update info. JSON contains
+        * current version
+        * (optional) latest existing version
+        * (optional) CHANGELOG
+        * (optional) whether latest has been declined
+        """
+        current = update.get_current_version()
+        latest = update.get_latest_version()
+        if latest:
+            changelog = update.fetch_changelog()
+            try:
+                declined_version = (
+                    config.WORKING_DIRECTORY / config.UPDATES_FILE_PATH
+                ).read_text(encoding="utf-8")
+            except FileNotFoundError:
+                declined = False
+            else:
+                declined = (
+                    declined_version != ""
+                    and latest <= declined_version.strip()
+                )
+        else:
+            changelog = None
+            declined = False
+
+        response = {"current": current}
+        if latest:
+            response["latest"] = latest
+        if changelog:
+            response["changelog"] = changelog
+        if declined is not None:
+            response["declined"] = declined
+        return jsonify(response), 200
+
     @_app.route("/user/address-options", methods=["GET"])
     @login_required(auth)
     def user_addresses():
@@ -403,8 +441,7 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
             try:
                 if (
                     requests.get(
-                        f"http://localhost:{config.PORT}/ping",
-                        timeout=0.2
+                        f"http://localhost:{config.PORT}/ping", timeout=0.2
                     ).status_code
                     == 200
                 ):
