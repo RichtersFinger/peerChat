@@ -1,14 +1,20 @@
 # Changelog
 
-## [x.y.z] - ???-??-??
+## [0.2.0] - 2025-03-03
 
 ### Changed
+
+- changed avatar image-fit to 'cover'
+
+### Added
+
+- add software-version info to UI
+
+## [0.1.1] - 2025-03-03
 
 ### Added
 
 - added 'service'-target to Makefile for easy configuration with `systemd`
-
-### Removed
 
 ### Fixed
 

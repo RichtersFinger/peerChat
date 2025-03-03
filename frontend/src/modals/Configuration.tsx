@@ -104,6 +104,7 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
               />
             </div>
             <Avatar
+              theme={{ root: { img: { base: "rounded object-cover" } } }}
               rounded
               size="lg"
               {...(newAvatarPreview

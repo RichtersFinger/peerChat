@@ -25,11 +25,12 @@ export default function SidebarUserItem({
     <div className="relative h-full">
       <div className="absolute left-0 top-0 flex flex-row space-x-2 px-1">
         <Avatar
+          theme={{ root: { img: { base: "rounded object-cover" } } }}
           {...(user?.avatar ? { img: user.avatar } : {})}
           rounded
           statusPosition="bottom-left"
           status={connected ? "online" : "offline"}
-        ></Avatar>
+        />
         <div className="flex-col space-y-1 font-medium">
           <p className="max-w-48 truncate font-bold">
             {user?.name ? user.name : "-"}
