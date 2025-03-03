@@ -10,6 +10,7 @@ import socket
 from functools import wraps
 import base64
 from time import time, sleep
+from importlib.metadata import version
 
 from flask import (
     Flask,
@@ -237,6 +238,13 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         Returns 'pong'.
         """
         return Response("pong", mimetype="text/plain", status=200)
+
+    @_app.route("/version", methods=["GET"])
+    def _version():
+        """
+        Returns app version.
+        """
+        return Response(version("peerChat"), mimetype="text/plain", status=200)
 
     @_app.route("/who", methods=["GET"])
     def who():
