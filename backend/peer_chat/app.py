@@ -10,7 +10,6 @@ import socket
 from functools import wraps
 import base64
 from time import time, sleep
-from importlib.metadata import version
 
 from flask import (
     Flask,
@@ -30,6 +29,7 @@ from peer_chat.common import (
     MessageStore,
     inform_peers,
     send_message,
+    update,
 )
 from peer_chat.api.v0 import blueprint_factory as v0_blueprint
 from peer_chat.socket import socket_
@@ -240,11 +240,13 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         return Response("pong", mimetype="text/plain", status=200)
 
     @_app.route("/version", methods=["GET"])
-    def _version():
+    def version():
         """
         Returns app version.
         """
-        return Response(version("peerChat"), mimetype="text/plain", status=200)
+        return Response(
+            update.get_current_version(), mimetype="text/plain", status=200
+        )
 
     @_app.route("/who", methods=["GET"])
     def who():
