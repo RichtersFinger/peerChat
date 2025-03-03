@@ -40,7 +40,7 @@ Here, most importantly, you should set your public network address to ensure you
 ## Update
 Run
 ```
-pip install --upgrade peerChat
+pip install peerChat --upgrade
 ```
 to get the latest version.
 
