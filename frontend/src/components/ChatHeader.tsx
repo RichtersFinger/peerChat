@@ -14,7 +14,12 @@ export default function ChatHeader({ conversation }: ChatHeaderProps) {
 
   return (
     <div className="flex flex-row space-x-2 bg-slate-50 p-2">
-      <Avatar {...{ img: peer?.avatar }} rounded size="lg" />
+      <Avatar
+        theme={{ root: { img: { base: "rounded object-cover" } } }}
+        {...{ img: peer?.avatar }}
+        rounded
+        size="lg"
+      />
       <div className="flex-col space-y-1 font-medium">
         <p className="truncate">{conversation.name ?? conversation.id}</p>
         {peer?.name ? (

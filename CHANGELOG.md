@@ -4,6 +4,8 @@
 
 ### Changed
 
+- changed avatar fit to cover
+
 ### Added
 
 ### Removed

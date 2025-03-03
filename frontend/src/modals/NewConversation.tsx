@@ -78,6 +78,7 @@ export default function NewConversation({
                   {peer.name ?? null}
                 </p>
                 <Avatar
+                  theme={{ root: { img: { base: "rounded object-cover" } } }}
                   {...(peer.avatar ? { img: peer.avatar } : {})}
                   rounded
                   status={peer.name ? "online" : "offline"}

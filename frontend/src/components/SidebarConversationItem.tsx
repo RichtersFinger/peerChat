@@ -73,6 +73,7 @@ export default function SidebarConversationItem({
           <div className="relative">
             <div className="flex flex-row space-x-2">
               <Avatar
+                theme={{ root: { img: { base: "rounded object-cover" } } }}
                 {...{ img: peers.data[conversation?.peer ?? ""]?.avatar }}
                 rounded
                 size="md"
@@ -96,8 +97,7 @@ export default function SidebarConversationItem({
                     theme={{
                       root: {
                         color: {
-                          failure:
-                            "bg-red-600 text-white",
+                          failure: "bg-red-600 text-white",
                         },
                       },
                     }}
@@ -119,7 +119,9 @@ export default function SidebarConversationItem({
                   </div>
                 )}
               >
-                <Dropdown.Item onClick={() => setEditConversation(true)}>Edit</Dropdown.Item>
+                <Dropdown.Item onClick={() => setEditConversation(true)}>
+                  Edit
+                </Dropdown.Item>
                 <Dropdown.Item onClick={() => setShowDeleteConfirmation(true)}>
                   Delete
                 </Dropdown.Item>
