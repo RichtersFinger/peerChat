@@ -229,8 +229,9 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
     if config.MODE == "dev":
         load_cors(_app, config.DEV_CORS_FRONTEND_URL)
 
-    # initialize ressource-locks
-    auth_lock = Lock()
+    # socket
+    _socket = socket_(config, auth, store, user)
+    _socket.init_app(_app)
 
     @_app.route("/ping", methods=["GET"])
     def ping():
@@ -255,6 +256,8 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         paths.
         """
         return jsonify(name="peerChatAPI", api={"0": "/api/v0"}), 200
+
+    auth_lock = Lock()
 
     @_app.route("/auth/key", methods=["GET", "POST"])
     def create_auth_key():
@@ -351,7 +354,20 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         if "no-cache" in request.args:
             cache_update_info()
 
-        return jsonify(update_info_cache), 200
+        r = make_response(jsonify(update_info_cache), 200)
+        r.headers["Access-Control-Allow-Credentials"] = "true"
+        return r
+
+    # this ensures preflight requests are successful during development
+    if config.MODE == "dev":
+        @_app.route("/update/decline", methods=["OPTIONS"])
+        def update_decline_options():
+            return Response(
+                None,
+                headers={"Access-Control-Allow-Credentials": "true"},
+                mimetype="text/plain",
+                status=200,
+            )
 
     @_app.route("/update/decline", methods=["PUT"])
     @login_required(auth)
@@ -364,7 +380,10 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         )
         if version is None:
             return Response(
-                "Missing version info.", mimetype="text/plain", status=404
+                "Missing version info.",
+                headers={"Access-Control-Allow-Credentials": "true"},
+                mimetype="text/plain",
+                status=404,
             )
 
         (config.WORKING_DIRECTORY / config.UPDATES_FILE_PATH).write_text(
@@ -372,7 +391,12 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         )
         Thread(target=cache_update_info).start()
 
-        return Response("OK", mimetype="text/plain", status=200)
+        return Response(
+            "OK",
+            headers={"Access-Control-Allow-Credentials": "true"},
+            mimetype="text/plain",
+            status=200,
+        )
 
     @_app.route("/user/address-options", methods=["GET"])
     @login_required(auth)
@@ -455,10 +479,6 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         if path != "":
             return send_from_directory(config.STATIC_PATH, path)
         return send_from_directory(config.STATIC_PATH, "index.html")
-
-    # socket
-    _socket = socket_(config, auth, store, user)
-    _socket.init_app(_app)
 
     # API
     _app.register_blueprint(
