@@ -319,15 +319,21 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
                 except FileNotFoundError:
                     declined = False
                 else:
-                    declined = (
-                        declined_version != ""
-                        and update.compare_versions(
+                    declined = declined_version != "" and (
+                        update.compare_versions(
                             declined_version.strip(), latest
                         )
+                        or declined_version.strip() == latest
                     )
             else:
                 changelog = None
                 declined = False
+            if latest:
+                is_upgrade = update.compare_versions(
+                    latest, update_info_cache["current"]
+                )
+            else:
+                is_upgrade = None
 
             if latest:
                 update_info_cache["latest"] = latest
@@ -335,6 +341,8 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
                 update_info_cache["changelog"] = changelog
             if declined is not None:
                 update_info_cache["declined"] = declined
+            if is_upgrade is not None:
+                update_info_cache["upgrade"] = is_upgrade
 
     if not hasattr(config, "TESTING") or not config.TESTING:
         Thread(target=cache_update_info).start()
@@ -348,6 +356,7 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         * (optional) latest existing version
         * (optional) CHANGELOG
         * (optional) whether latest has been declined
+        * (optional) whether latest is an upgrade
 
         cache can be disabled with query-arg 'no-cache'
         """
@@ -360,6 +369,7 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
 
     # this ensures preflight requests are successful during development
     if config.MODE == "dev":
+
         @_app.route("/update/decline", methods=["OPTIONS"])
         def update_decline_options():
             return Response(
