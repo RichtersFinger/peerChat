@@ -296,6 +296,46 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
             status=200,
         )
 
+    update_info_cache = {}
+    update_info_cache_lock = Lock()
+
+    def cache_update_info():
+        """Reload cached update-info data."""
+        with update_info_cache_lock:
+            update_info_cache.clear()
+
+            update_info_cache["current"] = update.get_current_version()
+
+            latest = update.get_latest_version()
+            if latest:
+                changelog = update.fetch_changelog()
+                try:
+                    declined_version = (
+                        config.WORKING_DIRECTORY / config.UPDATES_FILE_PATH
+                    ).read_text(encoding="utf-8")
+                except FileNotFoundError:
+                    declined = False
+                else:
+                    declined = (
+                        declined_version != ""
+                        and update.compare_versions(
+                            declined_version.strip(), latest
+                        )
+                    )
+            else:
+                changelog = None
+                declined = False
+
+            if latest:
+                update_info_cache["latest"] = latest
+            if changelog:
+                update_info_cache["changelog"] = changelog
+            if declined is not None:
+                update_info_cache["declined"] = declined
+
+    if not hasattr(config, "TESTING") or not config.TESTING:
+        Thread(target=cache_update_info).start()
+
     @_app.route("/update-info", methods=["GET"])
     @login_required(auth)
     def update_info():
@@ -305,34 +345,13 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         * (optional) latest existing version
         * (optional) CHANGELOG
         * (optional) whether latest has been declined
-        """
-        current = update.get_current_version()
-        latest = update.get_latest_version()
-        if latest:
-            changelog = update.fetch_changelog()
-            try:
-                declined_version = (
-                    config.WORKING_DIRECTORY / config.UPDATES_FILE_PATH
-                ).read_text(encoding="utf-8")
-            except FileNotFoundError:
-                declined = False
-            else:
-                declined = (
-                    declined_version != ""
-                    and latest <= declined_version.strip()
-                )
-        else:
-            changelog = None
-            declined = False
 
-        response = {"current": current}
-        if latest:
-            response["latest"] = latest
-        if changelog:
-            response["changelog"] = changelog
-        if declined is not None:
-            response["declined"] = declined
-        return jsonify(response), 200
+        cache can be disabled with query-arg 'no-cache'
+        """
+        if "no-cache" in request.args:
+            cache_update_info()
+
+        return jsonify(update_info_cache), 200
 
     @_app.route("/user/address-options", methods=["GET"])
     @login_required(auth)
