@@ -336,7 +336,7 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
     if not hasattr(config, "TESTING") or not config.TESTING:
         Thread(target=cache_update_info).start()
 
-    @_app.route("/update-info", methods=["GET"])
+    @_app.route("/update/info", methods=["GET"])
     @login_required(auth)
     def update_info():
         """
@@ -352,6 +352,27 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
             cache_update_info()
 
         return jsonify(update_info_cache), 200
+
+    @_app.route("/update/decline", methods=["PUT"])
+    @login_required(auth)
+    def update_decline():
+        """
+        Declines current latest (cache) or query-arg 'version'
+        """
+        version = request.args.get(
+            "version", update_info_cache.get("latest", None)
+        )
+        if version is None:
+            return Response(
+                "Missing version info.", mimetype="text/plain", status=404
+            )
+
+        (config.WORKING_DIRECTORY / config.UPDATES_FILE_PATH).write_text(
+            version, encoding="utf-8"
+        )
+        Thread(target=cache_update_info).start()
+
+        return Response("OK", mimetype="text/plain", status=200)
 
     @_app.route("/user/address-options", methods=["GET"])
     @login_required(auth)
