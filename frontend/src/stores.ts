@@ -60,9 +60,11 @@ interface UpdateInfo {
 interface Updates {
   info?: UpdateInfo;
   error?: string;
+  log: string[];
   setInfo: (info?: UpdateInfo) => void;
   setError: (error?: string) => void;
   fetchInfo: (address: string, cache: boolean) => void;
+  addToLog: (message: string) => void;
 }
 
 interface StoreState {
@@ -75,6 +77,7 @@ interface StoreState {
 
 const useStore = create<StoreState>((set, get) => ({
   updates: {
+    log: [],
     setInfo: (info) => {
       set(
         produce((state: StoreState) => {
@@ -113,6 +116,13 @@ const useStore = create<StoreState>((set, get) => ({
           console.error(`Failed to fetch update-info: `, error);
           get().updates.setError(error.message);
         });
+    },
+    addToLog: (message) => {
+      set(
+        produce((state: StoreState) => {
+          state.updates.log.push(message);
+        })
+      );
     },
   },
   socket: {
