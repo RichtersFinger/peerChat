@@ -10,6 +10,7 @@ import socket
 from functools import wraps
 import base64
 from time import time, sleep
+from subprocess import Popen, PIPE
 
 from flask import (
     Flask,
@@ -371,7 +372,8 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
     if config.MODE == "dev":
 
         @_app.route("/update/decline", methods=["OPTIONS"])
-        def update_decline_options():
+        @_app.route("/update/run", methods=["OPTIONS"])
+        def update_options():
             return Response(
                 None,
                 headers={"Access-Control-Allow-Credentials": "true"},
@@ -400,6 +402,60 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
             version, encoding="utf-8"
         )
         Thread(target=cache_update_info).start()
+
+        return Response(
+            "OK",
+            headers={"Access-Control-Allow-Credentials": "true"},
+            mimetype="text/plain",
+            status=200,
+        )
+
+    update_lock = Lock()
+
+    def run_update(version: str):
+        """Run update and communicate log with client."""
+        with update_lock:
+            _socket.emit("starting-update")
+            with Popen(
+                ["pip", "install", f"peerChat=={version}"],
+                stdout=PIPE,
+                bufsize=1,
+                universal_newlines=True,
+            ) as p:
+                for line in p.stdout:
+                    _socket.emit("update-log", line.strip())
+
+            cache_update_info()
+            if p.returncode != 0:
+                _socket.emit(
+                    "update-error",
+                    f"Update failed, got return code {p.returncode}.",
+                )
+                return
+
+            _socket.emit("update-complete")
+
+    @_app.route("/update/run", methods=["PUT"])
+    @login_required(auth)
+    def update_run():
+        """
+        Update to current latest (cache) or query-arg 'version'.
+        """
+        version = request.args.get(
+            "version", update_info_cache.get("latest", None)
+        )
+        if version is None:
+            return Response(
+                "Missing version info.",
+                headers={"Access-Control-Allow-Credentials": "true"},
+                mimetype="text/plain",
+                status=404,
+            )
+
+        (config.WORKING_DIRECTORY / config.UPDATES_FILE_PATH).unlink(
+            missing_ok=True
+        )
+        Thread(target=run_update, args=(version,)).start()
 
         return Response(
             "OK",
