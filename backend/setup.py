@@ -12,11 +12,14 @@ except FileNotFoundError:
 
 
 setup(
-    version=os.environ.get("VERSION", "0.2.0"),
+    version=os.environ.get("VERSION", "0.3.0"),
     name="peerChat",
-    description="A minimal self-hosted peer-to-peer chat application.",
+    description="A basic self-hosted peer-to-peer chat application.",
     long_description=long_description,
     long_description_content_type="text/markdown",
+    author="Steffen Richters-Finger",
+    author_email="srichters@uni-muenster.de",
+    license="MIT",
     url="https://pypi.org/project/peerChat/",
     project_urls={"Source": "https://github.com/RichtersFinger/peerChat"},
     python_requires=">=3.10",

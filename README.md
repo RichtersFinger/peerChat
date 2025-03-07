@@ -1,13 +1,14 @@
 # peerChat
 
-A minimal self-hosted peer-to-peer chat application written in python (Flask+Socket.IO-backend) and TypeScript (React-frontend).
+A basic self-hosted peer-to-peer chat application written in python (Flask+Socket.IO-backend) and TypeScript (React-frontend).
 
 It is
 * platform-independent,
 * easy to setup and use,
 
-and features for example
-* message queues (auto-resend if peers are offline)
+and offers for example
+* message queues (auto-resend if peers are offline), or
+* handling application updates via UI.
 
 See the [demo-gallery](./gallery/gallery.md) for some impressions.
 
