@@ -49,14 +49,83 @@ interface Peers {
   stopListening: (socket: Socket) => void;
 }
 
+interface UpdateInfo {
+  current: string;
+  installed?: string;
+  latest?: string;
+  changelog?: string;
+  declined?: boolean;
+  upgrade?: boolean;
+}
+
+interface Updates {
+  info?: UpdateInfo;
+  error?: string;
+  log: string[];
+  setInfo: (info?: UpdateInfo) => void;
+  setError: (error?: string) => void;
+  fetchInfo: (address: string, cache: boolean) => void;
+  addToLog: (message: string) => void;
+}
+
 interface StoreState {
   socket: ConnectionState;
   conversations: Conversations;
   activeConversation: ActiveConversation;
   peers: Peers;
+  updates: Updates;
 }
 
 const useStore = create<StoreState>((set, get) => ({
+  updates: {
+    log: [],
+    setInfo: (info) => {
+      set(
+        produce((state: StoreState) => {
+          if (!info) delete state.updates.info;
+          else state.updates.info = info;
+        })
+      );
+    },
+    setError: (error) => {
+      set(
+        produce((state: StoreState) => {
+          if (!error) delete state.updates.error;
+          else state.updates.error = error;
+        })
+      );
+    },
+    fetchInfo: (address, cache) => {
+      fetch(address + "/update/info" + (!cache ? "?no-cache=" : ""), {
+        credentials: "include",
+      })
+        .then((response) => {
+          if (!response.ok)
+            throw new Error("Unexpected error while fetching update info.");
+          return response.json();
+        })
+        .then((json) => {
+          get().updates.setInfo(json);
+          get().updates.setError();
+          set(
+            produce((state: StoreState) => {
+              delete state.updates.error;
+            })
+          );
+        })
+        .catch((error) => {
+          console.error(`Failed to fetch update-info: `, error);
+          get().updates.setError(error.message);
+        });
+    },
+    addToLog: (message) => {
+      set(
+        produce((state: StoreState) => {
+          state.updates.log.push(message);
+        })
+      );
+    },
+  },
   socket: {
     connected: false,
     connect: () =>

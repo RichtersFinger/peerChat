@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
-import { Sidebar as FBSidebar } from "flowbite-react";
+import { Sidebar as FBSidebar, Alert, Tooltip } from "flowbite-react";
 import { useShallow } from "zustand/react/shallow";
+import { FiRefreshCw } from "react-icons/fi";
 
+import { ApiUrl } from "../App";
 import useStore, { Conversation } from "../stores";
 import SidebarUserItem, { DropdownItemType } from "./SidebarUserItem";
 import SidebarConversationItem from "./SidebarConversationItem";
+import Update from "../modals/Update";
 
 export type SidebarProps = {
   url: string;
@@ -26,6 +29,18 @@ export default function Sidebar({
     useShallow((state) => state.conversations.data)
   );
   const [versionString, setVersionString] = useState<string | null>(null);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const { info, setError, setInfo, fetchInfo } = useStore(
+    useShallow((state) => ({
+      info: state.updates.info,
+      setError: state.updates.setError,
+      setInfo: state.updates.setInfo,
+      fetchInfo: state.updates.fetchInfo,
+    }))
+  );
+
+  // eslint-disable-next-line
+  useEffect(() => fetchInfo(ApiUrl, true), []);
 
   // fetch software-version
   useEffect(() => {
@@ -40,6 +55,10 @@ export default function Sidebar({
 
   return (
     <>
+      <Update
+        open={showUpgradeDialog}
+        onClose={() => setShowUpgradeDialog(false)}
+      />
       <FBSidebar
         className="select-none h-screen sticky top-0 left-0"
         theme={{
@@ -50,16 +69,53 @@ export default function Sidebar({
         }}
       >
         <div className="mb-24">
-          <FBSidebar.Logo href="" img="/peerChat.svg" imgAlt="peerChat">
-            <div className="flex flex-row">
+          <FBSidebar.Logo
+            href=""
+            img="/peerChat.svg"
+            imgAlt="peerChat"
+            onClick={(e) => {
+              e.preventDefault();
+              setShowUpgradeDialog(true);
+            }}
+          >
+            <div className="relative flex flex-row">
               peerChat
               {versionString ? (
                 <span className="w-28 truncate text-gray-400 text-xs transition ease-in-out opacity-0 hover:opacity-100">
                   v{versionString}
                 </span>
               ) : null}
+              {info?.upgrade ? (
+                <Tooltip content="Update available.">
+                  <FiRefreshCw className="absolute right-0 text-green-500 hover:text-green-400" />
+                </Tooltip>
+              ) : null}
             </div>
           </FBSidebar.Logo>
+          {info && info.upgrade && !info.declined ? (
+            <Alert
+              className="mx-1 py-2"
+              color="warning"
+              onDismiss={() => {
+                fetch(ApiUrl + "/update/decline", {
+                  method: "PUT",
+                  credentials: "include",
+                })
+                  .then((response) => {
+                    if (response.ok) {
+                      setInfo({ ...info, declined: true });
+                      fetchInfo(ApiUrl, false);
+                    }
+                  })
+                  .catch((error) => setError(error.message));
+              }}
+            >
+              <p
+                className="text-xs"
+                onClick={() => setShowUpgradeDialog(true)}
+              >{`Update available (${info?.current} > ${info?.latest}).`}</p>
+            </Alert>
+          ) : null}
           <SidebarUserItem
             connected={connected}
             url={url}

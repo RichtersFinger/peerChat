@@ -10,7 +10,7 @@ import socket
 from functools import wraps
 import base64
 from time import time, sleep
-from importlib.metadata import version
+from subprocess import Popen, PIPE
 
 from flask import (
     Flask,
@@ -30,6 +30,7 @@ from peer_chat.common import (
     MessageStore,
     inform_peers,
     send_message,
+    update,
 )
 from peer_chat.api.v0 import blueprint_factory as v0_blueprint
 from peer_chat.socket import socket_
@@ -229,8 +230,9 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
     if config.MODE == "dev":
         load_cors(_app, config.DEV_CORS_FRONTEND_URL)
 
-    # initialize ressource-locks
-    auth_lock = Lock()
+    # socket
+    _socket = socket_(config, auth, store, user)
+    _socket.init_app(_app)
 
     @_app.route("/ping", methods=["GET"])
     def ping():
@@ -240,11 +242,13 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         return Response("pong", mimetype="text/plain", status=200)
 
     @_app.route("/version", methods=["GET"])
-    def _version():
+    def version():
         """
         Returns app version.
         """
-        return Response(version("peerChat"), mimetype="text/plain", status=200)
+        return Response(
+            update.get_current_version(), mimetype="text/plain", status=200
+        )
 
     @_app.route("/who", methods=["GET"])
     def who():
@@ -253,6 +257,8 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         paths.
         """
         return jsonify(name="peerChatAPI", api={"0": "/api/v0"}), 200
+
+    auth_lock = Lock()
 
     @_app.route("/auth/key", methods=["GET", "POST"])
     def create_auth_key():
@@ -289,6 +295,175 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         """
         return Response(
             "ok",
+            headers={"Access-Control-Allow-Credentials": "true"},
+            mimetype="text/plain",
+            status=200,
+        )
+
+    update_info_cache = {}
+    update_info_cache_lock = Lock()
+
+    def cache_update_info():
+        """Reload cached update-info data."""
+        with update_info_cache_lock:
+            update_info_cache.clear()
+
+            update_info_cache["current"] = update.get_current_version()
+
+            installed = update.get_installed_version()
+
+            latest = update.get_latest_version()
+            if latest:
+                changelog = update.fetch_changelog()
+                try:
+                    declined_version = (
+                        config.WORKING_DIRECTORY / config.UPDATES_FILE_PATH
+                    ).read_text(encoding="utf-8")
+                except FileNotFoundError:
+                    declined = False
+                else:
+                    declined = declined_version != "" and (
+                        update.compare_versions(
+                            declined_version.strip(), latest
+                        )
+                        or declined_version.strip() == latest
+                    )
+            else:
+                changelog = None
+                declined = False
+            if latest:
+                is_upgrade = update.compare_versions(
+                    latest, update_info_cache["current"]
+                )
+            else:
+                is_upgrade = None
+
+            if installed:
+                update_info_cache["installed"] = installed
+            if latest:
+                update_info_cache["latest"] = latest
+            if changelog:
+                update_info_cache["changelog"] = changelog
+            if declined is not None:
+                update_info_cache["declined"] = declined
+            if is_upgrade is not None:
+                update_info_cache["upgrade"] = is_upgrade
+
+    if not hasattr(config, "TESTING") or not config.TESTING:
+        Thread(target=cache_update_info).start()
+
+    @_app.route("/update/info", methods=["GET"])
+    @login_required(auth)
+    def update_info():
+        """
+        Returns update info. JSON contains
+        * current (running) version
+        * (optional) installed version
+        * (optional) latest existing version
+        * (optional) CHANGELOG
+        * (optional) whether latest has been declined
+        * (optional) whether latest is an upgrade
+
+        cache can be disabled with query-arg 'no-cache'
+        """
+        if "no-cache" in request.args:
+            cache_update_info()
+
+        r = make_response(jsonify(update_info_cache), 200)
+        r.headers["Access-Control-Allow-Credentials"] = "true"
+        return r
+
+    # this ensures preflight requests are successful during development
+    if config.MODE == "dev":
+
+        @_app.route("/update/decline", methods=["OPTIONS"])
+        @_app.route("/update/run", methods=["OPTIONS"])
+        def update_options():
+            return Response(
+                None,
+                headers={"Access-Control-Allow-Credentials": "true"},
+                mimetype="text/plain",
+                status=200,
+            )
+
+    @_app.route("/update/decline", methods=["PUT"])
+    @login_required(auth)
+    def update_decline():
+        """
+        Declines current latest (cache) or query-arg 'version'
+        """
+        version = request.args.get(
+            "version", update_info_cache.get("latest", None)
+        )
+        if version is None:
+            return Response(
+                "Missing version info.",
+                headers={"Access-Control-Allow-Credentials": "true"},
+                mimetype="text/plain",
+                status=404,
+            )
+
+        (config.WORKING_DIRECTORY / config.UPDATES_FILE_PATH).write_text(
+            version, encoding="utf-8"
+        )
+        Thread(target=cache_update_info).start()
+
+        return Response(
+            "OK",
+            headers={"Access-Control-Allow-Credentials": "true"},
+            mimetype="text/plain",
+            status=200,
+        )
+
+    update_lock = Lock()
+
+    def run_update(version: str):
+        """Run update and communicate log with client."""
+        with update_lock:
+            _socket.emit("starting-update")
+            with Popen(
+                ["pip", "install", f"peerChat=={version}"],
+                stdout=PIPE,
+                bufsize=1,
+                universal_newlines=True,
+            ) as p:
+                for line in p.stdout:
+                    _socket.emit("update-log", line.strip())
+
+            cache_update_info()
+            if p.returncode != 0:
+                _socket.emit(
+                    "update-error",
+                    f"Update failed, got return code {p.returncode}.",
+                )
+                return
+
+            _socket.emit("update-complete")
+
+    @_app.route("/update/run", methods=["PUT"])
+    @login_required(auth)
+    def update_run():
+        """
+        Update to current latest (cache) or query-arg 'version'.
+        """
+        version = request.args.get(
+            "version", update_info_cache.get("latest", None)
+        )
+        if version is None:
+            return Response(
+                "Missing version info.",
+                headers={"Access-Control-Allow-Credentials": "true"},
+                mimetype="text/plain",
+                status=404,
+            )
+
+        (config.WORKING_DIRECTORY / config.UPDATES_FILE_PATH).unlink(
+            missing_ok=True
+        )
+        Thread(target=run_update, args=(version,)).start()
+
+        return Response(
+            "OK",
             headers={"Access-Control-Allow-Credentials": "true"},
             mimetype="text/plain",
             status=200,
@@ -376,10 +551,6 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
             return send_from_directory(config.STATIC_PATH, path)
         return send_from_directory(config.STATIC_PATH, "index.html")
 
-    # socket
-    _socket = socket_(config, auth, store, user)
-    _socket.init_app(_app)
-
     # API
     _app.register_blueprint(
         v0_blueprint(
@@ -401,8 +572,7 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
             try:
                 if (
                     requests.get(
-                        f"http://localhost:{config.PORT}/ping",
-                        timeout=0.2
+                        f"http://localhost:{config.PORT}/ping", timeout=0.2
                     ).status_code
                     == 200
                 ):
