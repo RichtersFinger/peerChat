@@ -310,6 +310,8 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
 
             update_info_cache["current"] = update.get_current_version()
 
+            installed = update.get_installed_version()
+
             latest = update.get_latest_version()
             if latest:
                 changelog = update.fetch_changelog()
@@ -336,6 +338,8 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
             else:
                 is_upgrade = None
 
+            if installed:
+                update_info_cache["installed"] = installed
             if latest:
                 update_info_cache["latest"] = latest
             if changelog:
@@ -353,7 +357,8 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
     def update_info():
         """
         Returns update info. JSON contains
-        * current version
+        * current (running) version
+        * (optional) installed version
         * (optional) latest existing version
         * (optional) CHANGELOG
         * (optional) whether latest has been declined

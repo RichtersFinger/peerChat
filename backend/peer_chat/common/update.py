@@ -16,8 +16,23 @@ CHANGELOG_URL = "https://raw.githubusercontent.com/RichtersFinger/peerChat/refs/
 
 
 def get_current_version() -> str:
-    """Returns current version of `peerChat`."""
+    """Returns version of `peerChat` currently running."""
     return version(PKG_NAME)
+
+
+def get_installed_version() -> str:
+    """Returns version of `peerChat` installed in current environment."""
+    result = subprocess.run(
+        [sys.executable, "-m", "pip", "show", PKG_NAME],
+        check=False,
+        capture_output=True,
+    )
+    if result.returncode != 0 or b"Version:" not in result.stdout:
+        return None
+    match = re.search(r"Version: (.*)", result.stdout.decode("utf-8"))
+    if match is None:
+        return None
+    return match.groups()[0]
 
 
 def list_available_versions() -> list[str]:
