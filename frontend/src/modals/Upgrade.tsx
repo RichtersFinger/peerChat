@@ -52,7 +52,10 @@ export default function Upgrade({ open, onClose }: UpgradeProps) {
         <div className="flex flex-row justify-between mb-1">
           <h5 className="text-xl font-bold">Upgrade</h5>
           <Button
-            disabled={runningUpdate || updates.info === undefined}
+            disabled={
+              runningUpdate ||
+              (updates.info === undefined && updates.error === undefined)
+            }
             className="aspect-square items-center"
             size="xs"
             onClick={() => {
@@ -64,6 +67,13 @@ export default function Upgrade({ open, onClose }: UpgradeProps) {
           </Button>
         </div>
         <div className="space-y-2">
+          {updates.info &&
+          updates.info?.installed &&
+          updates.info.current !== updates.info.installed ? (
+            <Alert color="warning" icon={FiAlertCircle}>
+              The application needs to be restarted for changes to take effect.
+            </Alert>
+          ) : null}
           {updates.error ? (
             <Alert color="failure" icon={FiAlertCircle}>
               {updates.error}
@@ -78,7 +88,13 @@ export default function Upgrade({ open, onClose }: UpgradeProps) {
             <>
               <div className="flex flex-col space-y-2 pt-4">
                 <div className="flex flex-row justify-between">
-                  <span>{"Current version: " + updates.info.current}</span>
+                  <span>
+                    {`Current version: ${updates.info.current}`}{" "}
+                    {updates.info?.installed &&
+                    updates.info.current !== updates.info.installed
+                      ? `(installed ${updates.info.installed})`
+                      : null}
+                  </span>
                   {updates.info.latest ? (
                     <span>{"Latest version: " + updates.info.latest}</span>
                   ) : null}
@@ -147,7 +163,7 @@ export default function Upgrade({ open, onClose }: UpgradeProps) {
                       .catch((error) => updates.setError(error.message))
                   }
                 >
-                  {runningUpdate? <Spinner size="xs"/> :"Update"}
+                  {runningUpdate ? <Spinner size="xs" /> : "Update"}
                 </Button>
               </div>
             </>

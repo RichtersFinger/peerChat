@@ -51,6 +51,7 @@ interface Peers {
 
 interface UpdateInfo {
   current: string;
+  installed?: string;
   latest?: string;
   changelog?: string;
   declined?: boolean;
