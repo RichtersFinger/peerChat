@@ -350,7 +350,7 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
                 update_info_cache["upgrade"] = is_upgrade
 
     if not hasattr(config, "TESTING") or not config.TESTING:
-        Thread(target=cache_update_info).start()
+        cache_update_info()
 
     @_app.route("/update/info", methods=["GET"])
     @login_required(auth)
@@ -406,7 +406,7 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         (config.WORKING_DIRECTORY / config.UPDATES_FILE_PATH).write_text(
             version, encoding="utf-8"
         )
-        Thread(target=cache_update_info).start()
+        cache_update_info()
 
         return Response(
             "OK",
