@@ -7,7 +7,7 @@ import { ApiUrl } from "../App";
 import useStore, { Conversation } from "../stores";
 import SidebarUserItem, { DropdownItemType } from "./SidebarUserItem";
 import SidebarConversationItem from "./SidebarConversationItem";
-import Upgrade from "../modals/Upgrade";
+import Update from "../modals/Update";
 
 export type SidebarProps = {
   url: string;
@@ -55,7 +55,7 @@ export default function Sidebar({
 
   return (
     <>
-      <Upgrade
+      <Update
         open={showUpgradeDialog}
         onClose={() => setShowUpgradeDialog(false)}
       />

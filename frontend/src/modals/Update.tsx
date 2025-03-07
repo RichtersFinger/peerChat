@@ -5,12 +5,12 @@ import { FiAlertCircle, FiRefreshCw } from "react-icons/fi";
 import useStore from "../stores";
 import { ApiUrl, SocketContext } from "../App";
 
-type UpgradeProps = {
+type UpdateProps = {
   open: boolean;
   onClose?: () => void;
 };
 
-export default function Upgrade({ open, onClose }: UpgradeProps) {
+export default function Update({ open, onClose }: UpdateProps) {
   const socket = useContext(SocketContext);
   const [runningUpdate, setRunningUpdate] = useState(false);
   const logRef = useRef<HTMLTextAreaElement>(null);
@@ -50,7 +50,7 @@ export default function Upgrade({ open, onClose }: UpgradeProps) {
       <Modal.Header />
       <Modal.Body>
         <div className="flex flex-row justify-between mb-1">
-          <h5 className="text-xl font-bold">Upgrade</h5>
+          <h5 className="text-xl font-bold">Update</h5>
           <Button
             disabled={
               runningUpdate ||
