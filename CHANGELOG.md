@@ -4,6 +4,8 @@
 
 ### Changed
 
+- changed layout to justify message-text on left for own messages
+
 ### Added
 
 - added display for peer avatar images

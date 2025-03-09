@@ -54,7 +54,7 @@ export default function ChatMessageItem({
     >
       {message ? (
         <div className="space-y-2">
-          <div className={message?.isMine ? "text-end" : "text-start"}>
+          <div className="text-start">
             {message.body?.split(/\r?\n|\r|\n/g).map((line, index) => (
               <p key={index}>{line}</p>
             ))}
