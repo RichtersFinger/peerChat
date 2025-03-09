@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.4.0] - 2025-03-09
+
+### Changed
+
+- changed layout to justify message-text on left for own messages
+
+### Added
+
+- added display for peer avatar images
+
+### Fixed
+
+- added reset of avatar-preview in configuration-dialog on close
+- updated node-dependency versions
+
 ## [0.3.1] - 2025-03-08
 
 ### Fixed

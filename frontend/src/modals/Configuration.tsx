@@ -56,6 +56,9 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
       });
   }, [open, setAddressOptions]);
 
+  // reset avatar-preview on close
+  useEffect(() => setNewAvatarPreview(null), [open]);
+
   return (
     <Modal dismissible={true} show={open} size="xl" onClose={onClose} popup>
       <Modal.Header />
