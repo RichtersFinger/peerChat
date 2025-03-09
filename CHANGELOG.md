@@ -10,6 +10,8 @@
 
 ### Fixed
 
+- updated node-dependency versions
+
 ## [0.3.1] - 2025-03-08
 
 ### Fixed
