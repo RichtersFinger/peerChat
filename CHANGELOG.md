@@ -14,6 +14,7 @@
 
 ### Fixed
 
+- added reset of avatar-preview in configuration-dialog on close
 - updated node-dependency versions
 
 ## [0.3.1] - 2025-03-08
