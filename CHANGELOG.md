@@ -1,6 +1,6 @@
 # Changelog
 
-## [x.y.z] - 2025-??-??
+## [0.4.0] - 2025-03-09
 
 ### Changed
 
@@ -9,8 +9,6 @@
 ### Added
 
 - added display for peer avatar images
-
-### Removed
 
 ### Fixed
 
