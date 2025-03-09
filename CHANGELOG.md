@@ -6,6 +6,8 @@
 
 ### Added
 
+- added display for peer avatar images
+
 ### Removed
 
 ### Fixed
