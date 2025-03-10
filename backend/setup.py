@@ -40,6 +40,9 @@ setup(
             "peerChat = peer_chat.app:run",
         ],
     },
+    extras_require={
+        "notifications": ["desktop-notifier>=6,<7"],
+    },
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: End Users/Desktop",
