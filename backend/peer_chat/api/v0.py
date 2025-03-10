@@ -1,11 +1,11 @@
 """Definition of blueprint for backend API v0."""
 
+from typing import Optional
 from datetime import datetime
 
 from flask import (
     Blueprint,
     Response,
-    jsonify,
     make_response,
     send_file,
     request,
@@ -20,14 +20,24 @@ from peer_chat.common import (
     MessageStatus,
     Conversation,
     send_message as _send_message,
+    Notifier,
+    USE_NOTIFICATIONS,
 )
 
 
 def blueprint_factory(
-    config: AppConfig, user: User, socket: SocketIO, store: MessageStore
+    config: AppConfig,
+    user: User,
+    socket: SocketIO,
+    store: MessageStore,
+    notifier: Optional[Notifier],
 ) -> Blueprint:
     """Returns a flask-Blueprint implementing the API v0."""
     bp = Blueprint("v0", "v0")
+
+    # define minimalistic worker for queue of notifications (if required)
+    if USE_NOTIFICATIONS and notifier:
+        notifier.start()
 
     @bp.route("/ping", methods=["GET"])
     def ping():
@@ -126,6 +136,13 @@ def blueprint_factory(
                 mimetype="text/plain",
                 status=400,
             )
+
+        if USE_NOTIFICATIONS and notifier:
+            with notifier.queue_lock:
+                notifier.queue.append((c, m))
+            notifier.start()
+            notifier.send_notifications.set()
+
         return Response(c.id_, mimetype="text/plain", status=200)
 
     @bp.route("/update-available", methods=["POST"])

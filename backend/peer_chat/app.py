@@ -23,6 +23,12 @@ from flask import (
 from flask_socketio import SocketIO
 import requests
 
+try:
+    from desktop_notifier import DesktopNotifier, Icon
+except ImportError:
+    DesktopNotifier = None
+    Icon = None
+
 from peer_chat.config import AppConfig
 from peer_chat.common import (
     User,
@@ -31,6 +37,7 @@ from peer_chat.common import (
     inform_peers,
     send_message,
     update,
+    Notifier,
 )
 from peer_chat.api.v0 import blueprint_factory as v0_blueprint
 from peer_chat.socket import socket_
@@ -558,6 +565,15 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
             user,
             socket=_socket,
             store=store,
+            notifier=(
+                Notifier(
+                    DesktopNotifier(
+                        "peerChat", Icon(config.STATIC_PATH / "peerChat.svg")
+                    )
+                )
+                if DesktopNotifier
+                else None
+            ),
         ),
         url_prefix="/api/v0",
     )
