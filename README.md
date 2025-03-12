@@ -7,8 +7,9 @@ It is
 * easy to setup and use,
 
 and offers for example
-* message queues (auto-resend if peers are offline), or
-* handling application updates via UI.
+* message queues (auto-resend if peers are offline),
+* desktop notifications, and
+* installing application updates via UI.
 
 See the [demo-gallery](./gallery/gallery.md) for some impressions.
 
@@ -28,7 +29,7 @@ Start the `peerChat`-application with
 ```
 peerChat
 ```
-By default, the web-UI is available on port `http://localhost:27182`.
+By default, the web-UI is available at `http://localhost:27182`.
 If you are done, stop by hitting `Ctrl`+`C`.
 
 When the UI is first opened, some configuration has to be performed.
@@ -88,6 +89,8 @@ The following environment variables can be set to configure peerChat:
 - `SECRET_KEY` [DEFAULT null] override the otherwise automatically generated secret key
 - `USER_PEER_URL` [DEFAULT null] can be used to set the public peer-url; can also be set via the UI
 - `MODE` [DEFAULT prod] execution mode; one of "prod" or "dev"
+- `USE_NOTIFICATIONS` [DEFAULT yes] whether to enable desktop notifications (using the [`desktop-notifier`](https://pypi.org/project/desktop-notifier/)-package)
+- `CLIENT_URL` [DEFAULT null] override default client-url (used for example in notifications)
 
 Extended options for configuration can be accessed via the `AppConfig`-class used by the underlying `flask`-webserver which is passed in to the app-factory.
 

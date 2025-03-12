@@ -50,6 +50,7 @@ def _testing_config(tmp):
     class TestingConfig(AppConfig):
         WORKING_DIRECTORY = tmp
         TESTING = True
+        USE_NOTIFICATIONS = False
 
     return TestingConfig()
 

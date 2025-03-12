@@ -1,14 +1,14 @@
 # Changelog
 
-## [x.y.z] - 2025-??-??
-
-### Changed
+## [0.5.0] - 2025-03-12
 
 ### Added
 
-### Removed
+- added desktop notifications on host-machine via `desktop-notifier`-package
 
 ### Fixed
+
+- fixed fetching `CHANGELOG.md` for specific version
 
 ## [0.4.0] - 2025-03-09
 

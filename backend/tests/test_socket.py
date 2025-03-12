@@ -1,6 +1,5 @@
 """Test module for backend Flask socket."""
 
-import os
 from pathlib import Path
 from uuid import uuid4
 

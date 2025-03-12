@@ -22,6 +22,7 @@ from flask import (
 )
 from flask_socketio import SocketIO
 import requests
+from desktop_notifier import DesktopNotifier, Icon
 
 from peer_chat.config import AppConfig
 from peer_chat.common import (
@@ -31,6 +32,7 @@ from peer_chat.common import (
     inform_peers,
     send_message,
     update,
+    Notifier,
 )
 from peer_chat.api.v0 import blueprint_factory as v0_blueprint
 from peer_chat.socket import socket_
@@ -231,8 +233,8 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         load_cors(_app, config.DEV_CORS_FRONTEND_URL)
 
     # socket
-    _socket = socket_(config, auth, store, user)
-    _socket.init_app(_app)
+    socket_info = socket_(config, auth, store, user)
+    socket_info.socket.init_app(_app)
 
     @_app.route("/ping", methods=["GET"])
     def ping():
@@ -314,7 +316,7 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
 
             latest = update.get_latest_version()
             if latest:
-                changelog = update.fetch_changelog()
+                changelog = update.fetch_changelog(latest)
                 try:
                     declined_version = (
                         config.WORKING_DIRECTORY / config.UPDATES_FILE_PATH
@@ -420,7 +422,7 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
     def run_update(version: str):
         """Run update and communicate log with client."""
         with update_lock:
-            _socket.emit("starting-update")
+            socket_info.socket.emit("starting-update")
             with Popen(
                 ["pip", "install", f"peerChat=={version}"],
                 stdout=PIPE,
@@ -428,17 +430,17 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
                 universal_newlines=True,
             ) as p:
                 for line in p.stdout:
-                    _socket.emit("update-log", line.strip())
+                    socket_info.socket.emit("update-log", line.strip())
 
             cache_update_info()
             if p.returncode != 0:
-                _socket.emit(
+                socket_info.socket.emit(
                     "update-error",
                     f"Update failed, got return code {p.returncode}.",
                 )
                 return
 
-            _socket.emit("update-complete")
+            socket_info.socket.emit("update-complete")
 
     @_app.route("/update/run", methods=["PUT"])
     @login_required(auth)
@@ -556,8 +558,18 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
         v0_blueprint(
             config,
             user,
-            socket=_socket,
+            socket_info=socket_info,
             store=store,
+            notifier=(
+                Notifier(
+                    DesktopNotifier(
+                        "peerChat", Icon(config.STATIC_PATH / "peerChat.svg")
+                    ),
+                    config.CLIENT_URL or f"http://localhost:{config.PORT}"
+                )
+                if config.USE_NOTIFICATIONS
+                else None
+            ),
         ),
         url_prefix="/api/v0",
     )
@@ -589,14 +601,14 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
                 continue
             for mid in c.queued_messages.copy():
                 m = store.load_message(cid, mid)
-                if send_message(c, m, store, user, _socket):
+                if send_message(c, m, store, user, socket_info.socket):
                     c.queued_messages.remove(mid)
                     store.write(c.id_)
-            _socket.emit("update-conversation", c.json)
+            socket_info.socket.emit("update-conversation", c.json)
 
     Thread(target=run_post_startup_tasks, daemon=True).start()
 
-    return _app, _socket
+    return _app, socket_info.socket
 
 
 def run(app=None, config=None):

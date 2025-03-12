@@ -1,18 +1,18 @@
 """Definition of blueprint for backend API v0."""
 
+from typing import Optional
 from datetime import datetime
 
 from flask import (
     Blueprint,
     Response,
-    jsonify,
     make_response,
     send_file,
     request,
 )
-from flask_socketio import SocketIO
 
 from peer_chat.config import AppConfig
+from peer_chat.socket import SocketInfo
 from peer_chat.common import (
     User,
     MessageStore,
@@ -20,14 +20,23 @@ from peer_chat.common import (
     MessageStatus,
     Conversation,
     send_message as _send_message,
+    Notifier,
 )
 
 
 def blueprint_factory(
-    config: AppConfig, user: User, socket: SocketIO, store: MessageStore
+    config: AppConfig,
+    user: User,
+    socket_info: SocketInfo,
+    store: MessageStore,
+    notifier: Optional[Notifier],
 ) -> Blueprint:
     """Returns a flask-Blueprint implementing the API v0."""
     bp = Blueprint("v0", "v0")
+
+    # define minimalistic worker for queue of notifications (if required)
+    if config.USE_NOTIFICATIONS and notifier:
+        notifier.start()
 
     @bp.route("/ping", methods=["GET"])
     def ping():
@@ -111,8 +120,8 @@ def blueprint_factory(
             )
             c.last_modified = datetime.now()
             m = store.load_message(c.id_, mid)
-            socket.emit("update-conversation", c.json)
-            socket.emit(
+            socket_info.socket.emit("update-conversation", c.json)
+            socket_info.socket.emit(
                 "update-message",
                 {"cid": c.id_, "message": m.json},
             )
@@ -126,6 +135,14 @@ def blueprint_factory(
                 mimetype="text/plain",
                 status=400,
             )
+
+        if (
+            config.USE_NOTIFICATIONS
+            and notifier
+            and len(socket_info.connections) == 0
+        ):
+            notifier.enqueue(c, m)
+
         return Response(c.id_, mimetype="text/plain", status=200)
 
     @bp.route("/update-available", methods=["POST"])
@@ -142,7 +159,7 @@ def blueprint_factory(
             return Response("Missing JSON.", mimetype="text/plain", status=400)
         if "peer" not in json:
             return Response("Bad JSON.", mimetype="text/plain", status=422)
-        socket.emit("changed-peer", json["peer"])
+        socket_info.socket.emit("changed-peer", json["peer"])
         # retry sending messages
         for cid in store.list_conversations():
             c = store.load_conversation(cid)
@@ -152,10 +169,10 @@ def blueprint_factory(
                 continue
             for mid in c.queued_messages.copy():
                 m = store.load_message(cid, mid)
-                if _send_message(c, m, store, user, socket):
+                if _send_message(c, m, store, user, socket_info.socket):
                     c.queued_messages.remove(mid)
                     store.write(c.id_)
-            socket.emit("update-conversation", c.json)
+            socket_info.socket.emit("update-conversation", c.json)
 
         return Response("OK", mimetype="text/plain", status=200)
 

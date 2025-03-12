@@ -12,7 +12,7 @@ except FileNotFoundError:
 
 
 setup(
-    version=os.environ.get("VERSION", "0.4.0"),
+    version=os.environ.get("VERSION", "0.5.0"),
     name="peerChat",
     description="A basic self-hosted peer-to-peer chat application.",
     long_description=long_description,
@@ -28,6 +28,7 @@ setup(
         "Flask-SocketIO>=5.4,<6",
         "requests>=2.32,<3",
         "gunicorn",
+        "desktop-notifier>=6,<7",
     ],
     packages=[
         "peer_chat",
