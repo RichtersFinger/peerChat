@@ -136,7 +136,11 @@ def blueprint_factory(
                 status=400,
             )
 
-        if config.USE_NOTIFICATIONS and notifier:
+        if (
+            config.USE_NOTIFICATIONS
+            and notifier
+            and len(socket_info.connections) == 0
+        ):
             notifier.enqueue(c, m)
 
         return Response(c.id_, mimetype="text/plain", status=200)
