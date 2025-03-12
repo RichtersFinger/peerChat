@@ -28,6 +28,7 @@ setup(
         "Flask-SocketIO>=5.4,<6",
         "requests>=2.32,<3",
         "gunicorn",
+        "desktop-notifier>=6,<7",
     ],
     packages=[
         "peer_chat",
@@ -39,9 +40,6 @@ setup(
         "console_scripts": [
             "peerChat = peer_chat.app:run",
         ],
-    },
-    extras_require={
-        "notifications": ["desktop-notifier>=6,<7"],
     },
     classifiers=[
         "Development Status :: 4 - Beta",

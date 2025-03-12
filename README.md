@@ -88,6 +88,7 @@ The following environment variables can be set to configure peerChat:
 - `SECRET_KEY` [DEFAULT null] override the otherwise automatically generated secret key
 - `USER_PEER_URL` [DEFAULT null] can be used to set the public peer-url; can also be set via the UI
 - `MODE` [DEFAULT prod] execution mode; one of "prod" or "dev"
+- `USE_NOTIFICATIONS` [DEFAULT yes] whether to enable desktop notifications (using the [`desktop-notifier`](https://pypi.org/project/desktop-notifier/)-package)
 
 Extended options for configuration can be accessed via the `AppConfig`-class used by the underlying `flask`-webserver which is passed in to the app-factory.
 

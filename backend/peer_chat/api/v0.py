@@ -21,7 +21,6 @@ from peer_chat.common import (
     Conversation,
     send_message as _send_message,
     Notifier,
-    USE_NOTIFICATIONS,
 )
 
 
@@ -36,7 +35,7 @@ def blueprint_factory(
     bp = Blueprint("v0", "v0")
 
     # define minimalistic worker for queue of notifications (if required)
-    if USE_NOTIFICATIONS and notifier:
+    if config.USE_NOTIFICATIONS and notifier:
         notifier.start()
 
     @bp.route("/ping", methods=["GET"])
@@ -137,7 +136,7 @@ def blueprint_factory(
                 status=400,
             )
 
-        if USE_NOTIFICATIONS and notifier:
+        if config.USE_NOTIFICATIONS and notifier:
             notifier.enqueue(c, m)
 
         return Response(c.id_, mimetype="text/plain", status=200)

@@ -22,12 +22,7 @@ from flask import (
 )
 from flask_socketio import SocketIO
 import requests
-
-try:
-    from desktop_notifier import DesktopNotifier, Icon
-except ImportError:
-    DesktopNotifier = None
-    Icon = None
+from desktop_notifier import DesktopNotifier, Icon
 
 from peer_chat.config import AppConfig
 from peer_chat.common import (
@@ -571,7 +566,7 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
                         "peerChat", Icon(config.STATIC_PATH / "peerChat.svg")
                     )
                 )
-                if DesktopNotifier
+                if config.USE_NOTIFICATIONS
                 else None
             ),
         ),

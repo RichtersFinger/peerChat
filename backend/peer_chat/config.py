@@ -32,3 +32,4 @@ class AppConfig:
     USER_PEER_URL = os.environ.get("USER_PEER_URL")
     DATA_DIRECTORY = Path("data")
     UPDATES_FILE_PATH = Path(".updates")
+    USE_NOTIFICATIONS = os.environ.get("USE_NOTIFICATIONS", "yes") == "yes"

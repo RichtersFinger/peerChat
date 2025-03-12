@@ -1,7 +1,7 @@
 from .models import User, Auth, MessageStatus, Message, Conversation
 from .store import MessageStore
 from .util import inform_peers, send_message
-from .notifier import Notifier, USE_NOTIFICATIONS
+from .notifier import Notifier
 
 
 __all__ = [
@@ -14,5 +14,4 @@ __all__ = [
     "inform_peers",
     "send_message",
     "Notifier",
-    "USE_NOTIFICATIONS",
 ]

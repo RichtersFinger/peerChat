@@ -3,15 +3,10 @@
 import threading
 import asyncio
 
-try:
-    from desktop_notifier import DesktopNotifier
-
-    USE_NOTIFICATIONS = True
-except ImportError:
-    DesktopNotifier = None
-    USE_NOTIFICATIONS = False
+from desktop_notifier import DesktopNotifier
 
 from peer_chat.common import Conversation, Message
+
 
 class Notifier:
     """
