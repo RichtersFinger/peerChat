@@ -564,7 +564,8 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
                 Notifier(
                     DesktopNotifier(
                         "peerChat", Icon(config.STATIC_PATH / "peerChat.svg")
-                    )
+                    ),
+                    config.CLIENT_URL or f"http://localhost:{config.PORT}"
                 )
                 if config.USE_NOTIFICATIONS
                 else None
