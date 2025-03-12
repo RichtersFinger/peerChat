@@ -26,8 +26,9 @@ class Notifier:
 
         self.thread = None
         self._notifier_thread_lock = threading.Lock()
+        self._notifier_stop = threading.Event()
 
-    def start(self):
+    def start(self) -> None:
         """Starts the service-loop."""
         with self._notifier_thread_lock:
             if self.thread is None or not self.thread.is_alive():
@@ -36,14 +37,20 @@ class Notifier:
                 )
                 self.thread.start()
 
-    def _run_notifier(self):
+    def stop(self) -> None:
+        """Stops the service-loop."""
+        self.send_notifications.set()
+        self._notifier_stop.set()
+
+    def _run_notifier(self) -> None:
         """Service-loop definition."""
         loop = asyncio.new_event_loop()
 
         async def notify(c, m):
             await self.notifier.send(f"New message in '{c.name}'", m.body)
 
-        while True:
+        self._notifier_stop.clear()
+        while not self._notifier_stop.is_set():
             if self.send_notifications.is_set():
                 with self.queue_lock:
                     for c, m in self.queue:
