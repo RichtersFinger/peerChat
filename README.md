@@ -7,8 +7,9 @@ It is
 * easy to setup and use,
 
 and offers for example
-* message queues (auto-resend if peers are offline), or
-* handling application updates via UI.
+* message queues (auto-resend if peers are offline),
+* desktop notifications, and
+* installing application updates via UI.
 
 See the [demo-gallery](./gallery/gallery.md) for some impressions.
 
