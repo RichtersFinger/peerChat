@@ -13,6 +13,7 @@ import requests
 
 PKG_NAME = "peerChat"
 CHANGELOG_URL = "https://raw.githubusercontent.com/RichtersFinger/peerChat/refs/heads/main/CHANGELOG.md"
+CHANGELOG_URL_TAG = "https://raw.githubusercontent.com/RichtersFinger/peerChat/refs/tags/{}/CHANGELOG.md"
 
 
 def get_current_version() -> str:
@@ -105,10 +106,13 @@ def get_latest_version(versions: Optional[list[str]] = None) -> Optional[str]:
     )
 
 
-def fetch_changelog() -> Optional[str]:
+def fetch_changelog(tag: Optional[str]) -> Optional[str]:
     """Returns current changelog of `peerChat` if available."""
     try:
-        return requests.get(CHANGELOG_URL, timeout=2).text
+        return requests.get(
+            CHANGELOG_URL if tag is None else CHANGELOG_URL_TAG.format(tag),
+            timeout=2,
+        ).text
     # pylint: disable=broad-exception-caught
     except Exception:
         return None

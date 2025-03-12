@@ -316,7 +316,7 @@ def app_factory(config: AppConfig) -> tuple[Flask, SocketIO]:
 
             latest = update.get_latest_version()
             if latest:
-                changelog = update.fetch_changelog()
+                changelog = update.fetch_changelog(latest)
                 try:
                     declined_version = (
                         config.WORKING_DIRECTORY / config.UPDATES_FILE_PATH
