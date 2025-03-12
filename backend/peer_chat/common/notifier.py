@@ -11,6 +11,7 @@ except ImportError:
     DesktopNotifier = None
     USE_NOTIFICATIONS = False
 
+from peer_chat.common import Conversation, Message
 
 class Notifier:
     """
@@ -46,7 +47,7 @@ class Notifier:
         """Service-loop definition."""
         loop = asyncio.new_event_loop()
 
-        async def notify(c, m):
+        async def notify(c: Conversation, m: Message):
             await self.notifier.send(f"New message in '{c.name}'", m.body)
 
         self._notifier_stop.clear()
@@ -60,3 +61,13 @@ class Notifier:
 
             self.send_notifications.wait(1)
         loop.close()
+
+    def enqueue(self, c: Conversation, m: Message) -> None:
+        """
+        Add request to queue, run `start` if not running, and trigger
+        immediate processing.
+        """
+        with self.queue_lock:
+            self.queue.append((c, m))
+        self.start()
+        self.send_notifications.set()

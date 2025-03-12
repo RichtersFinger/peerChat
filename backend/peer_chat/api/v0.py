@@ -138,10 +138,7 @@ def blueprint_factory(
             )
 
         if USE_NOTIFICATIONS and notifier:
-            with notifier.queue_lock:
-                notifier.queue.append((c, m))
-            notifier.start()
-            notifier.send_notifications.set()
+            notifier.enqueue(c, m)
 
         return Response(c.id_, mimetype="text/plain", status=200)
 
