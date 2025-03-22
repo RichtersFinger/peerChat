@@ -17,6 +17,11 @@ export default function Markdown(props: Readonly<Options>) {
                 {children}
               </p>
             ),
+            a: ({ children, node, ...props }) => (
+              <a {...props} target="_blank" style={{ color: "#1a56db" }}>
+                {children}
+              </a>
+            ),
             ul: ({ children, node, ...props }) => (
               <ul {...props} style={{ marginTop: 0, marginBottom: 2 }}>
                 {children}
