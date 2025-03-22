@@ -4,6 +4,7 @@ import { FiAlertCircle, FiRefreshCw } from "react-icons/fi";
 
 import useStore from "../stores";
 import { ApiUrl, SocketContext } from "../App";
+import Markdown from "../components/Markdown";
 
 type UpdateProps = {
   open: boolean;
@@ -100,11 +101,9 @@ export default function Update({ open, onClose }: UpdateProps) {
                   ) : null}
                 </div>
                 {updates.info.changelog ? (
-                  <textarea
-                    className="bg-gray-100 h-64 rounded-xl font-mono resize-none overflow-y-auto hide-scrollbar hover:show-scrollbar"
-                    disabled={true}
-                    value={updates.info.changelog}
-                  />
+                  <div className="bg-gray-100 h-64 rounded-xl resize-none overflow-y-auto hide-scrollbar hover:show-scrollbar p-2">
+                    <Markdown>{updates.info.changelog}</Markdown>
+                  </div>
                 ) : null}
                 {(runningUpdate || updates.log.length > 0) && (
                   <textarea

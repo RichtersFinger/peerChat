@@ -8,6 +8,7 @@ It is
 
 and offers for example
 * message queues (auto-resend if peers are offline),
+* support for markdown,
 * desktop notifications, and
 * installing application updates via UI.
 
