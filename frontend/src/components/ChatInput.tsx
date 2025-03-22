@@ -31,9 +31,10 @@ export default function ChatInput({ cid }: ChatInputProps) {
   return (
     <div className="flex flex-row space-x-2 p-4">
       <Textarea
+        className="text-lg"
         ref={newMessageRef}
         placeholder="Your message..."
-        rows={3}
+        rows={4}
         onKeyDown={(e) => {
           if (!e.shiftKey && e.key === "Enter") sendMessage();
         }}

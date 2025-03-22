@@ -2,6 +2,7 @@ import { useContext } from "react";
 import { Tooltip, Spinner, Alert, Button } from "flowbite-react";
 
 import { SocketContext } from "../App";
+import Markdown from "./Markdown";
 
 export type Message = {
   id: number;
@@ -53,12 +54,8 @@ export default function ChatMessageItem({
       }
     >
       {message ? (
-        <div className="space-y-2">
-          <div className="text-start">
-            {message.body?.split(/\r?\n|\r|\n/g).map((line, index) => (
-              <p key={index}>{line}</p>
-            ))}
-          </div>
+        <div className="space-y-2 pt-2">
+          <Markdown>{message.body}</Markdown>
           <div className="flex flex-row place-content-between items-end">
             {message.status === "sending" ? (
               <Tooltip content="sending">
