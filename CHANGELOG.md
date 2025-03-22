@@ -6,6 +6,8 @@
 
 ### Added
 
+- added markdown support via `react-markdown`
+
 ### Removed
 
 ### Fixed
