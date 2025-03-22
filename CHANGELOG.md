@@ -1,16 +1,10 @@
 # Changelog
 
-## [x.y.z] - 2025-??-??
-
-### Changed
+## [0.6.0] - 2025-03-22
 
 ### Added
 
 - added markdown support via `react-markdown`
-
-### Removed
-
-### Fixed
 
 ## [0.5.0] - 2025-03-12
 
