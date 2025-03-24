@@ -1,5 +1,17 @@
 # Changelog
 
+## [x.y.z] - 2025-??-??
+
+### Changed
+
+### Added
+
+- added markdown-preview button to chat input
+
+### Removed
+
+### Fixed
+
 ## [0.6.0] - 2025-03-22
 
 ### Added
