@@ -1,5 +1,17 @@
 # Changelog
 
+## [x.y.z] - 2025-??-??
+
+### Changed
+
+### Added
+
+### Removed
+
+### Fixed
+
+- fixed message boxes not using available space (following changes in 0.6.1)
+
 ## [0.6.1] - 2025-03-24
 
 ### Added
