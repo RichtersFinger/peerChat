@@ -61,7 +61,7 @@ export default function ChatInput({ cid }: ChatInputProps) {
       </div>
       <div className="flex flex-row space-x-2">
         {preview && (
-          <div className="border-2 border-gray-200 rounded-lg grow h-32 px-4 py-1 overflow-y-auto hide-scrollbar hover:show-scrollbar">
+          <div className="border-2 border-gray-200 rounded-lg grow h-32 px-2 py-1 overflow-y-auto hide-scrollbar hover:show-scrollbar">
             <Markdown>{previewContent}</Markdown>
           </div>
         )}

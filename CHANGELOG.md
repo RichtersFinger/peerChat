@@ -12,6 +12,7 @@
 
 ### Fixed
 
+- fixed issue with overflowing chat message-boxes
 - fixed 'Send'-button being functional for empty input
 
 ## [0.6.0] - 2025-03-22

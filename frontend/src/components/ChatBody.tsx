@@ -121,7 +121,7 @@ export default function ChatBody({ conversation }: ChatBodyProps) {
             <span className="text-gray-300">No messages yet</span>
           </div>
         ) : (
-          <div className="flex flex-col grow space-y-3 ">
+          <div className="flex flex-col overflow-x-hidden space-y-3 ">
             {Object.keys(messages)
               .map(Number)
               .sort((a, b) => a - b)

@@ -67,10 +67,12 @@ export default function Markdown(props: Readonly<Options>) {
                 <CodeBlockContext.Provider value={true}>
                   <pre
                     {...props}
+                    className="hide-scrollbar hover:show-scrollbar"
                     style={{
                       background: "#fcfcfc",
                       padding: 4,
                       paddingLeft: 10,
+                      overflowX: "auto",
                     }}
                   >
                     {children}
