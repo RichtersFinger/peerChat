@@ -1,4 +1,4 @@
-import { useRef, useContext, useState } from "react";
+import { useRef, useContext, useState, useEffect } from "react";
 import { Button, Textarea } from "flowbite-react";
 
 import { SocketContext } from "../App";
@@ -23,22 +23,25 @@ export type ChatInputProps = {
 export default function ChatInput({ cid }: ChatInputProps) {
   const socket = useContext(SocketContext);
   const newMessageRef = useRef<HTMLTextAreaElement>(null);
+  const [messageContent, setMessageContent] = useState("");
   const [preview, setPreview] = useState(false);
   const [previewContent, setPreviewContent] = useState("");
+
+  // handle setting preview-content on input change
+  useEffect(() => setPreviewContent(messageContent), [messageContent]);
 
   /**
    * Attempts to send current input as message. Skip if socket is undefined.
    */
   function sendMessage() {
-    if (!socket) return;
+    if (!socket || messageContent === "") return;
 
     socket.emit(
       "post-message",
       cid,
-      { body: newMessageRef.current?.value, isMine: true },
+      { body: messageContent, isMine: true },
       (mid: number) => {
-        if (newMessageRef.current?.value) newMessageRef.current.value = "";
-        setPreviewContent("");
+        setMessageContent("");
         setPreview(false);
         socket.emit("send-message", cid, mid);
       }
@@ -51,10 +54,7 @@ export default function ChatInput({ cid }: ChatInputProps) {
         <Button
           color="gray"
           size="xs"
-          onClick={() => {
-            setPreviewContent(newMessageRef.current?.value ?? "");
-            setPreview((state) => !state);
-          }}
+          onClick={() => setPreview((state) => !state)}
         >
           {preview ? "Continue writing" : "Preview"}
         </Button>
@@ -66,7 +66,10 @@ export default function ChatInput({ cid }: ChatInputProps) {
           </div>
         )}
         <Textarea
-          className={"text-lg hide-scrollbar hover:show-scrollbar " + (preview ? "hidden" : "visible")}
+          className={
+            "text-lg hide-scrollbar hover:show-scrollbar " +
+            (preview ? "hidden" : "visible")
+          }
           ref={newMessageRef}
           placeholder="Your message..."
           rows={4}
@@ -90,26 +93,34 @@ export default function ChatInput({ cid }: ChatInputProps) {
               const postInsertCursorPosition =
                 newMessageRef.current.selectionStart + mdLink.length;
 
-              newMessageRef.current.value =
+              setMessageContent(
                 newMessageRef.current.value.slice(
                   0,
                   newMessageRef.current.selectionStart
                 ) +
-                mdLink +
-                newMessageRef.current.value.slice(
-                  newMessageRef.current.selectionEnd,
-                  newMessageRef.current.value.length
-                );
+                  mdLink +
+                  newMessageRef.current.value.slice(
+                    newMessageRef.current.selectionEnd,
+                    newMessageRef.current.value.length
+                  )
+              );
               newMessageRef.current.selectionStart = postInsertCursorPosition;
               newMessageRef.current.selectionEnd = postInsertCursorPosition;
             }
           }}
           onKeyDown={(e) => {
-            if (!e.shiftKey && e.key === "Enter") sendMessage();
+            if (!e.shiftKey && e.key === "Enter") {
+              e.preventDefault();
+              sendMessage();
+            }
           }}
+          value={messageContent}
+          onChange={(e) => setMessageContent(e.target.value)}
         />
         <div>
-          <Button onClick={sendMessage}>Send</Button>
+          <Button disabled={messageContent === ""} onClick={sendMessage}>
+            Send
+          </Button>
         </div>
       </div>
     </div>
