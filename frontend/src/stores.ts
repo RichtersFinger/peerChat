@@ -199,6 +199,15 @@ const useStore = create<StoreState>((set, get) => ({
   },
   activeConversation: {
     setId: (id) => {
+      const params = new URLSearchParams(window.location.search);
+      params.set("cid", id);
+      window.history.pushState(
+        {},
+        "",
+        `${window.location.pathname}?${params.toString()}${
+          window.location.hash
+        }`
+      );
       set(
         produce((state: StoreState) => {
           state.activeConversation.id = id;

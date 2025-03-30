@@ -6,6 +6,8 @@
 
 ### Added
 
+- added query parameter-based routing
+
 ### Removed
 
 ### Fixed

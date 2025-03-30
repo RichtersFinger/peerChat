@@ -70,6 +70,12 @@ export default function App() {
   // setup status
   useEffect(checkSetup, [checkSetup]);
 
+  // route to conversation
+  useEffect(() => {
+    const activeId = new URLSearchParams(window.location.search).get("cid");
+    if (activeId) activeConversation.setId(activeId);
+  }, [activeConversation]);
+
   // connection status-tracking
   useEffect(() => {
     socket.on("connect", () => {
