@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.7.0] - 2025-03-30
+
+### Added
+
+- added query parameter-based routing
+
+### Fixed
+
+- fixed message boxes not using available space (following changes in 0.6.1)
+
 ## [0.6.1] - 2025-03-24
 
 ### Added
