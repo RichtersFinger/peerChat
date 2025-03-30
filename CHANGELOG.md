@@ -1,14 +1,10 @@
 # Changelog
 
-## [x.y.z] - 2025-??-??
-
-### Changed
+## [0.7.0] - 2025-03-30
 
 ### Added
 
 - added query parameter-based routing
-
-### Removed
 
 ### Fixed
 
