@@ -52,7 +52,9 @@ class Notifier:
                 buttons=[
                     Button(
                         title="View",
-                        on_pressed=lambda: webbrowser.open(self.url),
+                        on_pressed=lambda: webbrowser.open(
+                            self.url + f"?cid={c.id_}"
+                        ),
                     )
                 ],
             )
