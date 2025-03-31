@@ -173,7 +173,7 @@ export default function App() {
           />
         </div>
         {(setupChecked && !setup) || (loginChecked && !loggedIn) ? (
-          <div className="w-full h-screen place-content-center place-items-center">
+          <div className="flex w-full h-screen place-content-center place-items-center">
             <Card className="min-w-96 max-w-96">
               {setupChecked && !setup ? (
                 <>
