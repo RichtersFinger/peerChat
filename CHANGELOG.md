@@ -1,5 +1,17 @@
 # Changelog
 
+## [x.y.z] - 2025-??-??
+
+### Changed
+
+### Added
+
+### Removed
+
+### Fixed
+
+- added workaround for notification-button of systemd-service only working after restart
+
 ## [0.7.0] - 2025-03-30
 
 ### Added
