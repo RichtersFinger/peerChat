@@ -13,7 +13,6 @@ define SERVICE_STARTSH
 cd "$$(dirname "$$0")" \
   && source venv/bin/activate \
   && peerChat
-
 endef
 export SERVICE_STARTSH
 
@@ -23,12 +22,12 @@ Description=peerChat-service
 
 [Service]
 Type=simple
+ExecStartPre=/bin/sleep 0.5
 ExecStart=${INSTALLPATH}/start.sh
 Restart=always
 
 [Install]
 WantedBy=default.target
-
 endef
 export SERVICE
 

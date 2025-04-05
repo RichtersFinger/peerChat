@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.2] - 2025-04-05
+
+### Fixed
+
+- fixed horizontal positioning of setup/login-cards in non-chrome browsers
+- added workaround for notification-button of systemd-service only working after restart
+
 ## [0.7.0] - 2025-03-30
 
 ### Added
