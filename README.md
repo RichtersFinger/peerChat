@@ -63,6 +63,13 @@ Disable or stop the service by entering
 systemctl --user <disable|stop> peerChat.service
 ```
 
+## Docker
+Run with, for example,
+```
+docker run -p 27182:27182 ghcr.io/richtersfinger/peerchat:latest
+```
+The container's `peerChat`-working directory is located at `/app`.
+
 ## Building from source
 The provided `Makefile` provides targets for building from source.
 Run
