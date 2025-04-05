@@ -61,6 +61,11 @@ build: venv build-frontend build-backend
 		${VERSIONENV} python3 setup.py sdist bdist_wheel || \
 		python3 setup.py sdist bdist_wheel
 
+build-docker:
+	[ "${VERSION}" != "" ] && \
+		docker build -t ghcr.io/richtersfinger/peerchat:latest -t ghcr.io/richtersfinger/peerchat:${VERSION} . || \
+		echo "No VERSION specified."
+
 publish: venv
 	source "${VENV}/bin/activate" && \
 		pip install --upgrade pip twine && \
