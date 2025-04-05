@@ -1,12 +1,6 @@
 # Changelog
 
-## [x.y.z] - 2025-??-??
-
-### Changed
-
-### Added
-
-### Removed
+## [0.7.2] - 2025-04-05
 
 ### Fixed
 
