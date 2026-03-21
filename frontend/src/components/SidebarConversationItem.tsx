@@ -1,9 +1,15 @@
 import { useContext, useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { Sidebar as FBSidebar, Avatar, Dropdown, Badge } from "flowbite-react";
+import {
+  Avatar,
+  Dropdown,
+  Badge,
+  SidebarItem,
+  DropdownItem,
+} from "flowbite-react";
 import { FiMoreVertical } from "react-icons/fi";
 
-import useStore, { Conversation } from "../stores";
+import useStore, { type Conversation } from "../stores";
 import { SocketContext } from "../App";
 import Confirmation from "../modals/Confirmation";
 import EditConversation from "../modals/EditConversation";
@@ -21,7 +27,7 @@ export default function SidebarConversationItem({
 }: SidebarConversationItemProps) {
   const socket = useContext(SocketContext);
   const activeConversation = useStore(
-    useShallow((state) => state.activeConversation)
+    useShallow((state) => state.activeConversation),
   );
   const peers = useStore(useShallow((state) => state.peers));
   const [editConversation, setEditConversation] = useState(false);
@@ -51,7 +57,7 @@ export default function SidebarConversationItem({
         conversation={conversation}
         onClose={() => setEditConversation(false)}
       />
-      <FBSidebar.Item
+      <SidebarItem
         theme={{
           base:
             "flex items-start	justify-start rounded-lg py-2 text-base font-normal text-gray-900" +
@@ -66,7 +72,7 @@ export default function SidebarConversationItem({
         <div
           className={
             activeConversation.id === conversation.id
-              ? "rounded-xl bg-white"
+              ? "rounded-xl"
               : ""
           }
         >
@@ -119,17 +125,17 @@ export default function SidebarConversationItem({
                   </div>
                 )}
               >
-                <Dropdown.Item onClick={() => setEditConversation(true)}>
+                <DropdownItem onClick={() => setEditConversation(true)}>
                   Edit
-                </Dropdown.Item>
-                <Dropdown.Item onClick={() => setShowDeleteConfirmation(true)}>
+                </DropdownItem>
+                <DropdownItem onClick={() => setShowDeleteConfirmation(true)}>
                   Delete
-                </Dropdown.Item>
+                </DropdownItem>
               </Dropdown>
             </div>
           </div>
         </div>
-      </FBSidebar.Item>
+      </SidebarItem>
     </>
   );
 }

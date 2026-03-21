@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 import { Button } from "flowbite-react";
-import ReactMarkdown, { Options } from "react-markdown";
+import ReactMarkdown, { type Options } from "react-markdown";
 import { FiClipboard } from "react-icons/fi";
 
 const CodeBlockContext = createContext(false);

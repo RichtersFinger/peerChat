@@ -4,7 +4,7 @@ import { Socket, io } from "socket.io-client";
 import { Button, Card, Alert } from "flowbite-react";
 import { FiAlertCircle } from "react-icons/fi";
 
-import useStore, { Conversation } from "./stores";
+import useStore, { type Conversation } from "./stores";
 import Sidebar from "./components/Sidebar";
 import Chat from "./components/Chat";
 import SetupDialog from "./modals/Setup";
@@ -12,7 +12,7 @@ import LoginDialog from "./modals/Login";
 import ConfigurationDialog from "./modals/Configuration";
 import NewConversationDialog from "./modals/NewConversation";
 
-export const ApiUrl = process.env.REACT_APP_API_BASE_URL ?? window.origin;
+export const ApiUrl = import.meta.env.VITE_API_BASE_URL ?? window.origin;
 const socket = io(ApiUrl, {
   autoConnect: false,
   withCredentials: true,
@@ -37,7 +37,7 @@ export default function App() {
   const checkLogin = useCallback(() => {
     fetch(
       ApiUrl + "/auth/test",
-      process.env.REACT_APP_API_BASE_URL ? { credentials: "include" } : {}
+      import.meta.env.VITE_API_BASE_URL ? { credentials: "include" } : {}
     ).then(async (response) => {
       setLoggedIn(response.ok);
       setLoginChecked(true);

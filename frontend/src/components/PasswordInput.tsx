@@ -15,7 +15,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
     return (
       <>
         <div className="mb-2 block">
-          <Label htmlFor={props.id} value="Your key" />
+          <Label htmlFor={props.id}>Your key</Label>
         </div>
         <div className={props.className ?? "relative w-full h-10"}>
           <TextInput
@@ -40,7 +40,7 @@ const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
         </div>
       </>
     );
-  }
+  },
 );
 
 export default PasswordInput;

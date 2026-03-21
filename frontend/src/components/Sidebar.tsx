@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { Sidebar as FBSidebar, Alert, Tooltip } from "flowbite-react";
+import { Sidebar as FBSidebar, SidebarLogo, SidebarItems, SidebarItemGroup, SidebarItem, Alert, Tooltip } from "flowbite-react";
 import { useShallow } from "zustand/react/shallow";
 import { FiRefreshCw } from "react-icons/fi";
 
 import { ApiUrl } from "../App";
-import useStore, { Conversation } from "../stores";
-import SidebarUserItem, { DropdownItemType } from "./SidebarUserItem";
+import useStore, { type Conversation } from "../stores";
+import SidebarUserItem, { type DropdownItemType } from "./SidebarUserItem";
 import SidebarConversationItem from "./SidebarConversationItem";
 import Update from "../modals/Update";
 
@@ -69,7 +69,7 @@ export default function Sidebar({
         }}
       >
         <div className="mb-24">
-          <FBSidebar.Logo
+          <SidebarLogo
             href=""
             img="/peerChat.svg"
             imgAlt="peerChat"
@@ -91,7 +91,7 @@ export default function Sidebar({
                 </Tooltip>
               ) : null}
             </div>
-          </FBSidebar.Logo>
+          </SidebarLogo>
           {info && info.upgrade && !info.declined ? (
             <Alert
               className="mx-1 py-2"
@@ -122,11 +122,11 @@ export default function Sidebar({
             menuItems={menuItems}
           />
         </div>
-        <FBSidebar.Items>
-          <FBSidebar.ItemGroup>
-            <FBSidebar.Item onClick={onNewConversationClick}>
+        <SidebarItems>
+          <SidebarItemGroup>
+            <SidebarItem onClick={onNewConversationClick}>
               + New Conversation
-            </FBSidebar.Item>
+            </SidebarItem>
             {Object.values(conversations)
               .sort((a, b) => (a.lastModified < b.lastModified ? 1 : -1))
               .sort((a, b) => (a.unreadMessages && !b.unreadMessages ? -1 : 1))
@@ -138,8 +138,8 @@ export default function Sidebar({
                   onClick={onConversationClick}
                 />
               ))}
-          </FBSidebar.ItemGroup>
-        </FBSidebar.Items>
+          </SidebarItemGroup>
+        </SidebarItems>
       </FBSidebar>
     </>
   );

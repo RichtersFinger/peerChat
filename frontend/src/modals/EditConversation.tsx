@@ -1,9 +1,18 @@
 import { useState, useContext } from "react";
-import { Modal, Label, TextInput, Avatar, Button, Alert } from "flowbite-react";
+import {
+  Modal,
+  ModalBody,
+  ModalHeader,
+  Label,
+  TextInput,
+  Avatar,
+  Button,
+  Alert,
+} from "flowbite-react";
 import { FiAlertCircle } from "react-icons/fi";
 
 import { SocketContext } from "../App";
-import { Conversation } from "../stores";
+import { type Conversation } from "../stores";
 import useUser from "../hooks/useUser";
 
 export type EditConversationProps = {
@@ -33,16 +42,14 @@ export default function EditConversation({
       }}
       popup
     >
-      <Modal.Header />
-      <Modal.Body>
+      <ModalHeader />
+      <ModalBody>
         <div className="space-y-4">
           <h5 className="text-xl font-bold">{`Edit Conversation '${conversation.name}'`}</h5>
           <div className="space-y-1">
-            <Label
-              className="mb-1"
-              htmlFor="title"
-              value="Conversation title"
-            />
+            <Label className="mb-1" htmlFor="title">
+              Conversation title
+            </Label>
             <TextInput
               id="title"
               type="text"
@@ -57,7 +64,9 @@ export default function EditConversation({
             />
           </div>
           <div className="space-y-1">
-            <Label className="mb-1" htmlFor="peer" value="Peer address" />
+            <Label className="mb-1" htmlFor="peer">
+              Peer address
+            </Label>
             <div className="flex flex-row grid-cols-2 place-content-between">
               <TextInput
                 id="peer"
@@ -101,14 +110,14 @@ export default function EditConversation({
                 (ok: boolean) => {
                   if (ok) onClose?.();
                   else setError("Some error occurred.");
-                }
+                },
               );
             }}
           >
             Apply
           </Button>
         </div>
-      </Modal.Body>
+      </ModalBody>
     </Modal>
   );
 }

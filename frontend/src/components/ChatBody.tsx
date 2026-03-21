@@ -1,10 +1,10 @@
 import { useRef, useState, useEffect, useContext, useCallback } from "react";
 import { Button } from "flowbite-react";
 
-import { Conversation } from "../stores";
+import { type Conversation } from "../stores";
 import { SocketContext } from "../App";
 import ChatMessageItem from "./ChatMessageItem";
-import { Message } from "./ChatMessageItem";
+import { type Message } from "./ChatMessageItem";
 
 export type ChatBodyProps = {
   conversation: Conversation;

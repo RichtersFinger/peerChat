@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
-import { Modal, Alert, Button } from "flowbite-react";
-import { FiAlertCircle} from "react-icons/fi";
+import { Modal, ModalBody, ModalHeader, Alert, Button } from "flowbite-react";
+import { FiAlertCircle } from "react-icons/fi";
 
 import { ApiUrl, authKey, authKeyMaxAge } from "../App";
 import PasswordInput from "../components/PasswordInput";
@@ -18,8 +18,8 @@ export default function Login({ open, onClose, onLogin }: LoginProps) {
 
   return (
     <Modal dismissible={true} show={open} size="xl" onClose={onClose} popup>
-      <Modal.Header />
-      <Modal.Body>
+      <ModalHeader />
+      <ModalBody>
         <div className="space-y-6">
           <h5 className="text-xl font-bold">Login</h5>
           <div>
@@ -51,9 +51,9 @@ export default function Login({ open, onClose, onLogin }: LoginProps) {
                   authKeyMaxAge;
                 fetch(
                   ApiUrl + "/auth/test",
-                  process.env.REACT_APP_API_BASE_URL
+                  import.meta.env.VITE_API_BASE_URL
                     ? { credentials: "include" }
-                    : {}
+                    : {},
                 ).then(async (response) => {
                   if (onLogin && response.ok) onLogin();
                   if (response.ok) setError("");
@@ -65,7 +65,7 @@ export default function Login({ open, onClose, onLogin }: LoginProps) {
             </Button>
           </div>
         </div>
-      </Modal.Body>
+      </ModalBody>
     </Modal>
   );
 }
