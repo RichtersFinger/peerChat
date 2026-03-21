@@ -10,7 +10,7 @@ class AppConfig:
 
     MODE = os.environ.get("MODE", "prod")  # "prod" | "dev"
     DEV_CORS_FRONTEND_URL = os.environ.get(
-        "DEV_CORS_FRONTEND_URL", "http://localhost:3000"
+        "DEV_CORS_FRONTEND_URL", "http://localhost:5173"
     )
     PORT = os.environ.get("PORT", "27182" if MODE == "prod" else "5000")
     FLASK_THREADS = 5
