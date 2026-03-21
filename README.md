@@ -128,7 +128,7 @@ Based on pre-defined scripts, the frontend development server can be started wit
 ```
 cd frontend
 npm install
-npm start
+npm run dev
 ```
 
-The client can then be accessed via the node-development server at `http://localhost:3000`.
+The client can then be accessed via the node-development server at `http://localhost:5173`.
