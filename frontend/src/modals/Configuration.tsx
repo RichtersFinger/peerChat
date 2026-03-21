@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import {
   Modal,
+  ModalBody,
+  ModalHeader,
   Alert,
   Button,
   Label,
@@ -61,16 +63,14 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
 
   return (
     <Modal dismissible={true} show={open} size="xl" onClose={onClose} popup>
-      <Modal.Header />
-      <Modal.Body>
+      <ModalHeader />
+      <ModalBody>
         <div className="space-y-4">
           <h5 className="text-xl font-bold">User configuration</h5>
           <div className="space-y-1">
-            <Label
-              className="mb-1"
-              htmlFor="username"
-              value="Choose your displayed name"
-            />
+            <Label className="mb-1" htmlFor="username">
+              Choose your displayed name
+            </Label>
             <TextInput
               id="username"
               type="text"
@@ -87,7 +87,7 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
           ) : null}
           <div className="flex flex-row place-content-between">
             <div className="space-y-1">
-              <Label htmlFor="avatar" value="Choose your avatar" />
+              <Label htmlFor="avatar">Choose your avatar</Label>
               <FileInput
                 id="avatar"
                 onChange={async (e) => {
@@ -98,7 +98,7 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
                       if (typeof reader.result === "string")
                         setNewAvatarPreview(reader.result);
                     },
-                    false
+                    false,
                   );
                   if (e.target.files?.[0]) {
                     reader.readAsDataURL(e.target.files?.[0]);
@@ -113,8 +113,8 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
               {...(newAvatarPreview
                 ? { img: newAvatarPreview }
                 : user?.avatar
-                ? { img: user.avatar }
-                : {})}
+                  ? { img: user.avatar }
+                  : {})}
             />
           </div>
           {userAvatarError ? (
@@ -124,7 +124,7 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
           ) : null}
           <fieldset className="flex flex-col gap-2">
             <div className="flex flex-row gap-2">
-              <Label htmlFor="address" value="Choose your public address" />
+              <Label htmlFor="address">Choose your public address</Label>
               <Tooltip content="Other peers will be informed to respond to this address.">
                 <FiInfo className="text-gray-500" />
               </Tooltip>
@@ -155,7 +155,7 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
                 defaultChecked
                 onChange={() => {
                   setNewUserAddress(
-                    newUserAddressInputRef.current?.value ?? null
+                    newUserAddressInputRef.current?.value ?? null,
                   );
                 }}
               />
@@ -167,7 +167,7 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
                 onChange={() => {
                   if (newUserAddressRadioRef.current?.checked)
                     setNewUserAddress(
-                      newUserAddressInputRef.current?.value ?? null
+                      newUserAddressInputRef.current?.value ?? null,
                     );
                 }}
               ></TextInput>
@@ -261,7 +261,7 @@ export default function Configuration({ open, onClose }: ConfigurationProps) {
             Apply
           </Button>
         </div>
-      </Modal.Body>
+      </ModalBody>
     </Modal>
   );
 }

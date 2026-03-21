@@ -6,9 +6,7 @@ export default function useUserAddress(url?: string) {
   useEffect(() => {
     setAddress(null);
     if (url)
-      fetch(url + "/user/address", {
-        credentials: "include",
-      })
+      fetch(url + "/user/address")
         .then((response) => {
           if (!response.ok) {
             throw new Error("HTTP-Error", { cause: response });
@@ -17,7 +15,7 @@ export default function useUserAddress(url?: string) {
           }
         })
         .then((text) => {
-            setAddress(text.startsWith("<!DOCTYPE html>") ? null : text);
+          setAddress(text.startsWith("<!DOCTYPE html>") ? null : text);
         })
         .catch((error) => {
           console.error("Failed to fetch resource: ", error);

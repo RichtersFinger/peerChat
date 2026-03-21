@@ -1,4 +1,4 @@
-import { Avatar, Dropdown } from "flowbite-react";
+import { Avatar, Dropdown, DropdownItem } from "flowbite-react";
 import { FiMoreVertical } from "react-icons/fi";
 
 import useUser from "../hooks/useUser";
@@ -52,9 +52,9 @@ export default function SidebarUserItem({
             )}
           >
             {menuItems.map((item: DropdownItemType) => (
-              <Dropdown.Item key={item.label} onClick={item.onClick}>
+              <DropdownItem key={item.label} onClick={item.onClick}>
                 {item.label}
-              </Dropdown.Item>
+              </DropdownItem>
             ))}
           </Dropdown>
         </div>

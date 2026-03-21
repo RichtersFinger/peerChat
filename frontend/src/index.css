@@ -1,6 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "flowbite-react/plugin/tailwindcss";
+@source "../.flowbite-react/class-list.json";
+
+/* Override the default dark variant to ONLY look for a .dark class.
+*/
+@variant dark (&:where(.dark, .dark *));
 
 @layer base {
   .show-scrollbar::-webkit-scrollbar-thumb:hover {

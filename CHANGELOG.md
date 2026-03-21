@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.0] - 2026-03-21
+
+### Changed
+
+- migrated to Vite v8
+
 ## [0.7.2] - 2025-04-05
 
 ### Fixed

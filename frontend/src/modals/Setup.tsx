@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Modal, Alert, Button } from "flowbite-react";
+import { Modal, ModalBody, ModalHeader, Alert, Button } from "flowbite-react";
 import { FiInfo, FiAlertCircle, FiCheckCircle } from "react-icons/fi";
 
 import { ApiUrl, authKey, authKeyMaxAge } from "../App";
@@ -18,8 +18,8 @@ export default function Setup({ open, onClose }: SetupProps) {
 
   return (
     <Modal dismissible={true} show={open} size="xl" onClose={onClose} popup>
-      <Modal.Header />
-      <Modal.Body>
+      <ModalHeader />
+      <ModalBody>
         <div className="space-y-6">
           <h5 className="text-xl font-bold">Setup</h5>
           <Alert color="info" icon={FiInfo}>
@@ -75,7 +75,7 @@ export default function Setup({ open, onClose }: SetupProps) {
                   body: JSON.stringify(
                     keyInputRef.current
                       ? { [authKey]: keyInputRef.current.value }
-                      : {}
+                      : {},
                   ),
                   headers: { "content-type": "application/json" },
                 })
@@ -105,7 +105,7 @@ export default function Setup({ open, onClose }: SetupProps) {
             </Button>
           </div>
         </div>
-      </Modal.Body>
+      </ModalBody>
     </Modal>
   );
 }

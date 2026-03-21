@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { Avatar } from "flowbite-react";
 
-import useStore, { Conversation } from "../stores";
+import useStore, { type Conversation } from "../stores";
 import AvatarDisplay from "../modals/AvatarDisplay";
 
 export type ChatHeaderProps = {

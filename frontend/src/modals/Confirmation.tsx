@@ -1,4 +1,4 @@
-import { Modal, Button } from "flowbite-react";
+import { Modal, ModalBody, ModalHeader, Button } from "flowbite-react";
 
 export type ConfirmationProps = {
   open: boolean;
@@ -19,8 +19,8 @@ export default function Confirmation({
 }: ConfirmationProps) {
   return (
     <Modal dismissible={true} show={open} size="xl" onClose={onClose} popup>
-      <Modal.Header />
-      <Modal.Body>
+      <ModalHeader />
+      <ModalBody>
         <div className="space-y-6">
           <h5 className="text-xl font-bold">{title}</h5>
           <p>{text}</p>
@@ -29,7 +29,7 @@ export default function Confirmation({
             <Button onClick={onConfirm}>Confirm</Button>
           </div>
         </div>
-      </Modal.Body>
+      </ModalBody>
     </Modal>
   );
 }

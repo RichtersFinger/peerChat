@@ -1,4 +1,4 @@
-import { Modal, Spinner } from "flowbite-react";
+import { Modal, ModalBody, ModalHeader, Spinner } from "flowbite-react";
 
 import useStore from "../stores";
 
@@ -17,16 +17,16 @@ export default function AvatarDisplay({
 
   return (
     <Modal dismissible={true} show={open} size="xl" onClose={onClose} popup>
-      <Modal.Header>
+      <ModalHeader>
         <h5 className="text-xl font-bold">{peerInfo?.name}'s avatar</h5>
-      </Modal.Header>
-      <Modal.Body>
+      </ModalHeader>
+      <ModalBody>
         {peer && peerInfo?.avatar ? (
           <img alt={peer} src={peerInfo.avatar}></img>
         ) : (
           <Spinner />
         )}
-      </Modal.Body>
+      </ModalBody>
     </Modal>
   );
 }

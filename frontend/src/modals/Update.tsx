@@ -1,5 +1,5 @@
 import { useContext, useState, useEffect, useRef } from "react";
-import { Modal, Spinner, Alert, Button } from "flowbite-react";
+import { Modal, ModalBody, ModalHeader, Spinner, Alert, Button } from "flowbite-react";
 import { FiAlertCircle, FiRefreshCw } from "react-icons/fi";
 
 import useStore from "../stores";
@@ -48,8 +48,8 @@ export default function Update({ open, onClose }: UpdateProps) {
 
   return (
     <Modal dismissible={true} show={open} size="xl" onClose={onClose} popup>
-      <Modal.Header />
-      <Modal.Body>
+      <ModalHeader />
+      <ModalBody>
         <div className="flex flex-row justify-between mb-1">
           <h5 className="text-xl font-bold">Update</h5>
           <Button
@@ -168,7 +168,7 @@ export default function Update({ open, onClose }: UpdateProps) {
             </>
           ) : null}
         </div>
-      </Modal.Body>
+      </ModalBody>
     </Modal>
   );
 }
