@@ -1,5 +1,6 @@
 SHELL := /bin/bash
 VENV := venv
+NODE = docker run -it -v "./:/frontend" -w /frontend --user ${id -u}:${id -g} -p 5173:5173 node:25-alpine
 SKIP_CLIENT =
 VERSION =
 INSTALLLOCATION := ${HOME}/.local/share/
@@ -43,13 +44,13 @@ build-frontend:
 else
 build-frontend:
 	cd frontend && \
-		npm install && \
-		GENERATE_SOURCEMAP=false npm run build
+		${NODE} npm install && \
+		${NODE} npm run build
 endif
 
 build-backend:
 	rm -rf backend/peer_chat/client
-	cp -r frontend/build backend/peer_chat/client
+	cp -r frontend/dist backend/peer_chat/client
 
 build: venv build-frontend build-backend
 	[ "${VERSION}" != "" ] && \
@@ -73,7 +74,7 @@ publish: venv
 		python3 -m twine upload dist/*
 
 clean-frontend:
-	rm -rf frontend/build
+	rm -rf frontend/dist
 
 clean-backend:
 	rm -rf backend/peer_chat/client
